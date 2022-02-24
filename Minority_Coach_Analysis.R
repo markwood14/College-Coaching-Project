@@ -1,0 +1,104 @@
+# Who gets opportunities? Exploring minority coaching performance and outcomes vs. white coaches
+
+library(remotes)
+library(Rcpp)
+library(dplyr)
+library(readr)
+library(tidyverse)
+library(devtools)
+library(cfbfastR)
+library(gt)
+library(ggimage)
+library(ggeasy)
+library(reshape2)
+library(purrr)
+library(parallel)
+library(future)
+library(data.table)
+library(stringr)
+
+coordinators <- coach_df %>% filter(str_detect(Role, "Coordinator"))
+offensive_coordinators <- coordinators %>% filter(str_detect(Role, "Offensive"))
+offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Run Game Coordinator"))
+offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Pass Game Coordinator"))
+offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Associate offensive"))
+offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Special Teams"))
+offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Assistant offensive"))
+offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Offensive Recruiting Coordinator"))
+offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Head Coach"))
+
+defensive_coordinators <- coordinators %>% filter(str_detect(Role, "Defensive"))
+defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Associate Defensive"))
+defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Special Teams"))
+defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Assistant Defensive"))
+defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Recruiting Coordinator"))
+defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Pass Game Coordinator"))
+defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Run Game Coordinator"))
+defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Head Coach"))
+
+head_coaches <- coach_df %>% filter(str_detect(Role, "Head"))
+head_coaches <- head_coaches %>% filter(!str_detect(Role, "Associate Head"))
+head_coaches <- head_coaches %>% filter(!str_detect(Role, "Assistant Head"))
+head_coaches <- head_coaches %>% filter(!str_detect(Role, "Interim Head"))
+
+# High Level Analysis
+
+head_coaches %>% group_by(Race) %>% summarise(num_race = n())
+#   Race  num_race
+#2 Black       69
+#3 Other        8
+#4 White      557
+defensive_coordinators %>% group_by(Race) %>% summarise(num_race = n())
+#  Race  num_race
+#2 Black      230
+#3 Other       23
+#4 White     1094
+offensive_coordinators %>% group_by(Race) %>% summarise(num_race = n())
+#Race  num_race
+#2 Black      121
+#3 Other       14
+#4 White     1108
+
+# Coordinators who became head coaches
+
+offensive_to_head <- offensive_coordinators %>% inner_join(head_coaches, by = "Coach") 
+offensive_to_head <- offensive_to_head%>% distinct(Coach, .keep_all = TRUE)
+defensive_to_head <- defensive_coordinators %>% inner_join(head_coaches, by = "Coach")
+defensive_to_head <- defensive_to_head%>% distinct(Coach, .keep_all = TRUE)
+
+offensive_to_head %>% group_by(Race.x) %>% summarise(num_race = n())
+# Race.x num_race
+#2 Black        12
+#3 Other         2
+#4 White       127
+
+defensive_to_head %>% group_by(Race.x) %>% summarise(num_race = n())
+# Race.x num_race
+#2 Black        11
+#3 Other         3
+#4 White       74
+
+head_coach_impact <- data.frame()
+# Need to edit head_coach to combine where the same guy is still the head coach but added/dropped coordinator title, etc
+
+for(i in 1:nrow(head_coaches)){
+  # create a vector of years from start to end
+  years <- c(year_start:year_end)
+  # provide a check that the start year is 2004 or later so we have data?
+  
+  # pull the team name
+  team <- College
+  # get the advanced stats history
+  for(year in years){
+    team_advanced <- team_advanced %>% dplyr::bind_rows(
+      cfbd_stats_season_advanced(year = , team = team))
+  }
+  # get the FPI ratings
+  for(year in years){
+    team_FPI <- team_FPI %>% dplyr::bind_rows(
+      espn_ratings_fpi(year = year)%>% filter(name == team) %>% select(fpi))
+  }
+ 
+  # create a vector of previous years for comparison
+  # add a column for a before/after tag
+}
