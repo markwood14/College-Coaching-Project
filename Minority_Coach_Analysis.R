@@ -89,11 +89,13 @@ for(i in 1:nrow(head_coaches)){
   # pull the team name
   team <- College
   # get the advanced stats history
+  team_advanced <- data.frame()
   for(year in years){
     team_advanced <- team_advanced %>% dplyr::bind_rows(
       cfbd_stats_season_advanced(year = , team = team))
   }
   # get the FPI ratings
+  team_FPI <- data.frame()
   for(year in years){
     team_FPI <- team_FPI %>% dplyr::bind_rows(
       espn_ratings_fpi(year = year)%>% filter(name == team) %>% select(fpi))
@@ -102,3 +104,8 @@ for(i in 1:nrow(head_coaches)){
   # create a vector of previous years for comparison
   # add a column for a before/after tag
 }
+
+# repeat for offensive coordinators - pull offensive advanced stats and offensive FPI
+# repeat for defensive coordinators - pull defensive advanced stats and offensive FPI
+
+# use code from Coaching Analysis to summarise before/after, net change, etc
