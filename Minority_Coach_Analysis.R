@@ -86,15 +86,15 @@ for(i in 1:nrow(head_coaches)){
   years <- c(head_coaches[i, "year_start"]:head_coaches[i, "year_end"])
   # provide a check that the start year is 2005 or later so we have data?
   if years[1] < 2005
-    then years <-2005;
-  
+    then years[1] <-2005;
+  # this isn't right, years vector won't turn out correctly
   # pull the team name
   team <- head_coaches[i, "College"]
   
   # get the advanced stats history
   
   team_advanced <- data.frame()
-  
+ 
   for(year in years){
     team_advanced <- team_advanced %>% dplyr::bind_rows(
       cfbd_stats_season_advanced(year = year, team = team))
@@ -114,7 +114,7 @@ for(i in 1:nrow(head_coaches)){
   years <- years - 3
   
   if years[1] < 2005
-    then years <-2005;
+    then years[1] <-2005;
   # repeat to get advanced stats and FPI and then join to head_coach_impact
   
 }
