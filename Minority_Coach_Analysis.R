@@ -85,8 +85,8 @@ for(i in 1:nrow(head_coaches)){
   # create a vector of years from start to end
   years <- c(head_coaches[i, "year_start"]:head_coaches[i, "year_end"])
   # provide a check that the start year is 2005 or later so we have data?
-  if years[1] < 2005
-    then years[1] <-2005;
+  if (years[1] < 2005) {
+    years[1] <-2005}
   # this isn't right, years vector won't turn out correctly
   # pull the team name
   team <- head_coaches[i, "College"]
@@ -113,8 +113,8 @@ for(i in 1:nrow(head_coaches)){
   # create a vector of previous years for comparison, mark those as before
   years <- years - 3
   
-  if years[1] < 2005
-    then years[1] <-2005;
+  if (years[1] < 2005){
+    years[1] <-2005}
   # repeat to get advanced stats and FPI and then join to head_coach_impact
   
 }
