@@ -78,44 +78,101 @@ defensive_to_head %>% group_by(Race.x) %>% summarise(num_race = n())
 #3 Other         3
 #4 White       74
 
-head_coach_impact <- data.frame(coaches$Coach)
-# Need to edit head_coach to combine where the same guy is still the head coach but added/dropped coordinator title, etc
 
-for(i in 1:nrow(head_coaches)){
-  # create a vector of years from start to end
-  years <- c(head_coaches[i, "year_start"]:head_coaches[i, "year_end"])
-  # provide a check that the start year is 2005 or later so we have data?
-  if (years[1] < 2005) {
-    years[1] <-2005}
-  # this isn't right, years vector won't turn out correctly
-  # pull the team name
-  team <- head_coaches[i, "College"]
+
+# filtering to only coaches where we will have before/after data - done
+head_coaches_recent <- head_coaches %>% filter(year_start >= 2006)
+
+# Need to edit head_coach to combine where the same guy is still the head coach but added/dropped coordinator title, etc
+## head_coaches_recent <- head_coaches_recent %>% ???? - this needs work
+
+# creating an empty df that we will use to add rows to throughout - done
+head_coach_impact <- data.frame()
+# for loop that will create a huge before/after stat dataframe - done
+for(i in 1:nrow(head_coaches_recent)){
+  # create a vector of years from start to end - done
   
-  # get the advanced stats history
+  start_year <- as.integer(head_coaches_recent[i, "year_start"])
+  if (start_year<2005){start_year<-2005}
+  end_year <- as.integer(head_coaches_recent[i,6])
+  years <-start_year:end_year
+  
+  # pull the team name - done
+  team <- toString(head_coaches_recent[i, "College"])
+  
+  # pull the coach's name - done
+  coach <- toString(head_coaches_recent[i, "Coach"])
+  # pull the coach's race - done
+  race <- toString(head_coaches_recent[i, "Race"])
+  
+  # get the advanced stats history - done
   
   team_advanced <- data.frame()
- 
+  num_years <- length(years)
+  
   for(year in years){
     team_advanced <- team_advanced %>% dplyr::bind_rows(
       cfbd_stats_season_advanced(year = year, team = team))
   }
+  # get the FPI ratings - done
   
-  # join the advanced stats to the head_coach_impact df, join by Coach name?
-  
-  # get the FPI ratings
   team_FPI <- data.frame()
   for(year in years){
-    team_FPI <- team_FPI %>% dplyr::bind_rows(
-      espn_ratings_fpi(year = year)%>% filter(name == team) %>% select(fpi))
+    fpi_row <- cfbfastR:::espn_ratings_fpi(year=year)%>% filter(name == team) %>% select(fpi) %>%as.double() %>% set_names(c("fpi")) 
+    team_FPI <- team_FPI %>% bind_rows(fpi_row)
   }
-  # join to the head_coach_impact df, join by coach name?
-  # add a column for a before/after tag
-  # create a vector of previous years for comparison, mark those as before
-  years <- years - 3
   
-  if (years[1] < 2005){
-    years[1] <-2005}
-  # repeat to get advanced stats and FPI and then join to head_coach_impact
+  # join the advanced stats and FPI to the head_coach_impact df, binding new rows - done
+  
+  for(j in 1:nrow(team_advanced)){
+    row_to_add <- bind_cols(c(coach), team_advanced[j,], team_FPI[j,], c(race), c("after"))
+    colnames(row_to_add)[1] <- toString("Coach")
+    colnames(row_to_add)[83] <- toString("FPI_Rating")
+    colnames(row_to_add)[84] <- toString("Race")
+    colnames(row_to_add)[85] <- toString("BeforeAfter")
+    
+    head_coach_impact <- head_coach_impact %>% bind_rows(row_to_add)
+  }
+  
+
+  # create a vector of previous years for comparison, will mark data for these years as "before" - done
+  
+  previous_years <- (years[1] - 3):(years[1]-1)
+  
+  # checking to make sure that we have data for the years and adjusting the years vector - done
+  if(previous_years[1] < 2005){
+    previous_years <-2005:tail(previous_years, 1)
+  }
+  
+  # repeat to get advanced stats and FPI and then join to head_coach_impact- done
+  
+  # get the before advanced stats history - done
+  
+  num_years <- length(previous_years)
+  team_advanced <- data.frame()
+  
+  for(year in previous_years){
+    team_advanced <- team_advanced %>% dplyr::bind_rows(
+      cfbd_stats_season_advanced(year = year, team = team))
+  }
+  # get the FPI ratings - done
+  
+  team_FPI <- data.frame()
+  for(year in previous_years){
+    fpi_row <- cfbfastR:::espn_ratings_fpi(year=year)%>% filter(name == team) %>% select(fpi) %>%as.double() %>% set_names(c("fpi")) 
+    team_FPI <- team_FPI %>% bind_rows(fpi_row)
+  }
+  
+  # join the advanced stats and FPI to the head_coach_impact df, binding new rows - done
+  
+  for(j in 1:nrow(team_advanced)){
+    row_to_add <- bind_cols(c(coach), team_advanced[j,], team_FPI[j,], c(race), c("before"))
+    colnames(row_to_add)[1] <- toString("Coach")
+    colnames(row_to_add)[83] <- toString("FPI_Rating")
+    colnames(row_to_add)[84] <- toString("Race")
+    colnames(row_to_add)[85] <- toString("BeforeAfter")
+    head_coach_impact <- head_coach_impact %>% bind_rows(row_to_add)
+  }
   
 }
 
