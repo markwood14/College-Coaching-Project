@@ -78,31 +78,45 @@ defensive_to_head %>% group_by(Race.x) %>% summarise(num_race = n())
 #3 Other         3
 #4 White       74
 
-head_coach_impact <- data.frame()
+head_coach_impact <- data.frame(coaches$Coach)
 # Need to edit head_coach to combine where the same guy is still the head coach but added/dropped coordinator title, etc
 
 for(i in 1:nrow(head_coaches)){
   # create a vector of years from start to end
-  years <- c(year_start:year_end)
-  # provide a check that the start year is 2004 or later so we have data?
+  years <- c(head_coaches[i, "year_start"]:head_coaches[i, "year_end"])
+  # provide a check that the start year is 2005 or later so we have data?
+  if years[1] < 2005
+    then years <-2005;
   
   # pull the team name
-  team <- College
+  team <- head_coaches[i, "College"]
+  
   # get the advanced stats history
+  
   team_advanced <- data.frame()
+  
   for(year in years){
     team_advanced <- team_advanced %>% dplyr::bind_rows(
-      cfbd_stats_season_advanced(year = , team = team))
+      cfbd_stats_season_advanced(year = year, team = team))
   }
+  
+  # join the advanced stats to the head_coach_impact df, join by Coach name?
+  
   # get the FPI ratings
   team_FPI <- data.frame()
   for(year in years){
     team_FPI <- team_FPI %>% dplyr::bind_rows(
       espn_ratings_fpi(year = year)%>% filter(name == team) %>% select(fpi))
   }
- 
-  # create a vector of previous years for comparison
+  # join to the head_coach_impact df, join by coach name?
   # add a column for a before/after tag
+  # create a vector of previous years for comparison, mark those as before
+  years <- years - 3
+  
+  if years[1] < 2005
+    then years <-2005;
+  # repeat to get advanced stats and FPI and then join to head_coach_impact
+  
 }
 
 # repeat for offensive coordinators - pull offensive advanced stats and offensive FPI
