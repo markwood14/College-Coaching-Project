@@ -99,17 +99,38 @@ defensive_to_head %>% group_by(Race.x) %>% summarise(num_race = n())
 # filtering to only coaches where we will have before/after data - done
 head_coaches_recent <- head_coaches %>% filter(year_start >= 2006)
 
+# fixing issue with mismatched school names
+head_coaches_recent["College"][head_coaches_recent["College"] == "FAU"] <- "Florida Atlantic"
+head_coaches_recent["College"][head_coaches_recent["College"] == "FIU"] <- "Florida International"
+head_coaches_recent["College"][head_coaches_recent["College"] == "Hawaii"] <- "Hawai'i"
+head_coaches_recent["College"][head_coaches_recent["College"] == "Massachusetts"] <- "UMass"
+head_coaches_recent["College"][head_coaches_recent["College"] == "Miami (FL)"] <- "Miami"
+head_coaches_recent["College"][head_coaches_recent["College"] == "San Jose State"] <- "San José State"
+head_coaches_recent["College"][head_coaches_recent["College"] == "Southern Miss"] <- "Southern Mississippi"
+head_coaches_recent["College"][head_coaches_recent["College"] == "UConn"] <- "Connecticut"
+head_coaches_recent["College"][head_coaches_recent["College"] == "UL Monroe"] <- "Louisiana Monroe"
+head_coaches_recent["College"][head_coaches_recent["College"] == "USF"] <- "South Florida"
+head_coaches_recent["College"][head_coaches_recent["College"] == "UTSA"] <- "UT San Antonio"
+
 # Edit head_coach to combine where the same guy is still the head coach but added/dropped coordinator title, etc
 head_coaches_recent <- head_coaches_recent %>% 
   group_by(College, Coach) %>%
   mutate(year_start = min(year_start), 
-         year_end = min(year_end)) %>%
+         year_end = max(year_end)) %>%
   distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
 
 # creating an empty df that we will use to add rows to throughout - done
 head_coach_impact <- data.frame()
+
+
 # for loop that will create a huge before/after stat dataframe - done
-for(i in 1:nrow(head_coaches_recent)){
+
+# charlotte did not exist before 2015, so it errored out. starting the loop again with 
+# row 66, will healy taking over charlotte
+# same error for coastal, starting at row 73 with chadwell
+# anticipate it will do the same with uab and maybe others
+
+for(i in 89:nrow(head_coaches_recent)){
   # create a vector of years from start to end - done
   
   start_year <- as.integer(head_coaches_recent[i, "year_start"])
@@ -131,9 +152,14 @@ for(i in 1:nrow(head_coaches_recent)){
   num_years <- length(years)
   
   for(year in years){
-    team_advanced <- team_advanced %>% dplyr::bind_rows(
-      cfbd_stats_season_advanced(year = year, team = team))
+    progressr::with_progress({
+      future::plan("multisession")
+      team_advanced <- team_advanced %>% dplyr::bind_rows(
+        cfbd_stats_season_advanced(year = year, team = team))
+      
+    })
   }
+
   # get the FPI ratings - done
   
   team_FPI <- data.frame()
@@ -196,7 +222,11 @@ for(i in 1:nrow(head_coaches_recent)){
   
 }
 
+save(head_coach_impact, file="head_coach_impact.Rda")
+
+# load("head_coach_impact.Rda")
+# use code from Coaching Analysis to summarise before/after, net change, etc
+
 # repeat for offensive coordinators - pull offensive advanced stats and offensive FPI
 # repeat for defensive coordinators - pull defensive advanced stats and offensive FPI
 
-# use code from Coaching Analysis to summarise before/after, net change, etc
