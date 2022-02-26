@@ -1,4 +1,7 @@
-# Who gets opportunities? Exploring minority coaching performance and outcomes vs. white coaches
+# Who gets opportunities? Exploring minority coaching performance and outcomes vs. white coaches - how long does it take each to get promoted / fired? How many chances do they get after being let go?
+# Give attention to minority coordinators who seem to deserve a shot at HC (be careful using subjective "Race" data for individuals)
+# Are minorities equally under-represented among assistants, coordinators, and HCs?
+# Are there certain HCs who seem to more readily give minorities promotions / coordinator opportunities?
 
 library(remotes)
 library(Rcpp)
