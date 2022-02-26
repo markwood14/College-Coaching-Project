@@ -17,6 +17,18 @@ library(future)
 library(data.table)
 library(stringr)
 
+# Read and clean the coaches csv
+coach_df <- read.csv("coaches_by_race.csv")
+coach_df <- coach_df %>%
+  filter(Race != "#N/A") %>%
+  group_by(Coach, College, Role) %>%
+  mutate(year_start = min(Season),
+         year_end = max(Season)) %>%
+  select(c(College, Coach, Role, Race, year_start, year_end)) %>%
+  distinct()
+save(coach_df,file="coach_df.Rda")
+
+
 coordinators <- coach_df %>% filter(str_detect(Role, "Coordinator"))
 offensive_coordinators <- coordinators %>% filter(str_detect(Role, "Offensive"))
 offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Run Game Coordinator"))
@@ -42,6 +54,7 @@ head_coaches <- head_coaches %>% filter(!str_detect(Role, "Assistant Head"))
 head_coaches <- head_coaches %>% filter(!str_detect(Role, "Interim Head"))
 
 # High Level Analysis
+coach_df %>% group_by(Race) %>% summarise(num_race = n())
 
 head_coaches %>% group_by(Race) %>% summarise(num_race = n())
 #   Race  num_race
@@ -83,8 +96,12 @@ defensive_to_head %>% group_by(Race.x) %>% summarise(num_race = n())
 # filtering to only coaches where we will have before/after data - done
 head_coaches_recent <- head_coaches %>% filter(year_start >= 2006)
 
-# Need to edit head_coach to combine where the same guy is still the head coach but added/dropped coordinator title, etc
-## head_coaches_recent <- head_coaches_recent %>% ???? - this needs work
+# Edit head_coach to combine where the same guy is still the head coach but added/dropped coordinator title, etc
+head_coaches_recent <- head_coaches_recent %>% 
+  group_by(College, Coach) %>%
+  mutate(year_start = min(year_start), 
+         year_end = min(year_end)) %>%
+  distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
 
 # creating an empty df that we will use to add rows to throughout - done
 head_coach_impact <- data.frame()
@@ -134,7 +151,7 @@ for(i in 1:nrow(head_coaches_recent)){
     head_coach_impact <- head_coach_impact %>% bind_rows(row_to_add)
   }
   
-
+  
   # create a vector of previous years for comparison, will mark data for these years as "before" - done
   
   previous_years <- (years[1] - 3):(years[1]-1)
