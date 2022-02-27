@@ -128,9 +128,9 @@ head_coach_impact <- data.frame()
 # charlotte did not exist before 2015, so it errored out. starting the loop again with 
 # row 66, will healy taking over charlotte
 # same error for coastal, starting at row 73 with chadwell
-# anticipate it will do the same with uab and maybe others
+# same error for utsa, starting at row 342 with wilson
 
-for(i in 89:nrow(head_coaches_recent)){
+for(i in 342:nrow(head_coaches_recent)){
   # create a vector of years from start to end - done
   
   start_year <- as.integer(head_coaches_recent[i, "year_start"])
@@ -226,6 +226,45 @@ save(head_coach_impact, file="head_coach_impact.Rda")
 
 # load("head_coach_impact.Rda")
 # use code from Coaching Analysis to summarise before/after, net change, etc
+head_coach_impact_summary <- head_coach_impact %>% select(c("Coach", "team", "off_ppa", "off_success_rate", "off_stuff_rate", "off_passing_plays_success_rate",
+                                                            "def_ppa", "def_success_rate", "def_stuff_rate", "def_passing_plays_success_rate", "FPI_Rating", "Race", "BeforeAfter"))
+
+head_coach_impact_summary <- head_coach_impact_summary %>% group_by(Coach, team, Race, BeforeAfter) %>% summarise(
+  mean_ppa = mean(off_ppa), 
+  mean_sr = mean(off_success_rate),
+  mean_stuff = mean(off_stuff_rate),
+  mean_pass_sr = mean(off_passing_plays_success_rate),
+  mean_defppa = mean(def_ppa),
+  mean_defsr = mean(def_success_rate),
+  mean_defstuff = mean(def_stuff_rate),
+  mean_defpasssr = mean(def_passing_plays_success_rate),
+  mean_fpi = mean(FPI_Rating)
+)
+
+# fixing to account for the three instances with no "before"
+head_coach_impact_summary <- head_coach_impact_summary[-c(51,340,403),]
+
+# Calculating the net (offense-defense after-before) impact on PPA, SR, Stuff, Pass SR, FPI
+
+head_coach_impact_results <- data.frame()
+i <- 1
+while (i < nrow(head_coach_impact_summary)){
+  head_coach_results <- data.frame()
+  row_to_add <- data.frame()
+  head_coach_results <- head_coach_impact_summary[i,] %>% group_by(Coach, team, Race) %>% 
+    summarise(net_ppa = head_coach_impact_summary[i,"mean_ppa"]-head_coach_impact_summary[i+1, "mean_ppa"] - head_coach_impact_summary[i,"mean_defppa"]+head_coach_impact_summary[i+1, "mean_defppa"],
+              net_sr = head_coach_impact_summary[i,"mean_sr"]-head_coach_impact_summary[i+1, "mean_sr"] - head_coach_impact_summary[i,"mean_defsr"]+head_coach_impact_summary[i+1, "mean_defsr"],
+              net_stuff = head_coach_impact_summary[i,"mean_stuff"]-head_coach_impact_summary[i+1, "mean_stuff"] - head_coach_impact_summary[i,"mean_defstuff"]+head_coach_impact_summary[i+1, "mean_defstuff"],
+              net_pass_sr = head_coach_impact_summary[i,"mean_pass_sr"]-head_coach_impact_summary[i+1, "mean_pass_sr"] - head_coach_impact_summary[i,"mean_defpasssr"]+head_coach_impact_summary[i+1, "mean_defpasssr"],
+              net_fpi = head_coach_impact_summary[i,"mean_fpi"]-head_coach_impact_summary[i+1, "mean_fpi"])
+  head_coach_impact_results <- head_coach_impact_results %>% bind_rows(head_coach_results)
+  i=i+2
+}
+colnames(head_coach_impact_results) <- c(toString("Coach"), "Team", "Race", "Net_PPA", "Net_SR", "Net_Stuff_Rate", "Net_Pass_SR", "Net_FPI")
+
+save(head_coach_impact_results, file="head_coach_impact_results.Rda")
+
+# load("head_coach_impact_results.Rda")
 
 # repeat for offensive coordinators - pull offensive advanced stats and offensive FPI
 # repeat for defensive coordinators - pull defensive advanced stats and offensive FPI
