@@ -640,6 +640,12 @@ dc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_
 #3 White          -0.00471
 ## - We have something!
 
+dc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(Net_SR))
+#Race  mean_net_sr_race
+#  1 Black          0.0125 
+#2 Other          0.00652
+#3 White         -0.00154
+
 # doing the same for offense
 offensive_to_head <- offensive_to_head %>% select(College.x, Coach, Race.x, College.y)
 colnames(offensive_to_head) <- c("Coordinator_School", "Coach", "Race", "Head_Coach_School")
@@ -656,3 +662,6 @@ oc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_
 #2 Black            0.0116
 #3 Other           -0.0743
 #4 White            0.0358
+
+oc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(Net_SR))
+oc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_stuff_race = mean(Net_Stuff))
