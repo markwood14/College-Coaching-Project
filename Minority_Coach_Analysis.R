@@ -266,6 +266,134 @@ save(head_coach_impact_results, file="head_coach_impact_results.Rda")
 
 # load("head_coach_impact_results.Rda")
 
-# repeat for offensive coordinators - pull offensive advanced stats and offensive FPI
+# Fixing issue where individual columns are lists
+head_coach_impact_results_test <- lapply(head_coach_impact_results, unlist)
+head_coach_impact_results_test <- data.frame(lapply(head_coach_impact_results_test, `length<-`, max(lengths(head_coach_impact_results_test))))
+head_coach_impact_results <- head_coach_impact_results_test
+
+# doing some preliminary analysis
+head_coach_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
+#   Race  mean_net_ppa_race
+#  1 ?              -0.0222 
+#2 Black          -0.0292 
+#3 Other           0.00167
+#4 White           0.0106 
+
+# repeat for offensive coordinators - pull offensive advanced stats
+
+# data cleaning for OC dataframe
+
+# filtering to only coaches where we will have before/after data - done
+oc_recent <- offensive_coordinators %>% filter(year_start >= 2006)
+
+# fixing issue with mismatched school names
+oc_recent["College"][oc_recent["College"] == "FAU"] <- "Florida Atlantic"
+oc_recent["College"][oc_recent["College"] == "FIU"] <- "Florida International"
+oc_recent["College"][oc_recent["College"] == "Hawaii"] <- "Hawai'i"
+oc_recent["College"][oc_recent["College"] == "Massachusetts"] <- "UMass"
+oc_recent["College"][oc_recent["College"] == "Miami (FL)"] <- "Miami"
+oc_recent["College"][oc_recent["College"] == "San Jose State"] <- "San José State"
+oc_recent["College"][oc_recent["College"] == "Southern Miss"] <- "Southern Mississippi"
+oc_recent["College"][oc_recent["College"] == "UConn"] <- "Connecticut"
+oc_recent["College"][oc_recent["College"] == "UL Monroe"] <- "Louisiana Monroe"
+oc_recent["College"][oc_recent["College"] == "USF"] <- "South Florida"
+oc_recent["College"][oc_recent["College"] == "UTSA"] <- "UT San Antonio"
+
+# Edit oc_recent to combine where the same guy is still the head coach but added/dropped coordinator title, etc
+oc_recent <- oc_recent %>% 
+  group_by(College, Coach) %>%
+  mutate(year_start = min(year_start), 
+         year_end = max(year_end)) %>%
+  distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
+
+# creating an empty df that we will use to add rows to throughout - done
+oc_impact <- data.frame()
+
+
+# for loop that will create a huge before/after stat dataframe - done
+
+# charlotte did not exist before 2015, so it errored out. starting the loop again with 
+# row 66, will healy taking over charlotte
+# same error for coastal, starting at row 73 with chadwell
+# same error for utsa, starting at row 342 with wilson
+
+for(i in 1:nrow(oc_recent)){
+  # create a vector of years from start to end - done
+  
+  start_year <- as.integer(oc_recent[i, "year_start"])
+  if (start_year<2005){start_year<-2005}
+  end_year <- as.integer(oc_recent[i,6])
+  years <-start_year:end_year
+  
+  # pull the team name - done
+  team <- toString(oc_recent[i, "College"])
+  
+  # pull the coach's name - done
+  coach <- toString(oc_recent[i, "Coach"])
+  # pull the coach's race - done
+  race <- toString(oc_recent[i, "Race"])
+  
+  # get the advanced stats history - done
+  
+  team_advanced <- data.frame()
+  num_years <- length(years)
+  
+  for(year in years){
+    progressr::with_progress({
+      future::plan("multisession")
+      team_advanced <- team_advanced %>% dplyr::bind_rows(
+        cfbd_stats_season_advanced(year = year, team = team))
+      
+    })
+  }
+  
+  # join the advanced stats and FPI to the oc_impact df, binding new rows - done
+  
+  for(j in 1:nrow(team_advanced)){
+    row_to_add <- bind_cols(c(coach), team_advanced[j,], c(race), c("after"))
+    colnames(row_to_add)[1] <- toString("Coach")
+    colnames(row_to_add)[83] <- toString("Race")
+    colnames(row_to_add)[84] <- toString("BeforeAfter")
+    
+    oc_impact <- oc_impact %>% bind_rows(row_to_add)
+  }
+  
+  
+  # create a vector of previous years for comparison, will mark data for these years as "before" - done
+  
+  previous_years <- (years[1] - 3):(years[1]-1)
+  
+  # checking to make sure that we have data for the years and adjusting the years vector - done
+  if(previous_years[1] < 2005){
+    previous_years <-2005:tail(previous_years, 1)
+  }
+  
+  # repeat to get advanced stats and then join to oc_impact- done
+  
+  # get the before advanced stats history - done
+  
+  num_years <- length(previous_years)
+  team_advanced <- data.frame()
+  
+  for(year in previous_years){
+    team_advanced <- team_advanced %>% dplyr::bind_rows(
+      cfbd_stats_season_advanced(year = year, team = team))
+  }
+  
+  # join the advanced stats to the oc_impact df, binding new rows - done
+  
+  for(j in 1:nrow(team_advanced)){
+    row_to_add <- bind_cols(c(coach), team_advanced[j,], c(race), c("before"))
+    colnames(row_to_add)[1] <- toString("Coach")
+    colnames(row_to_add)[83] <- toString("Race")
+    colnames(row_to_add)[84] <- toString("BeforeAfter")
+    oc_impact <- oc_impact %>% bind_rows(row_to_add)
+  }
+  
+}
+
+save(oc_impact, file="oc_impact.Rda")
+
+# load("oc_impact.Rda")
 # repeat for defensive coordinators - pull defensive advanced stats and offensive FPI
 
