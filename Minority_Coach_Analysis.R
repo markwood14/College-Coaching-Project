@@ -313,11 +313,10 @@ oc_impact <- data.frame()
 # for loop that will create a huge before/after stat dataframe - done
 
 # charlotte did not exist before 2015, so it errored out. starting the loop again with 
-# row 66, will healy taking over charlotte
-# same error for coastal, starting at row 73 with chadwell
-# same error for utsa, starting at row 342 with wilson
+# row 135, shane montgomery taking over charlotte
+# same error for UTSA, starting again on row 771
 
-for(i in 1:nrow(oc_recent)){
+for(i in 772:nrow(oc_recent)){
   # create a vector of years from start to end - done
   
   start_year <- as.integer(oc_recent[i, "year_start"])
@@ -395,5 +394,265 @@ for(i in 1:nrow(oc_recent)){
 save(oc_impact, file="oc_impact.Rda")
 
 # load("oc_impact.Rda")
-# repeat for defensive coordinators - pull defensive advanced stats and offensive FPI
 
+# use code from Coaching Analysis to summarise before/after, net change, etc
+oc_impact_summary <-oc_impact %>% select(c("Coach", "team", "off_ppa", "off_success_rate", "off_stuff_rate", "off_passing_plays_success_rate",
+                                           "Race", "BeforeAfter"))
+
+oc_impact_summary <- oc_impact_summary %>% group_by(Coach, team, Race, BeforeAfter) %>% summarise(
+  mean_ppa = mean(off_ppa), 
+  mean_sr = mean(off_success_rate),
+  mean_stuff = mean(off_stuff_rate),
+  mean_pass_sr = mean(off_passing_plays_success_rate),
+)
+
+# fixing to account for the three instances with no "before"
+oc_impact_summary <- oc_impact_summary[-c(737, 920),]
+
+# Calculating the net (offense-defense after-before) impact on PPA, SR, Stuff, Pass SR, FPI
+
+oc_impact_results <- data.frame()
+i <- 1
+while (i < nrow(oc_impact_summary)){
+  oc_results <- data.frame()
+  row_to_add <- data.frame()
+  oc_results <- oc_impact_summary[i,] %>% group_by(Coach, team, Race) %>% 
+    summarise(net_ppa = oc_impact_summary[i,"mean_ppa"]-oc_impact_summary[i+1, "mean_ppa"],
+              net_sr = oc_impact_summary[i,"mean_sr"]-oc_impact_summary[i+1, "mean_sr"],
+              net_stuff = oc_impact_summary[i,"mean_stuff"]-oc_impact_summary[i+1, "mean_stuff"],
+              net_pass_sr = oc_impact_summary[i,"mean_pass_sr"]-oc_impact_summary[i+1, "mean_pass_sr"])
+  oc_impact_results <- oc_impact_results %>% bind_rows(oc_results)
+  i=i+2
+}
+
+save(oc_impact_results, file="oc_impact_results.Rda")
+
+# load("head_coach_impact_results.Rda")
+
+# Fixing issue where individual columns are lists
+oc_impact_results_test <- lapply(oc_impact_results, unlist)
+oc_impact_results_test <- data.frame(lapply(oc_impact_results_test, `length<-`, max(lengths(oc_impact_results_test))))
+oc_impact_results <- oc_impact_results_test
+
+# updating a few of the Race entries
+oc_impact_results["Race"][oc_impact_results["Coach"] == "Billy Gonzales"] <- "Other"
+oc_impact_results["Race"][oc_impact_results["Coach"] == "Ron Prince"] <- "Black"
+# doing some preliminary analysis
+oc_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_ppa))
+#Race  mean_net_ppa_race
+#  1 ?              0.0380
+#2 Black            0.0114
+#3 Other           -0.0145
+#4 White            0.0259 
+
+oc_impact_results %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(net_sr))
+oc_impact_results %>% group_by(Race) %>% summarise(mean_net_passsr_race = mean(net_pass_sr))
+
+# repeat for defensive coordinators - pull defensive advanced stats
+
+# data cleaning for DC dataframe
+
+# filtering to only coaches where we will have before/after data - done
+dc_recent <- defensive_coordinators %>% filter(year_start >= 2006)
+
+# fixing issue with mismatched school names
+dc_recent["College"][dc_recent["College"] == "FAU"] <- "Florida Atlantic"
+dc_recent["College"][dc_recent["College"] == "FIU"] <- "Florida International"
+dc_recent["College"][dc_recent["College"] == "Hawaii"] <- "Hawai'i"
+dc_recent["College"][dc_recent["College"] == "Massachusetts"] <- "UMass"
+dc_recent["College"][dc_recent["College"] == "Miami (FL)"] <- "Miami"
+dc_recent["College"][dc_recent["College"] == "San Jose State"] <- "San José State"
+dc_recent["College"][dc_recent["College"] == "Southern Miss"] <- "Southern Mississippi"
+dc_recent["College"][dc_recent["College"] == "UConn"] <- "Connecticut"
+dc_recent["College"][dc_recent["College"] == "UL Monroe"] <- "Louisiana Monroe"
+dc_recent["College"][dc_recent["College"] == "USF"] <- "South Florida"
+dc_recent["College"][dc_recent["College"] == "UTSA"] <- "UT San Antonio"
+
+# Edit dc_recent to combine where the same guy is still the head coach but added/dropped coordinator title, etc
+dc_recent <- dc_recent %>% 
+  group_by(College, Coach) %>%
+  mutate(year_start = min(year_start), 
+         year_end = max(year_end)) %>%
+  distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
+
+# creating an empty df that we will use to add rows to throughout - done
+dc_impact <- data.frame()
+
+
+# for loop that will create a huge before/after stat dataframe - done
+
+# charlotte did not exist before 2015, so it errored out. starting the loop again with 
+# row 115,  charlotte
+# row 134, coastal
+# same error for UTSA, starting again on row 764
+
+for(i in 764:nrow(dc_recent)){
+  # create a vector of years from start to end - done
+  
+  start_year <- as.integer(dc_recent[i, "year_start"])
+  if (start_year<2005){start_year<-2005}
+  end_year <- as.integer(dc_recent[i,6])
+  years <-start_year:end_year
+  
+  # pull the team name - done
+  team <- toString(dc_recent[i, "College"])
+  
+  # pull the coach's name - done
+  coach <- toString(dc_recent[i, "Coach"])
+  # pull the coach's race - done
+  race <- toString(dc_recent[i, "Race"])
+  
+  # get the advanced stats history - done
+  
+  team_advanced <- data.frame()
+  num_years <- length(years)
+  
+  for(year in years){
+    progressr::with_progress({
+      future::plan("multisession")
+      team_advanced <- team_advanced %>% dplyr::bind_rows(
+        cfbd_stats_season_advanced(year = year, team = team))
+      
+    })
+  }
+  
+  # join the advanced stats and FPI to the oc_impact df, binding new rows - done
+  
+  for(j in 1:nrow(team_advanced)){
+    row_to_add <- bind_cols(c(coach), team_advanced[j,], c(race), c("after"))
+    colnames(row_to_add)[1] <- toString("Coach")
+    colnames(row_to_add)[83] <- toString("Race")
+    colnames(row_to_add)[84] <- toString("BeforeAfter")
+    
+    dc_impact <- dc_impact %>% bind_rows(row_to_add)
+  }
+  
+  
+  # create a vector of previous years for comparison, will mark data for these years as "before" - done
+  
+  previous_years <- (years[1] - 3):(years[1]-1)
+  
+  # checking to make sure that we have data for the years and adjusting the years vector - done
+  if(previous_years[1] < 2005){
+    previous_years <-2005:tail(previous_years, 1)
+  }
+  
+  # repeat to get advanced stats and then join to oc_impact- done
+  
+  # get the before advanced stats history - done
+  
+  num_years <- length(previous_years)
+  team_advanced <- data.frame()
+  
+  for(year in previous_years){
+    team_advanced <- team_advanced %>% dplyr::bind_rows(
+      cfbd_stats_season_advanced(year = year, team = team))
+  }
+  
+  # join the advanced stats to the oc_impact df, binding new rows - done
+  
+  for(j in 1:nrow(team_advanced)){
+    row_to_add <- bind_cols(c(coach), team_advanced[j,], c(race), c("before"))
+    colnames(row_to_add)[1] <- toString("Coach")
+    colnames(row_to_add)[83] <- toString("Race")
+    colnames(row_to_add)[84] <- toString("BeforeAfter")
+    dc_impact <- dc_impact %>% bind_rows(row_to_add)
+  }
+  
+}
+
+save(dc_impact, file="dc_impact.Rda")
+
+# load("dc_impact.Rda")
+
+# use code from Coaching Analysis to summarise before/after, net change, etc
+dc_impact_summary <-dc_impact %>% select(c("Coach", "team", "def_ppa", "def_success_rate", "def_stuff_rate", "def_passing_plays_success_rate",
+                                           "Race", "BeforeAfter"))
+
+dc_impact_summary <- dc_impact_summary %>% group_by(Coach, team, Race, BeforeAfter) %>% summarise(
+  mean_ppa = mean(def_ppa), 
+  mean_sr = mean(def_success_rate),
+  mean_stuff = mean(def_stuff_rate),
+  mean_pass_sr = mean(def_passing_plays_success_rate),
+)
+
+# fixing to account for the three instances with no "before"
+dc_impact_summary <- dc_impact_summary[-c(1105, 1114, 1189),]
+
+# Calculating the net (offense-defense after-before) impact on PPA, SR, Stuff, Pass SR, FPI
+
+dc_impact_results <- data.frame()
+i <- 1
+# flipping signs so that positive change is good for a DC
+while (i < nrow(dc_impact_summary)){
+  dc_results <- data.frame()
+  row_to_add <- data.frame()
+  dc_results <- dc_impact_summary[i,] %>% group_by(Coach, team, Race) %>% 
+    summarise(net_ppa = -dc_impact_summary[i,"mean_ppa"]+dc_impact_summary[i+1, "mean_ppa"],
+              net_sr = -dc_impact_summary[i,"mean_sr"]+dc_impact_summary[i+1, "mean_sr"],
+              net_stuff = -dc_impact_summary[i,"mean_stuff"]+dc_impact_summary[i+1, "mean_stuff"],
+              net_pass_sr = -dc_impact_summary[i,"mean_pass_sr"]+dc_impact_summary[i+1, "mean_pass_sr"])
+  dc_impact_results <- dc_impact_results %>% bind_rows(dc_results)
+  i=i+2
+}
+
+# Fixing issue where individual columns are lists
+dc_impact_results_test <- lapply(dc_impact_results, unlist)
+dc_impact_results_test <- data.frame(lapply(dc_impact_results_test, `length<-`, max(lengths(dc_impact_results_test))))
+dc_impact_results <- dc_impact_results_test
+
+# updating a few of the Race entries
+dc_impact_results["Race"][dc_impact_results["Coach"] == "Phil Elmassian"] <- "White"
+dc_impact_results["Race"][dc_impact_results["Coach"] == "Chris Simpson"] <- "Black"
+dc_impact_results["Race"][dc_impact_results["Coach"] == "John Chavis"] <- "White"
+dc_impact_results["Race"][dc_impact_results["Coach"] == "John Papuchis"] <- "White"
+dc_impact_results["Race"][dc_impact_results["Coach"] == "Justin Ena"] <- "White"
+dc_impact_results["Race"][dc_impact_results["Coach"] == "Justin Hamilton"] <- "White"
+
+save(dc_impact_results, file="dc_impact_results.Rda")
+
+# load("dc_impact_results.Rda")
+
+# doing some preliminary analysis
+dc_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_ppa))
+#Race  mean_net_ppa_race
+# 1 Black           -0.0298
+# 2 Other           -0.0135
+# 3 White           -0.0243
+
+dc_impact_results %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(net_sr))
+dc_impact_results %>% group_by(Race) %>% summarise(mean_net_passsr_race = mean(net_pass_sr))
+# We want to compare the impact of white and black coordinators who got hired as HC
+
+defensive_to_head <- defensive_to_head %>% select(College.x, Coach, Race.x, College.y)
+colnames(defensive_to_head) <- c("Coordinator_School", "Coach", "Race", "Head_Coach_School")
+dc_to_head_impact <- data.frame()
+dc_to_head_impact <- defensive_to_head %>% inner_join(dc_impact_results, by = "Coach") %>% select(
+        Coach, Race.x, Head_Coach_School, team, net_ppa, net_sr, net_stuff, net_pass_sr
+)
+colnames(dc_to_head_impact) <- c("Coach", "Race", "Head_Coach_School", "Coordinator School", "Net_PPA",
+                                 "Net_SR", "Net_Stuff", "Net_Pass_SR")
+
+dc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
+#Race  mean_net_ppa_race
+#  1 Black           0.0176 
+#2 Other          -0.0133 
+#3 White          -0.00471
+## - We have something!
+
+# doing the same for offense
+offensive_to_head <- offensive_to_head %>% select(College.x, Coach, Race.x, College.y)
+colnames(offensive_to_head) <- c("Coordinator_School", "Coach", "Race", "Head_Coach_School")
+oc_to_head_impact <- data.frame()
+oc_to_head_impact <- offensive_to_head %>% inner_join(oc_impact_results, by = "Coach") %>% select(
+  Coach, Race.x, Head_Coach_School, team, net_ppa, net_sr, net_stuff, net_pass_sr
+)
+colnames(oc_to_head_impact) <- c("Coach", "Race", "Head_Coach_School", "Coordinator School", "Net_PPA",
+                                 "Net_SR", "Net_Stuff", "Net_Pass_SR")
+
+oc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
+# Race  mean_net_ppa_race
+#  1 ?                0.0633
+#2 Black            0.0116
+#3 Other           -0.0743
+#4 White            0.0358
