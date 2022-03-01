@@ -624,8 +624,28 @@ dc_impact_results %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(net_s
 dc_impact_results %>% group_by(Race) %>% summarise(mean_net_passsr_race = mean(net_pass_sr))
 # We want to compare the impact of white and black coordinators who got hired as HC
 
+
+
 defensive_to_head <- defensive_to_head %>% select(College.x, Coach, Race.x, College.y)
 colnames(defensive_to_head) <- c("Coordinator_School", "Coach", "Race", "Head_Coach_School")
+# ** - some more data cleaning to do - sometimes name of school doesn't match, so the same
+# coach is considered o have gotten hired but it's just a different school name
+# at least Diaz at Miami and Hopson at Southern Miss
+# fixing issue with mismatched school names
+
+defensive_to_head["Head_Coach_School"][defensive_to_head["Head_Coach_School"] == "FAU"] <- "Florida Atlantic"
+defensive_to_head["Head_Coach_School"][defensive_to_head["Head_Coach_School"] == "Miami (FL)"] <- "Miami"
+dc_recent["College"][dc_recent["College"] == "Miami (FL)"] <- "Miami"
+dc_recent["College"][dc_recent["College"] == "San Jose State"] <- "San José State"
+defensive_to_head["Head_Coach_School"][defensive_to_head["Head_Coach_School"] == "Southern Miss"] <- "Southern Mississippi"
+dc_recent["College"][dc_recent["College"] == "Southern Miss"] <- "Southern Mississippi"
+dc_recent["College"][dc_recent["College"] == "UConn"] <- "Connecticut"
+defensive_to_head["Head_Coach_School"][defensive_to_head["Head_Coach_School"] == "UConn"] <- "Connecticut"
+dc_recent["College"][dc_recent["College"] == "UL Monroe"] <- "Louisiana Monroe"
+dc_recent["College"][dc_recent["College"] == "USF"] <- "South Florida"
+defensive_to_head["Head_Coach_School"][defensive_to_head["Head_Coach_School"] == "USF"] <- "South Florida"
+dc_recent["College"][dc_recent["College"] == "UTSA"] <- "UT San Antonio"
+
 dc_to_head_impact <- data.frame()
 dc_to_head_impact <- defensive_to_head %>% inner_join(dc_impact_results, by = "Coach") %>% select(
         Coach, Race.x, Head_Coach_School, team, net_ppa, net_sr, net_stuff, net_pass_sr
@@ -639,6 +659,8 @@ dc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_
 #2 Other          -0.0133 
 #3 White          -0.00471
 ## - We have something!
+sd(dc_to_head_impact$Net_PPA)
+# SD is 0.067, so black DCs about 0.5 sd's better
 
 dc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(Net_SR))
 #Race  mean_net_sr_race
@@ -649,6 +671,22 @@ dc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(Net_S
 # doing the same for offense
 offensive_to_head <- offensive_to_head %>% select(College.x, Coach, Race.x, College.y)
 colnames(offensive_to_head) <- c("Coordinator_School", "Coach", "Race", "Head_Coach_School")
+
+offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "FAU"] <- "Florida Atlantic"
+offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "FIU"] <- "Florida International"
+offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "Miami (FL)"] <- "Miami"
+offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "Hawaii"] <- "Hawai'i"
+offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "Miami (FL)"] <- "Miami"
+offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "San Jose State"] <- "San José State"
+defensive_to_head["Head_Coach_School"][defensive_to_head["Head_Coach_School"] == "Southern Miss"] <- "Southern Mississippi"
+offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "Southern Miss"] <- "Southern Mississippi"
+offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "UConn"] <- "Connecticut"
+offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "Massachusetts"] <- "UMass"
+offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "UL Monroe"] <- "Louisiana Monroe"
+offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "USF"] <- "South Florida"
+defensive_to_head["Head_Coach_School"][defensive_to_head["Head_Coach_School"] == "USF"] <- "South Florida"
+offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "UTSA"] <- "UT San Antonio"
+
 oc_to_head_impact <- data.frame()
 oc_to_head_impact <- offensive_to_head %>% inner_join(oc_impact_results, by = "Coach") %>% select(
   Coach, Race.x, Head_Coach_School, team, net_ppa, net_sr, net_stuff, net_pass_sr
@@ -665,3 +703,60 @@ oc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_
 
 oc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(Net_SR))
 oc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_stuff_race = mean(Net_Stuff))
+
+## need to run again with the numbers for their impact as head coaches
+# Show that the head coach results have been better for black defensive coordinators? they have not
+
+former_dc_head_impact <- data.frame()
+former_dc_head_impact <- defensive_to_head %>% inner_join(head_coach_impact_results, by = "Coach") %>% select(
+  Coach, Race.x, Head_Coach_School, Team, Net_PPA, Net_SR, Net_Stuff_Rate, Net_Pass_SR, Net_FPI
+)
+colnames(former_dc_head_impact) <- c("Coach", "Race", "Head_Coach_School", "Coordinator School", "Net_PPA",
+                                 "Net_SR", "Net_Stuff", "Net_Pass_SR", "Net_FPI")
+
+former_dc_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
+# Race  mean_net_ppa_race
+# <chr>             <dbl>
+#   1 Black         -0.0437  
+# 2 Other         -0.0344  
+# 3 White         -0.000818
+
+former_dc_head_impact %>% group_by(Race) %>% filter(!is.na(Net_FPI)) %>% summarise(mean_net_fpi_race = mean(Net_FPI))
+# Race  mean_net_fpi_race
+# <chr>             <dbl>
+#   1 Black           -6.80  
+# 2 Other           -1.96  
+# 3 White            0.0311
+#This definitely does not support hypothesis
+# Then propose some black defensive coordinators a as good head coach options?
+# Brian Norwood
+
+# running oc's with their head coach numbers
+former_oc_head_impact <- data.frame()
+former_oc_head_impact <- offensive_to_head %>% inner_join(head_coach_impact_results, by = "Coach") %>% select(
+  Coach, Race.x, Head_Coach_School, Team, Net_PPA, Net_SR, Net_Stuff_Rate, Net_Pass_SR, Net_FPI
+)
+colnames(former_oc_head_impact) <- c("Coach", "Race", "Head_Coach_School", "Coordinator School", "Net_PPA",
+                                     "Net_SR", "Net_Stuff", "Net_Pass_SR", "Net_FPI")
+
+former_oc_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
+# Race  mean_net_ppa_race
+# <chr>             <dbl>
+#   1 ?              -0.0222 
+# 2 Black          -0.00891
+# 3 Other           0.0377 
+# 4 White           0.0170 
+
+former_oc_head_impact %>% group_by(Race) %>% filter(!is.na(Net_FPI)) %>% summarise(mean_net_fpi_race = mean(Net_FPI))
+# Race  mean_net_fpi_race
+# <chr>             <dbl>
+#   1 ?                4     
+# 2 Black           -0.998 
+# 3 Other            4.44  
+# 4 White           -0.0952
+#This definitely does not support hypothesis
+# Then propose some black offensive coordinators a as good head coach options?
+# Maurice Harris
+# Alex Atkins 
+# Josh Gattis
+# Newland Isaac
