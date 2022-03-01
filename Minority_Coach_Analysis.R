@@ -19,6 +19,7 @@ library(parallel)
 library(future)
 library(data.table)
 library(stringr)
+library(ggpubr)
 
 # Read and clean the coaches csv
 coach_df <- read.csv("coaches_by_race.csv")
@@ -159,7 +160,7 @@ for(i in 342:nrow(head_coaches_recent)){
       
     })
   }
-
+  
   # get the FPI ratings - done
   
   team_FPI <- data.frame()
@@ -278,6 +279,36 @@ head_coach_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = m
 #2 Black          -0.0292 
 #3 Other           0.00167
 #4 White           0.0106 
+
+####################################################################################
+# check for normality and outliers
+hist(head_coach_impact_results$Net_PPA,
+     xlab = "Net PPA",
+     main = "Histogram of Net PPA")
+# data seems to be normality distributed
+boxplot(head_coach_impact_results1$Net_PPA,
+        ylab = "Net PPA",
+        main = "Boxplot of Net PPA")
+# there are 7 outliers. Let's remove them.
+out_vals <- boxplot.stats(head_coach_impact_results$Net_PPA)$out
+out_inds <- which(head_coach_impact_results$Net_PPA %in% c(out_vals))
+out_inds
+# (I didn't want to overwrite your 'head_coach_impact_results' df so I just added the 1 suffix. - MW)
+head_coach_impact_results1 <- head_coach_impact_results[-c(out_inds),]
+ggqqplot(head_coach_impact_results1$Net_PPA)
+head_coach_impact_results1 %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
+
+# analyze via simple linear regression
+lm1 <- lm(Net_PPA ~ Race, head_coach_impact_results1)
+summary(lm1)
+
+# potential errors/ommissions in the analysis:
+# 1. Small sample sizes (only 52 Black and 8 Other)
+# 2. How many years were the coaches given to turn the program around? I think the "after" period varies. Does we need to adjust for this? For example, Hugh Freeze 1-year tenure at Arkansas State counts the same as his 5-year tenure at Ole Miss.
+# 3. Could a handfull of coaches be skewing the data set? For example, Hugh Freeze is counted twice here as +Net_PPA for "The White Team," whereas Willie Taggart & Darrell Hazell are counted twice as -Net_PPA for "The Black Team."
+# 4. "The Vandy Rule": First I was surprised to see James Franklin's Vandy tenure as only the 46th best Net_PPA. What he did there was really impressive. But then Derek Mason was penalized for following him. Derek Mason had the next highest win percentage of a Vandy HC since Gerry DiNardo in '91-'94 (7 total coaches since then). But he has the 25th worst coaching tenure on this list in terms of Net_PPA.
+########################################################################################
+
 
 # repeat for offensive coordinators - pull offensive advanced stats
 
@@ -444,6 +475,31 @@ oc_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_
 #2 Black            0.0114
 #3 Other           -0.0145
 #4 White            0.0259 
+
+####################################################################################
+# check for normality and outliers
+hist(oc_impact_results$net_ppa,
+     xlab = "Net PPA",
+     main = "Histogram of Net PPA")
+# data seems to be normality distributed
+boxplot(oc_impact_results$net_ppa,
+        ylab = "Net PPA",
+        main = "Boxplot of Net PPA")
+# Remove the outliers
+out_vals <- boxplot.stats(oc_impact_results$net_ppa)$out
+out_inds <- which(oc_impact_results$net_ppa %in% c(out_vals))
+out_inds
+
+oc_impact_results1 <- oc_impact_results[-c(out_inds),]
+ggqqplot(oc_impact_results1$net_ppa)
+oc_impact_results1 %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_ppa))
+
+# analyze via simple linear regression
+lm1 <- lm(net_ppa ~ Race, oc_impact_results)
+summary(lm1)
+
+# I wonder if it would be worth scraping the FPI offensive and defensive efficiencies instead of using PPA
+########################################################################################
 
 oc_impact_results %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(net_sr))
 oc_impact_results %>% group_by(Race) %>% summarise(mean_net_passsr_race = mean(net_pass_sr))
@@ -622,6 +678,37 @@ dc_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_
 
 dc_impact_results %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(net_sr))
 dc_impact_results %>% group_by(Race) %>% summarise(mean_net_passsr_race = mean(net_pass_sr))
+
+####################################################################################
+# Try grouping minorities together to see how they compare:
+# dc_impact_results$Race <- ifelse(dc_impact_results$Race == "?", "Non-white",
+#                                  ifelse(dc_impact_results$Race == "Other", "Non-white",
+#                                         ifelse(dc_impact_results$Race == "Black", "Non-white", "White")))
+
+# check for normality and outliers
+hist(dc_impact_results$net_ppa,
+     xlab = "Net PPA",
+     main = "Histogram of Net PPA")
+# data seems to be normality distributed
+boxplot(dc_impact_results$net_ppa,
+        ylab = "Net PPA",
+        main = "Boxplot of Net PPA")
+# Remove the outliers
+out_vals <- boxplot.stats(dc_impact_results$net_ppa)$out
+out_inds <- which(dc_impact_results$net_ppa %in% c(out_vals))
+out_inds
+
+dc_impact_results1 <- dc_impact_results[-c(out_inds),]
+ggqqplot(dc_impact_results1$net_ppa)
+dc_impact_results1 %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_ppa))
+
+# analyze via simple linear regression
+lm1 <- lm(net_ppa ~ Race, dc_impact_results)
+summary(lm1)
+
+# I wonder if it would be worth scraping the FPI offensive and defensive efficiencies instead of using PPA
+########################################################################################
+
 # We want to compare the impact of white and black coordinators who got hired as HC
 
 
@@ -648,7 +735,7 @@ dc_recent["College"][dc_recent["College"] == "UTSA"] <- "UT San Antonio"
 
 dc_to_head_impact <- data.frame()
 dc_to_head_impact <- defensive_to_head %>% inner_join(dc_impact_results, by = "Coach") %>% select(
-        Coach, Race.x, Head_Coach_School, team, net_ppa, net_sr, net_stuff, net_pass_sr
+  Coach, Race.x, Head_Coach_School, team, net_ppa, net_sr, net_stuff, net_pass_sr
 )
 colnames(dc_to_head_impact) <- c("Coach", "Race", "Head_Coach_School", "Coordinator School", "Net_PPA",
                                  "Net_SR", "Net_Stuff", "Net_Pass_SR")
@@ -712,7 +799,7 @@ former_dc_head_impact <- defensive_to_head %>% inner_join(head_coach_impact_resu
   Coach, Race.x, Head_Coach_School, Team, Net_PPA, Net_SR, Net_Stuff_Rate, Net_Pass_SR, Net_FPI
 )
 colnames(former_dc_head_impact) <- c("Coach", "Race", "Head_Coach_School", "Coordinator School", "Net_PPA",
-                                 "Net_SR", "Net_Stuff", "Net_Pass_SR", "Net_FPI")
+                                     "Net_SR", "Net_Stuff", "Net_Pass_SR", "Net_FPI")
 
 former_dc_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
 # Race  mean_net_ppa_race
@@ -760,3 +847,55 @@ former_oc_head_impact %>% group_by(Race) %>% filter(!is.na(Net_FPI)) %>% summari
 # Alex Atkins 
 # Josh Gattis
 # Newland Isaac
+
+
+############################################################################################
+
+# Are there certain HCs who seem to more readily give minorities promotions / coordinator opportunities?
+# Create dictionary with k:v = HC:list of coordinators' race
+coaching_tree <- head_coach_impact %>%
+  left_join((dc_impact %>% 
+               filter(BeforeAfter == "after") %>%
+               select(Coach, season, team, Race) %>% 
+               rename(DC = Coach)), 
+            by = c("season", "team")) #%>%
+  # left_join((oc_impact %>% 
+  #              filter(BeforeAfter == "after") %>%
+  #              select(Coach, season, team, Race) %>% 
+  #              rename(OC = Coach)), 
+  #           by = c("season", "team"))
+# Remove this next line if you want to see white vs. black instead of white vs minority
+coaching_tree$Race.y <- ifelse(coaching_tree$Race.y == "?", "Non-white",
+                                 ifelse(coaching_tree$Race.y == "Other", "Non-white",
+                                        ifelse(coaching_tree$Race.y == "Black", "Non-white", "White")))
+# The following counts each year separately, so for example Andrew Thacker would count a 3 years of a White DC.
+hires_by_years <- coaching_tree %>% 
+  group_by(Coach, Race.x) %>%
+  count(Race.y, name = "years") %>%
+  mutate(total_years = sum(years)) %>%
+  ungroup() %>%
+  mutate(percent_of_years_POC = years/total_years) %>%
+  filter(Race.y == "Non-white")
+# Now count each coordinator's tenure as 1 (not weighted for how long they held the position)
+hires_by_coord <- coaching_tree %>%
+  select(Coach, Race.x, team, DC, Race.y) %>%
+  distinct() %>%
+  group_by(Coach, Race.x) %>%
+  count(Race.y, name = "coordinators") %>%
+  mutate(total_coordinators = sum(coordinators)) %>%
+  ungroup() %>%
+  mutate(percent_of_coords_POC = coordinators/total_coordinators) %>%
+  filter(Race.y == "Non-white")
+minority_hires <- hires_by_years %>%
+  left_join(hires_by_coord)
+
+# Do minority HCs hire more minority coordinators than white HCs?
+minority_hires$Race.x <- ifelse(minority_hires$Race.x == "?", "Non-white",
+                               ifelse(minority_hires$Race.x == "Other", "Non-white",
+                                      ifelse(minority_hires$Race.x == "Black", "Non-white", "White")))
+minority_hires %>%
+  group_by(Race.x) %>%
+  summarise(percent_of_years_POC = mean(percent_of_years_POC),
+            percent_of_coords_POC = mean(percent_of_coords_POC))
+
+############################################################################################
