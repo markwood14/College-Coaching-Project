@@ -120,6 +120,8 @@ head_coaches_recent <- head_coaches_recent %>%
          year_end = max(year_end)) %>%
   distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
 
+head_coaches_recent %>% group_by(Race) %>% summarise(num_race = n())
+
 # creating an empty df that we will use to add rows to throughout - done
 head_coach_impact <- data.frame()
 
@@ -286,14 +288,14 @@ hist(head_coach_impact_results$Net_PPA,
      xlab = "Net PPA",
      main = "Histogram of Net PPA")
 # data seems to be normality distributed
-boxplot(head_coach_impact_results1$Net_PPA,
+boxplot(head_coach_impact_results$Net_PPA,
         ylab = "Net PPA",
         main = "Boxplot of Net PPA")
 # there are 7 outliers. Let's remove them.
 out_vals <- boxplot.stats(head_coach_impact_results$Net_PPA)$out
 out_inds <- which(head_coach_impact_results$Net_PPA %in% c(out_vals))
 out_inds
-# (I didn't want to overwrite your 'head_coach_impact_results' df so I just added the 1 suffix. - MW)
+# (I didn't want to overwrite your 'head_coach_impact_results' df so I just added the '1' suffix. - MW)
 head_coach_impact_results1 <- head_coach_impact_results[-c(out_inds),]
 ggqqplot(head_coach_impact_results1$Net_PPA)
 head_coach_impact_results1 %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
@@ -301,10 +303,11 @@ head_coach_impact_results1 %>% group_by(Race) %>% summarise(mean_net_ppa_race = 
 # analyze via simple linear regression
 lm1 <- lm(Net_PPA ~ Race, head_coach_impact_results1)
 summary(lm1)
+# no significant variables
 
-# potential errors/ommissions in the analysis:
+# Potential errors/ommissions in the analysis?
 # 1. Small sample sizes (only 52 Black and 8 Other)
-# 2. How many years were the coaches given to turn the program around? I think the "after" period varies. Does we need to adjust for this? For example, Hugh Freeze 1-year tenure at Arkansas State counts the same as his 5-year tenure at Ole Miss.
+# 2. How many years were the coaches given to turn the program around? I think the "after" period varies. Do we need to adjust for this? For example, Hugh Freeze 1-year tenure at Arkansas State counts the same as his 5-year tenure at Ole Miss.
 # 3. Could a handfull of coaches be skewing the data set? For example, Hugh Freeze is counted twice here as +Net_PPA for "The White Team," whereas Willie Taggart & Darrell Hazell are counted twice as -Net_PPA for "The Black Team."
 # 4. "The Vandy Rule": First I was surprised to see James Franklin's Vandy tenure as only the 46th best Net_PPA. What he did there was really impressive. But then Derek Mason was penalized for following him. Derek Mason had the next highest win percentage of a Vandy HC since Gerry DiNardo in '91-'94 (7 total coaches since then). But he has the 25th worst coaching tenure on this list in terms of Net_PPA.
 ########################################################################################
@@ -497,8 +500,9 @@ oc_impact_results1 %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net
 # analyze via simple linear regression
 lm1 <- lm(net_ppa ~ Race, oc_impact_results)
 summary(lm1)
+# no significant variables
 
-# I wonder if it would be worth scraping the FPI offensive and defensive efficiencies instead of using PPA
+# I wonder if it would be worth scraping the FPI offensive and defensive efficiencies instead of using PPA. Only if there seemed to be some signal here maybe...
 ########################################################################################
 
 oc_impact_results %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(net_sr))
@@ -706,7 +710,6 @@ dc_impact_results1 %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net
 lm1 <- lm(net_ppa ~ Race, dc_impact_results)
 summary(lm1)
 
-# I wonder if it would be worth scraping the FPI offensive and defensive efficiencies instead of using PPA
 ########################################################################################
 
 # We want to compare the impact of white and black coordinators who got hired as HC
@@ -788,6 +791,22 @@ oc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_
 #3 Other           -0.0743
 #4 White            0.0358
 
+##########################################################################################
+# dc_to_head_impact and oc_to_head_impact had a total of 19 unique Black coaches included. 
+# I don't think there's a great reason to keep these 2 separate, so combine datasets and minority races to increase sample size
+coord_to_head_impact <- dc_to_head_impact %>%
+  rbind(oc_to_head_impact)
+coord_to_head_impact$Race <- ifelse(coord_to_head_impact$Race == "?", "Non-white",
+                                 ifelse(coord_to_head_impact$Race == "Other", "Non-white",
+                                        ifelse(coord_to_head_impact$Race == "Black", "Non-white", "White")))
+coord_to_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
+# Race      mean_net_ppa_race
+# 1 Non-white           0.00546
+# 2 White               0.0191 
+
+# (no signal)
+##########################################################################################
+
 oc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(Net_SR))
 oc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_stuff_race = mean(Net_Stuff))
 
@@ -852,18 +871,27 @@ former_oc_head_impact %>% group_by(Race) %>% filter(!is.na(Net_FPI)) %>% summari
 ############################################################################################
 
 # Are there certain HCs who seem to more readily give minorities promotions / coordinator opportunities?
-# Create dictionary with k:v = HC:list of coordinators' race
+test <- head_coach_impact %>% distinct(Coach)
+
 coaching_tree <- head_coach_impact %>%
+  select(Coach, season, team, Race) %>%
   left_join((dc_impact %>% 
                filter(BeforeAfter == "after") %>%
                select(Coach, season, team, Race) %>% 
-               rename(DC = Coach)), 
-            by = c("season", "team")) #%>%
-  # left_join((oc_impact %>% 
-  #              filter(BeforeAfter == "after") %>%
-  #              select(Coach, season, team, Race) %>% 
-  #              rename(OC = Coach)), 
-  #           by = c("season", "team"))
+               rename(Coordinator = Coach)), 
+            by = c("season", "team"))
+coaching_tree1 <- head_coach_impact %>%
+  select(Coach, season, team, Race) %>%
+  left_join((oc_impact %>%
+               filter(BeforeAfter == "after") %>%
+               select(Coach, season, team, Race) %>%
+               rename(Coordinator = Coach)),
+            by = c("season", "team"))
+coaching_tree <- coaching_tree %>%
+  rbind(coaching_tree1) %>%
+  filter(!is.na(Coordinator))
+
+
 # Remove this next line if you want to see white vs. black instead of white vs minority
 coaching_tree$Race.y <- ifelse(coaching_tree$Race.y == "?", "Non-white",
                                  ifelse(coaching_tree$Race.y == "Other", "Non-white",
@@ -878,7 +906,7 @@ hires_by_years <- coaching_tree %>%
   filter(Race.y == "Non-white")
 # Now count each coordinator's tenure as 1 (not weighted for how long they held the position)
 hires_by_coord <- coaching_tree %>%
-  select(Coach, Race.x, team, DC, Race.y) %>%
+  select(Coach, Race.x, team, Coordinator, Race.y) %>%
   distinct() %>%
   group_by(Coach, Race.x) %>%
   count(Race.y, name = "coordinators") %>%
@@ -887,7 +915,11 @@ hires_by_coord <- coaching_tree %>%
   mutate(percent_of_coords_POC = coordinators/total_coordinators) %>%
   filter(Race.y == "Non-white")
 minority_hires <- hires_by_years %>%
-  left_join(hires_by_coord)
+  left_join(hires_by_coord) %>%
+  mutate(years_rank = rank(desc(percent_of_years_POC)),
+         coords_rank = rank(desc(percent_of_coords_POC)),
+         rank = rank(years_rank + coords_rank))
+# This may be a good opportunity for a 538-style table
 
 # Do minority HCs hire more minority coordinators than white HCs?
 minority_hires$Race.x <- ifelse(minority_hires$Race.x == "?", "Non-white",
@@ -897,5 +929,6 @@ minority_hires %>%
   group_by(Race.x) %>%
   summarise(percent_of_years_POC = mean(percent_of_years_POC),
             percent_of_coords_POC = mean(percent_of_coords_POC))
-
+# minority HCs are 2-3% more likely than white HCs to hire a minority coordinator.
+sum(minority_hires$total_coordinators) # <- sample size
 ############################################################################################
