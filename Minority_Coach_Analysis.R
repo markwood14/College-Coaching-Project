@@ -797,6 +797,12 @@ dc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_
 sd(dc_to_head_impact$Net_PPA)
 # SD is 0.067, so black DCs about 0.5 sd's better
 
+# checking the significance level here:
+dc_to_head_model <- lm(Net_PPA~Race, data = dc_to_head_impact)
+summary(dc_to_head_model)
+summary(aov(Net_PPA~Race, data = dc_to_head_impact))
+# p value of .3612 for this as a whole. So no signifiance here
+
 dc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(Net_SR))
 #Race  mean_net_sr_race
 #  1 Black          0.0125 
