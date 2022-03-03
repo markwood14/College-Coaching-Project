@@ -228,6 +228,8 @@ for(i in 342:nrow(head_coaches_recent)){
 save(head_coach_impact, file="head_coach_impact.Rda")
 
 # load("head_coach_impact.Rda")
+head_coach_impact_weighted <- head_coach_impact %>% filter(BeforeAfter == "after") %>% group_by(Coach, team) %>%
+  summarise(tenure_length = n())
 # use code from Coaching Analysis to summarise before/after, net change, etc
 head_coach_impact_summary <- head_coach_impact %>% select(c("Coach", "team", "off_ppa", "off_success_rate", "off_stuff_rate", "off_passing_plays_success_rate",
                                                             "def_ppa", "def_success_rate", "def_stuff_rate", "def_passing_plays_success_rate", "FPI_Rating", "Race", "BeforeAfter"))
@@ -268,11 +270,20 @@ colnames(head_coach_impact_results) <- c(toString("Coach"), "Team", "Race", "Net
 save(head_coach_impact_results, file="head_coach_impact_results.Rda")
 
 # load("head_coach_impact_results.Rda")
+# need to remove the three coaches we removed in the other df - Lambert, Moglia, Coker UTSA
+head_coach_impact_weighted <- head_coach_impact_weighted[-c(26, 171, 203),]
+
+# add tenure length to this Df so we can weight
+head_coach_tenures <- data.frame(head_coach_impact_weighted$tenure_length)
+head_coach_impact_results <- head_coach_impact_results %>% bind_cols(head_coach_tenures)
 
 # Fixing issue where individual columns are lists
 head_coach_impact_results_test <- lapply(head_coach_impact_results, unlist)
 head_coach_impact_results_test <- data.frame(lapply(head_coach_impact_results_test, `length<-`, max(lengths(head_coach_impact_results_test))))
 head_coach_impact_results <- head_coach_impact_results_test
+colnames(head_coach_impact_results) <- c(toString("Coach"), "Team", "Race", "Net_PPA", "Net_SR", "Net_Stuff_Rate", "Net_Pass_SR", "Net_FPI", "Tenure")
+# adding in cols that multiple tenure by pp metrics
+head_coach_impact_results <- head_coach_impact_results %>% mutate(total_sr = Net_SR*Tenure, total_stuffs = Net_Stuff_Rate*Tenure, total_pass_sr = Net_Pass_SR*Tenure)
 
 # doing some preliminary analysis
 head_coach_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
@@ -282,6 +293,12 @@ head_coach_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = m
 #3 Other           0.00167
 #4 White           0.0106 
 
+head_coach_impact_results %>% group_by(Race) %>% summarise(mean_total_ppa_race = mean(total_ppa))
+# Race  mean_total_ppa_race
+#   1 ?                 -0.0203
+# 2 Black             -0.0713
+# 3 Other              0.0202
+# 4 White              0.121 
 ####################################################################################
 # check for normality and outliers
 hist(head_coach_impact_results$Net_PPA,
@@ -304,6 +321,34 @@ head_coach_impact_results1 %>% group_by(Race) %>% summarise(mean_net_ppa_race = 
 lm1 <- lm(Net_PPA ~ Race, head_coach_impact_results1)
 summary(lm1)
 # no significant variables
+
+# check the total metric for normality and outliers
+hist(head_coach_impact_results$total_ppa,
+     xlab = "Total PPA",
+     main = "Histogram of Total PPA")
+# data has a decent right tail
+boxplot(head_coach_impact_results$total_ppa,
+        ylab = "Total PPA",
+        main = "Boxplot of Total PPA")
+# there are lots of outliers. Let's remove them.
+out_vals <- boxplot.stats(head_coach_impact_results$total_ppa)$out
+out_inds <- which(head_coach_impact_results$total_ppa %in% c(out_vals))
+out_inds
+# (I didn't want to overwrite your 'head_coach_impact_results' df so I just added the 'weighted' suffix. - MW)
+head_coach_impact_results_weighted <- head_coach_impact_results[-c(out_inds),]
+library(ggpubr)
+ggqqplot(head_coach_impact_results_weighted$total_ppa)
+head_coach_impact_results_weighted %>% group_by(Race) %>% summarise(total_net_ppa_race = mean(total_ppa))
+# Race  total_net_ppa_race
+# <chr>              <dbl>
+#   1 ?                -0.0203
+# 2 Black            -0.0573
+# 3 Other            -0.120 
+# 4 White             0.0571
+# analyze via simple linear regression
+lm1 <- lm(total_ppa ~ Race, head_coach_impact_results_weighted)
+summary(lm1)
+# Still no significant variables
 
 # Potential errors/ommissions in the analysis?
 # 1. Small sample sizes (only 52 Black and 8 Other)
