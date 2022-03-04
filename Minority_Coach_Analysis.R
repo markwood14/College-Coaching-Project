@@ -76,6 +76,16 @@ offensive_coordinators %>% group_by(Race) %>% summarise(num_race = n())
 #3 Other       14
 #4 White     1108
 
+#########################################################################################
+# How long do coaches stay in their roles?
+coach_df %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start))
+head_coaches %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start))
+defensive_coordinators %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start))
+offensive_coordinators %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start))
+# Black coaches have shorter tenures than their white counterparts at every level. Why?
+#########################################################################################
+
+
 # Coordinators who became head coaches
 
 offensive_to_head <- offensive_coordinators %>% inner_join(head_coaches, by = "Coach") 
@@ -316,7 +326,7 @@ out_inds
 head_coach_impact_results1 <- head_coach_impact_results[-c(out_inds),]
 ggqqplot(head_coach_impact_results1$Net_PPA)
 head_coach_impact_results1 %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
-
+head_coach_impact_results1 %>% group_by(Race) %>% summarise(count = n())
 # analyze via simple linear regression
 lm1 <- lm(Net_PPA ~ Race, head_coach_impact_results1)
 summary(lm1)
@@ -350,11 +360,6 @@ lm1 <- lm(total_ppa ~ Race, head_coach_impact_results_weighted)
 summary(lm1)
 # Still no significant variables
 
-# Potential errors/ommissions in the analysis?
-# 1. Small sample sizes (only 52 Black and 8 Other)
-# 2. How many years were the coaches given to turn the program around? I think the "after" period varies. Do we need to adjust for this? For example, Hugh Freeze 1-year tenure at Arkansas State counts the same as his 5-year tenure at Ole Miss.
-# 3. Could a handfull of coaches be skewing the data set? For example, Hugh Freeze is counted twice here as +Net_PPA for "The White Team," whereas Willie Taggart & Darrell Hazell are counted twice as -Net_PPA for "The Black Team."
-# 4. "The Vandy Rule": First I was surprised to see James Franklin's Vandy tenure as only the 46th best Net_PPA. What he did there was really impressive. But then Derek Mason was penalized for following him. Derek Mason had the next highest win percentage of a Vandy HC since Gerry DiNardo in '91-'94 (7 total coaches since then). But he has the 25th worst coaching tenure on this list in terms of Net_PPA.
 ########################################################################################
 
 
@@ -982,4 +987,93 @@ minority_hires %>%
             percent_of_coords_POC = mean(percent_of_coords_POC))
 # minority HCs are 2-3% more likely than white HCs to hire a minority coordinator.
 sum(minority_hires$total_coordinators) # <- sample size
+############################################################################################
+
+
+# Use the Louvain algorithm to further analyze the social impact of coaching hires?
+# install.packages("igraph")
+library(igraph)
+coaching_tree1 <- coaching_tree %>% 
+  group_by(Coach, Coordinator) %>%
+  summarize(years_together = n())
+coaching_tree_matrix <- as.matrix(coaching_tree1[, c("Coach", "Coordinator")])
+
+# As 1 big community
+tree_graph <- igraph::graph_from_edgelist(coaching_tree_matrix, directed = FALSE) %>%
+  igraph::set.edge.attribute("weight", value = coaching_tree1$years_together)
+tree_graph_plot <- layout_on_sphere(tree_graph)
+plot(tree_graph, rescale = T, layout = tree_graph_plot, main = "Coaching Tree")
+
+# tree_graph_plot1 <- layout_with_fr(tree_graph)
+# plot(tree_graph, rescale = T, layout = tree_graph_plot1, main = "Coaching Tree")
+
+# To split out different communities...
+# run louvain with edge weights
+louvain_partition <- igraph::cluster_louvain(tree_graph, weights = E(tree_graph)$weight)
+# assign communities to graph
+tree_graph$community <- louvain_partition$membership
+# see how many communities there are
+unique(tree_graph$community)
+# most important communities:
+communities <- data.frame()
+for(i in unique(tree_graph$community)) {
+  # create subgraphs for each community subgraph
+  subgraph <- induced_subgraph(tree_graph, v = which(tree_graph$community == i))
+  # get size of each subgraph
+  size <- igraph::gorder(subgraph)
+  # get betweenness centrality
+  btwn <- igraph::betweenness(subgraph)
+  communities <- communities %>%
+    bind_rows(data.frame(
+      community = i,
+      n_characters = size,
+      most_important = names(which(btwn == max(btwn)))
+    )
+    )
+}
+knitr::kable(
+  communities %>%
+    select(community, n_characters, most_important)
+)
+sort(desc(communities$n_characters))
+# top 5 most important communities:
+top_five <- data.frame()
+for(i in unique(tree_graph$community)) {
+  # create subgraphs for each community
+  subgraph <- induced_subgraph(tree_graph, v = which(tree_graph$community == i))
+  # for larger communities
+  if (gorder(subgraph) > 20) {
+    # get degree
+    degree <- degree(subgraph)
+    # get top five degrees
+    top <- names(head(sort(degree, decreasing = TRUE), 5))
+    result <- data.frame(community = i, rank = 1:5, character = top)
+  } else {
+    result <- data.frame(community = NULL, rank = NULL, character = NULL)
+  }
+  top_five <- top_five %>%
+    bind_rows(result)
+}
+knitr::kable(
+  top_five %>%
+    pivot_wider(names_from = rank, values_from = character)
+)
+
+#give nodes some properties, incl scaling them by degree and coloring them by community
+V(tree_graph)$size <- 3 
+V(tree_graph)$frame.color <- "white"
+V(tree_graph)$color <- tree_graph$community
+V(tree_graph)$label <- V(tree_graph)$name
+V(tree_graph)$label.cex <- 1.5
+# also color edges according to their sarting node
+edge.start <- ends(tree_graph, es = E(tree_graph), names = F)[,1]
+E(tree_graph)$color <- V(tree_graph)$color[edge.start]
+E(tree_graph)$arrow.mode <- 0 # only label top 5 coaches
+V_labels <- which(V(tree_graph)$name %in% c()
+
+for(i in 1:length(V(tree_graph))) {
+  if(!(i %in% v_labels)) {V(tree_graph)$label[i] <- ""}
+}
+tree_graph_plot <- layout_on_sphere(tree_graph)
+plot(tree_graph, rescale = TRUE, layout = tree_graph_plot, main = "Coaching Trees")
 ############################################################################################
