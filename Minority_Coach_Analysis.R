@@ -399,7 +399,7 @@ oc_impact <- data.frame()
 # row 135, shane montgomery taking over charlotte
 # same error for UTSA, starting again on row 771
 
-for(i in 772:nrow(oc_recent)){
+for(i in 1:nrow(oc_recent)){
   # create a vector of years from start to end - done
   
   start_year <- as.integer(oc_recent[i, "year_start"])
@@ -595,7 +595,7 @@ dc_impact <- data.frame()
 # row 134, coastal
 # same error for UTSA, starting again on row 764
 
-for(i in 764:nrow(dc_recent)){
+for(i in 1:nrow(dc_recent)){
   # create a vector of years from start to end - done
   
   start_year <- as.integer(dc_recent[i, "year_start"])
@@ -767,9 +767,7 @@ summary(lm1)
 
 defensive_to_head <- defensive_to_head %>% select(College.x, Coach, Race.x, College.y)
 colnames(defensive_to_head) <- c("Coordinator_School", "Coach", "Race", "Head_Coach_School")
-# ** - some more data cleaning to do - sometimes name of school doesn't match, so the same
-# coach is considered o have gotten hired but it's just a different school name
-# at least Diaz at Miami and Hopson at Southern Miss
+
 # fixing issue with mismatched school names
 
 defensive_to_head["Head_Coach_School"][defensive_to_head["Head_Coach_School"] == "FAU"] <- "Florida Atlantic"
@@ -805,7 +803,7 @@ sd(dc_to_head_impact$Net_PPA)
 dc_to_head_model <- lm(Net_PPA~Race, data = dc_to_head_impact)
 summary(dc_to_head_model)
 summary(aov(Net_PPA~Race, data = dc_to_head_impact))
-# p value of .3612 for this as a whole. So no signifiance here
+# p value of .3612 for this as a whole. So no significance here
 
 dc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(Net_SR))
 #Race  mean_net_sr_race
@@ -852,8 +850,8 @@ oc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_
 coord_to_head_impact <- dc_to_head_impact %>%
   rbind(oc_to_head_impact)
 coord_to_head_impact$Race <- ifelse(coord_to_head_impact$Race == "?", "Non-white",
-                                 ifelse(coord_to_head_impact$Race == "Other", "Non-white",
-                                        ifelse(coord_to_head_impact$Race == "Black", "Non-white", "White")))
+                                    ifelse(coord_to_head_impact$Race == "Other", "Non-white",
+                                           ifelse(coord_to_head_impact$Race == "Black", "Non-white", "White")))
 coord_to_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
 # Race      mean_net_ppa_race
 # 1 Non-white           0.00546
@@ -889,7 +887,7 @@ former_dc_head_impact %>% group_by(Race) %>% filter(!is.na(Net_FPI)) %>% summari
 # 2 Other           -1.96  
 # 3 White            0.0311
 #This definitely does not support hypothesis
-# Then propose some black defensive coordinators a as good head coach options?
+# Then propose some black defensive coordinators as good head coach options?
 # Brian Norwood
 
 # running oc's with their head coach numbers
@@ -908,6 +906,9 @@ former_oc_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(
 # 3 Other           0.0377 
 # 4 White           0.0170 
 
+former_oc_head_impact$Race <- ifelse(former_oc_head_impact$Race == "?", "Non-white",
+                                    ifelse(former_oc_head_impact$Race == "Other", "Non-white",
+                                           ifelse(former_oc_head_impact$Race == "Black", "Non-white", "White")))
 former_oc_head_impact %>% group_by(Race) %>% filter(!is.na(Net_FPI)) %>% summarise(mean_net_fpi_race = mean(Net_FPI))
 # Race  mean_net_fpi_race
 # <chr>             <dbl>
@@ -915,8 +916,13 @@ former_oc_head_impact %>% group_by(Race) %>% filter(!is.na(Net_FPI)) %>% summari
 # 2 Black           -0.998 
 # 3 Other            4.44  
 # 4 White           -0.0952
-#This definitely does not support hypothesis
-# Then propose some black offensive coordinators a as good head coach options?
+
+# Race      mean_net_fpi_race
+# <chr>                 <dbl>
+#   1 Non-white           -0.384 
+# 2 White               -0.0952
+#This  does not support hypothesis
+# Then propose some black offensive coordinators as good head coach options?
 # Maurice Harris
 # Alex Atkins 
 # Josh Gattis
@@ -1007,8 +1013,8 @@ coaching_tree <- coaching_tree %>%
 
 # Remove this next line if you want to see white vs. black instead of white vs minority
 coaching_tree$Race.y <- ifelse(coaching_tree$Race.y == "?", "Non-white",
-                                 ifelse(coaching_tree$Race.y == "Other", "Non-white",
-                                        ifelse(coaching_tree$Race.y == "Black", "Non-white", "White")))
+                               ifelse(coaching_tree$Race.y == "Other", "Non-white",
+                                      ifelse(coaching_tree$Race.y == "Black", "Non-white", "White")))
 # The following counts each year separately, so for example Andrew Thacker would count a 3 years of a White DC.
 hires_by_years <- coaching_tree %>% 
   group_by(Coach, Race.x) %>%
@@ -1033,16 +1039,89 @@ minority_hires <- hires_by_years %>%
          coords_rank = rank(desc(percent_of_coords_POC)),
          rank = rank(years_rank + coords_rank))
 # This may be a good opportunity for a 538-style table
+colnames(minority_hires) <- c("Coach", "Coach_Race", "Alternate_Race", "Non-White_Coordinator_Seasons", 
+      "Available_Coordinator_Seasons", "Available_Seasons_with_Non-White_Coordinator_Percentage", 
+      "Non-White_Coordinators", "Possible_Coordinators", "Non-White_Coordinators_Percentage", 
+      "Non-White_Coordinator_Seasons_Rank", "Non-White_Coordinators_Rank", "Combined_Rank")
 
+minority_hires_for_table <- minority_hires %>% select(Coach, `Available_Seasons_with_Non-White_Coordinator_Percentage`, `Non-White_Coordinators_Percentage`, Combined_Rank)
+minority_hires_for_table <- minority_hires_for_table %>% mutate_if(is.numeric, round, digits = 2)
+minority_hires_for_table <- minority_hires_for_table %>% arrange(Combined_Rank)
+
+gt_theme_538 <- function(data,...) {
+  data %>%
+    opt_all_caps()  %>%
+    opt_table_font(
+      font = list(
+        google_font("Chivo"),
+        default_fonts()
+      )
+    ) %>%
+    tab_style(
+      style = cell_borders(
+        sides = "bottom", color = "transparent", weight = px(2)
+      ),
+      locations = cells_body(
+        columns = everything(),
+        # This is a relatively sneaky way of changing the bottom border
+        # Regardless of data size
+        rows = nrow(data$`_data`)
+      )
+    )  %>% 
+    tab_options(
+      column_labels.background.color = "white",
+      table.border.top.width = px(3),
+      table.border.top.color = "transparent",
+      table.border.bottom.color = "transparent",
+      table.border.bottom.width = px(3),
+      column_labels.border.top.width = px(3),
+      column_labels.border.top.color = "transparent",
+      column_labels.border.bottom.width = px(3),
+      column_labels.border.bottom.color = "black",
+      data_row.padding = px(3),
+      source_notes.font.size = 12,
+      table.font.size = 16,
+      heading.align = "left",
+      ...
+    ) 
+}
+minority_hiring_table <- minority_hires_for_table %>% gt() %>%  tab_spanner(
+  label = "Non-White Coordinator Hiring",
+  columns = c("Available_Seasons_with_Non-White_Coordinator_Percentage", 
+                 "Non-White_Coordinators_Percentage")) %>% 
+    data_color(
+    columns = c("Available_Seasons_with_Non-White_Coordinator_Percentage", "Non-White_Coordinators_Percentage"),
+    colors = scales::col_numeric(
+      palette = c("white", "#3fc1c9"),
+      domain = NULL
+    )
+  ) %>% 
+  #cols_label(
+  #  success_rate = "SUCCESS RATE (%)"
+  #) %>% 
+  tab_source_note(
+    source_note = md("SOURCE: CFB_Data & Team Resource Pages <br>TABLE: @Robert_Binion & @MarkWood14")
+  ) %>% 
+  gt_theme_538(table.width = px(550))
+
+minority_hiring_table
+gtsave(minority_hiring_table, "Minority_Hiring_Table.png")
 # Do minority HCs hire more minority coordinators than white HCs?
 minority_hires$Race.x <- ifelse(minority_hires$Race.x == "?", "Non-white",
-                               ifelse(minority_hires$Race.x == "Other", "Non-white",
-                                      ifelse(minority_hires$Race.x == "Black", "Non-white", "White")))
+                                ifelse(minority_hires$Race.x == "Other", "Non-white",
+                                       ifelse(minority_hires$Race.x == "Black", "Non-white", "White")))
 minority_hires %>%
-  group_by(Race.x) %>%
-  summarise(percent_of_years_POC = mean(percent_of_years_POC),
-            percent_of_coords_POC = mean(percent_of_coords_POC))
+  group_by(Coach_Race) %>%
+  summarise(percent_of_years_POC = mean(`Available_Seasons_with_Non-White_Coordinator_Percentage`),
+            percent_of_coords_POC = mean(`Non-White_Coordinators_Percentage`))
+# Coach_Race percent_of_years_POC percent_of_coords_POC
+# <chr>                     <dbl>                 <dbl>
+#   1 ?                         0.5                   0.417
+# 2 Black                     0.334                 0.349
+# 3 Other                     0.353                 0.258
+# 4 White                     0.265                 0.281
 # minority HCs are 2-3% more likely than white HCs to hire a minority coordinator.
+# When I ran, looks more like 10%?? That would be worth talking about
 sum(minority_hires$total_coordinators) # <- sample size
 ############################################################################################
 
@@ -1051,7 +1130,7 @@ sum(minority_hires$total_coordinators) # <- sample size
 # Use the Louvain algorithm to further analyze the social impact of coaching hires?
 # install.packages("igraph")
 library(igraph)
-# install.packages("qgraph")
+install.packages("qgraph")
 library(qgraph)
 library(corrplot)
 library(Hmisc)
@@ -1145,7 +1224,7 @@ ggraph(graph, layout = "kk") +
   theme_void() +
   labs(title = "Coaching Tree")
 # or use library(networkD3) for interactive graphs (I don't know how to embed this in an article while keeping the interactive features though)
-# install.packages("networkD3")
+install.packages("networkD3")
 library(networkD3)
 networkD3::simpleNetwork(coaching_tree1)
 V(graph)$group <- ifelse(V(graph)$name %in% c("Nick Saban", "Geoff Collins"), 1, 2)
@@ -1230,9 +1309,9 @@ centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$R
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
   summarise(eigen = mean(eigen),
-         betweenness = mean(betweenness),
-         closeness = mean(closeness),
-         degree = mean(degree))
+            betweenness = mean(betweenness),
+            closeness = mean(closeness),
+            degree = mean(degree))
 # *****So white coaches are 7 times more influential than Black coaches (eigen) and 1.43 times more connected than Black coaches (degree) on average.*****
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
@@ -1247,7 +1326,9 @@ V(graph)$closeness <- closeness(graph)
 V(graph)$eigen <- eigen_centrality(graph)$vector
 # so now you can adjust the size of the node (for example) according to the degree centrality (aes(size = degree))
 # Another 538-style table showing the most and least connected and influential people?
+# Let me know what you want in the table here and I can do that
 
+########
 # COMPONENTS, COMMUNITIES, & CLIQUES
 # Community = a densely connected subset of vertices
 # A connected component of a graph is a connected subset of vertices, none of which are connected to any other vertex in the graph. A disconnected graph is comprised of multiple connected components.
@@ -1302,7 +1383,7 @@ race_plot <- ggraph(graph1, layout = "kk") +
   geom_edge_link(color = "black") +
   geom_node_point(size = 2, aes(color = Race),
                   show.legend = FALSE) +
-  theme_void() +
+  theme_void()
 race_plot
 
 # plot individual communities grouped by Race. (probably don't want to label these w/ coach's names)
