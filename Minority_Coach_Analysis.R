@@ -22,8 +22,8 @@ library(stringr)
 library(ggpubr)
 
 # Read and clean the coaches csv
-coach_df <- read.csv("coaches_by_race.csv")
-coach_df <- coach_df %>%
+coach_df1 <- read.csv("coaches_by_race.csv")
+coach_df <- coach_df1 %>%
   filter(Race != "#N/A") %>%
   group_by(Coach, College, Role) %>%
   mutate(year_start = min(Season),
@@ -31,7 +31,6 @@ coach_df <- coach_df %>%
   select(c(College, Coach, Role, Race, year_start, year_end)) %>%
   distinct()
 save(coach_df,file="coach_df.Rda")
-
 
 coordinators <- coach_df %>% filter(str_detect(Role, "Coordinator"))
 offensive_coordinators <- coordinators %>% filter(str_detect(Role, "Offensive"))
@@ -143,7 +142,7 @@ head_coach_impact <- data.frame()
 # same error for coastal, starting at row 73 with chadwell
 # same error for utsa, starting at row 342 with wilson
 
-for(i in 342:nrow(head_coaches_recent)){
+for(i in 1:nrow(head_coaches_recent)){
   # create a vector of years from start to end - done
   
   start_year <- as.integer(head_coaches_recent[i, "year_start"])
@@ -927,22 +926,80 @@ former_oc_head_impact %>% group_by(Race) %>% filter(!is.na(Net_FPI)) %>% summari
 ############################################################################################
 
 # Are there certain HCs who seem to more readily give minorities promotions / coordinator opportunities?
-test <- head_coach_impact %>% distinct(Coach)
 
-coaching_tree <- head_coach_impact %>%
-  select(Coach, season, team, Race) %>%
-  left_join((dc_impact %>% 
-               filter(BeforeAfter == "after") %>%
-               select(Coach, season, team, Race) %>% 
+coordinators <- coach_df1 %>% filter(str_detect(Role, "Coordinator"))
+offensive_coordinators <- coordinators %>% filter(str_detect(Role, "Offensive"))
+offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Run Game Coordinator"))
+offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Pass Game Coordinator"))
+offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Associate offensive"))
+offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Special Teams"))
+offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Assistant offensive"))
+offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Offensive Recruiting Coordinator"))
+offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Head Coach"))
+
+defensive_coordinators <- coordinators %>% filter(str_detect(Role, "Defensive"))
+defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Associate Defensive"))
+defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Special Teams"))
+defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Assistant Defensive"))
+defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Recruiting Coordinator"))
+defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Pass Game Coordinator"))
+defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Run Game Coordinator"))
+defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Head Coach"))
+
+head_coaches <- coach_df1 %>% filter(str_detect(Role, "Head"))
+head_coaches <- head_coaches %>% filter(!str_detect(Role, "Associate Head"))
+head_coaches <- head_coaches %>% filter(!str_detect(Role, "Assistant Head"))
+head_coaches <- head_coaches %>% filter(!str_detect(Role, "Interim Head"))
+
+head_coaches["College"][head_coaches["College"] == "FAU"] <- "Florida Atlantic"
+head_coaches["College"][head_coaches["College"] == "FIU"] <- "Florida International"
+head_coaches["College"][head_coaches["College"] == "Hawaii"] <- "Hawai'i"
+head_coaches["College"][head_coaches["College"] == "Massachusetts"] <- "UMass"
+head_coaches["College"][head_coaches["College"] == "Miami (FL)"] <- "Miami"
+head_coaches["College"][head_coaches["College"] == "San Jose State"] <- "San José State"
+head_coaches["College"][head_coaches["College"] == "Southern Miss"] <- "Southern Mississippi"
+head_coaches["College"][head_coaches["College"] == "UConn"] <- "Connecticut"
+head_coaches["College"][head_coaches["College"] == "UL Monroe"] <- "Louisiana Monroe"
+head_coaches["College"][head_coaches["College"] == "USF"] <- "South Florida"
+head_coaches["College"][head_coaches["College"] == "UTSA"] <- "UT San Antonio"
+
+offensive_coordinators["College"][offensive_coordinators["College"] == "FAU"] <- "Florida Atlantic"
+offensive_coordinators["College"][offensive_coordinators["College"] == "FIU"] <- "Florida International"
+offensive_coordinators["College"][offensive_coordinators["College"] == "Hawaii"] <- "Hawai'i"
+offensive_coordinators["College"][offensive_coordinators["College"] == "Massachusetts"] <- "UMass"
+offensive_coordinators["College"][offensive_coordinators["College"] == "Miami (FL)"] <- "Miami"
+offensive_coordinators["College"][offensive_coordinators["College"] == "San Jose State"] <- "San José State"
+offensive_coordinators["College"][offensive_coordinators["College"] == "Southern Miss"] <- "Southern Mississippi"
+offensive_coordinators["College"][offensive_coordinators["College"] == "UConn"] <- "Connecticut"
+offensive_coordinators["College"][offensive_coordinators["College"] == "UL Monroe"] <- "Louisiana Monroe"
+offensive_coordinators["College"][offensive_coordinators["College"] == "USF"] <- "South Florida"
+offensive_coordinators["College"][offensive_coordinators["College"] == "UTSA"] <- "UT San Antonio"
+
+defensive_coordinators["College"][defensive_coordinators["College"] == "FAU"] <- "Florida Atlantic"
+defensive_coordinators["College"][defensive_coordinators["College"] == "FIU"] <- "Florida International"
+defensive_coordinators["College"][defensive_coordinators["College"] == "Hawaii"] <- "Hawai'i"
+defensive_coordinators["College"][defensive_coordinators["College"] == "Massachusetts"] <- "UMass"
+defensive_coordinators["College"][defensive_coordinators["College"] == "Miami (FL)"] <- "Miami"
+defensive_coordinators["College"][defensive_coordinators["College"] == "San Jose State"] <- "San José State"
+defensive_coordinators["College"][defensive_coordinators["College"] == "Southern Miss"] <- "Southern Mississippi"
+defensive_coordinators["College"][defensive_coordinators["College"] == "UConn"] <- "Connecticut"
+defensive_coordinators["College"][defensive_coordinators["College"] == "UL Monroe"] <- "Louisiana Monroe"
+defensive_coordinators["College"][defensive_coordinators["College"] == "USF"] <- "South Florida"
+defensive_coordinators["College"][defensive_coordinators["College"] == "UTSA"] <- "UT San Antonio"
+
+
+coaching_tree <- head_coaches %>%
+  select(Coach, Season, College, Race) %>%
+  left_join((defensive_coordinators %>% 
+               select(Coach, Season, College, Race) %>% 
                rename(Coordinator = Coach)), 
-            by = c("season", "team"))
-coaching_tree1 <- head_coach_impact %>%
-  select(Coach, season, team, Race) %>%
-  left_join((oc_impact %>%
-               filter(BeforeAfter == "after") %>%
-               select(Coach, season, team, Race) %>%
+            by = c("Season", "College"))
+coaching_tree1 <- head_coaches %>%
+  select(Coach, Season, College, Race) %>%
+  left_join((offensive_coordinators %>%
+               select(Coach, Season, College, Race) %>%
                rename(Coordinator = Coach)),
-            by = c("season", "team"))
+            by = c("Season", "College"))
 coaching_tree <- coaching_tree %>%
   rbind(coaching_tree1) %>%
   filter(!is.na(Coordinator))
@@ -962,7 +1019,7 @@ hires_by_years <- coaching_tree %>%
   filter(Race.y == "Non-white")
 # Now count each coordinator's tenure as 1 (not weighted for how long they held the position)
 hires_by_coord <- coaching_tree %>%
-  select(Coach, Race.x, team, Coordinator, Race.y) %>%
+  select(Coach, Race.x, College, Coordinator, Race.y) %>%
   distinct() %>%
   group_by(Coach, Race.x) %>%
   count(Race.y, name = "coordinators") %>%
@@ -989,21 +1046,259 @@ minority_hires %>%
 sum(minority_hires$total_coordinators) # <- sample size
 ############################################################################################
 
+# https://ona-book.org/community.html
 
 # Use the Louvain algorithm to further analyze the social impact of coaching hires?
 # install.packages("igraph")
 library(igraph)
+# install.packages("qgraph")
+library(qgraph)
+library(corrplot)
+library(Hmisc)
 coaching_tree1 <- coaching_tree %>% 
   group_by(Coach, Coordinator) %>%
-  summarize(years_together = n())
+  summarise(years_together = n())
+###
+# create a  graph from an edgelist
+edgelist <- coaching_tree %>%
+  select(Coach, Coordinator) %>%
+  rename(c("from" = "Coach", "to" = "Coordinator"))
+edgelist_matrix <- as.matrix(edgelist)
+graph1 <- igraph::graph_from_edgelist(el = edgelist_matrix, directed = TRUE)
+graph1
+# IGRAPH 5da95ff DN-- 1431 5643 -- 
+# ^ denotes 'D'irected graph with 'N'amed vertices containing 1,431 vertices and 5,643 edges
+# create a weighted graph from a dataframe
+coaching_tree1 <- coaching_tree1 %>%
+  rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
+# create the graph object
+graph <- igraph::graph_from_data_frame(d = coaching_tree1, directed = TRUE)
+graph
+# IGRAPH d0216f2 DNW- 1431 2214 -- 
+#   + attr: name (v/c), weight (e/n)
+# ^ denotes a Directed graph with Named vertices and numerically (e/n) Weighted edges 
+# V(graph) # gives vertices of the graph
+# E(graph) # gives edge sets of a graph
+# E(graph)$weight # gives weights of edges
+
+E(graph)$weight <- E(graph)$weight
+# assign communities to graph
+louvain_partition <- igraph::cluster_louvain(graph, weights = E(graph)$weight)
+graph$community <- louvain_partition$membership
+length(unique(graph$community))
+# ^there are 43 unique communities in this graph
+
+# LABELS
+set.seed(123)
+# only store a label if "Nick Saban" or "Geoff Collins"
+V(graph)$label <- ifelse(V(graph)$name %in% c("Nick Saban", "Geoff Collins"),
+                         V(graph)$name,
+                         "")
+# change label font color, size, and font family
+V(graph)$label.color <- "black"
+V(graph)$label.cex <- 0.8
+# V(graph)$label.family <- "arial"
+
+# VERTICES
+V(graph)$color <- graph$community
+V(graph)$size <- 3 
+V(graph)$frame.color = "black"
+
+# EDGES
+#E(graph)$width <- graph$weight
+E(graph)$arrow.size <- 0.5
+# how to get alpha or width of edges to change based on weights?
+#create plot layout
+layout1 = layout_randomly(graph)
+# shape oriented layouts
+layout2 = layout_as_tree(graph)
+layout3 = layout_in_circle(graph)
+layout4 = layout_on_sphere(graph)
+# force-directed layouts - use algorithms to attract connected vertices together and repel non-connected vertices
+layout5 = layout_with_fr(graph)
+layout6 = layout_with_kk(graph)
+# Sugiyama is suitable for directed graphs and minimizes edge crossings by introducing bends on edges
+layout7 = layout_with_sugiyama(graph) # says layout must be a matrix?
+# for large graphs
+layout8 = layout_with_lgl(graph)
+layout9 = layout_with_drl(graph)
+layout10 = layout_with_graphopt(graph)
+plot(graph, layout = layout1)
+plot(graph, layout = layout2)
+plot(graph, layout = layout3)
+plot(graph, layout = layout4)
+plot(graph, layout = layout5)
+plot(graph, layout = layout6)
+plot(graph, layout = layout7)
+plot(graph, layout = layout8)
+plot(graph, layout = layout9)
+plot(graph, layout = layout10)
+# or use ggraph similar to ggplot2
+# install.packages("ggraph")
+library(ggraph)
+ggraph(graph, layout = "kk") +
+  geom_edge_link(aes(edge_width = weight), color = "grey", alpha = 0.7, show.legend = FALSE) +
+  geom_node_point(color = "blue", size = 1) +
+  # geom_node_label(aes(label = name), color = "blue") +
+  # or geom_node_point(aes(color = community))
+  theme_void() +
+  labs(title = "Coaching Tree")
+# or use library(networkD3) for interactive graphs (I don't know how to embed this in an article while keeping the interactive features though)
+# install.packages("networkD3")
+library(networkD3)
+networkD3::simpleNetwork(coaching_tree1)
+V(graph)$group <- ifelse(V(graph)$name %in% c("Nick Saban", "Geoff Collins"), 1, 2)
+netd3_list <- networkD3::igraph_to_networkD3(graph, group = V(graph)$group)
+networkD3::forceNetwork(
+  Links = netd3_list$links,
+  Nodes = netd3_list$nodes,
+  NodeID = "name",
+  Source = "source",
+  Target = "target",
+  Group = "group"
+)
+
+# PATHS, DISTANCE, & CENTRALITY
+edge_density(graph)
+# 0.001081937 (it's a sparse graph)
+get_diameter(graph)
+get_diameter(graph, weights = NA)
+diameter_list <- as.list(get_diameter(graph, weights = NA))
+# Bret was a coordinator for Bill, Paul was a coordinator for Bret, Dave was a coordinator for Paul, etc. This is the longest "shortest path".
+# how to create a subgraph with only certain coaches included - this subgraph only includes coaches (nodes) from the diameter above:
+subgraph <- induced_subgraph(graph, vids = c(diameter_list))
+plot(subgraph, layout = layout.auto)
+# are there any disconnected nodes in this graph?
+is.connected(graph)
+# FALSE so it is not connected, ie there are disconnected nodes in the graph.
+# now who has the most connections?
+# create empty vectors:
+v_name <- c()
+n_neighbors <- c()
+# capture name and number of neighbors for every vertex. A vertex is a neighbor of another one (in other words, the two vertices are adjacent), if they are incident to the same edge.
+for(v in V(graph)$name) {
+  v_name <- append(v_name, v)
+  n_neighbors <- append(n_neighbors, 
+                        length(neighbors(graph, v)))
+}
+# find the max
+v_name[which.max(n_neighbors)]
+n_neighbors[which.max(n_neighbors)]
+# Nick Saban has the most neighbors in this data set at 20.
+# average distance, not considering weights. Distance is the length of shortest paths
+mean_distance(graph) # 3.578102
+dt <- distance_table(graph, directed = TRUE)
+barplot(dt$res)
+# calculate Degree Centrality for all vertices. Degree Centrality is the # of edges connected to the vertex, a measure of immediate connection.
+degree(graph)
+degree_centrality <- melt(data.frame(as.list(degree(graph))))
+# Todd Graham at 21, Nick Saban and Tommy Tubberville at 20. I wonder why it says Saban has the most neighbors at 20, but Todd Graham has the highest Degree Centrality at 21.
+# Now reformat the coach's names, add back race, and check mean or median degree centrality by race. Can do this for 1st-degree, 2nd-degree, etc. if we want.
+# Ego Size: the n-th order ego network of a given vertex v is a set including v and all vertices of distance at most n from v. (Saban has a 1st-order ego size of 20)
+ego(graph, order=2, nodes="Nick Saban")
+ego_size(graph, order=2, nodes="Nick Saban")
+# Saban has 111 2nd-degree connections (aka 2nd-order edges)
+# Closeness Centrality
+closeness_centrality <- melt(data.frame(as.list(closeness(graph))))
+# Betweenness Centrality: a measure of how important a given vertex is in connecting other pairs of vertices in the graph. People with high Betweenness Centrality are known as Superconnectors (or networkers)
+betweenness_centrality <- melt(data.frame(as.list(betweenness(graph))))
+# Eigenvector Centrality: A measure of overall influence (if you're equally interested in lots of direct connections as well as few connections to other highly connected people)
+eigenvector_centrality <- melt(data.frame(as.list(eigen_centrality(graph)$vector)))
+# To add centralities as vertex properties in graphs:
+V(graph)$degree <- degree(graph)
+V(graph)$betweenness <- betweenness(graph)
+V(graph)$closeness <- closeness(graph)
+V(graph)$eigen <- eigen_centrality(graph)$vector
+# so now you can adjust the size of the node (for example) according to the degree centrality (aes(size = degree))
+# Another 538-style table showing the most and least connected and influential people?
+
+# COMPONENTS, COMMUNITIES, & CLIQUES
+# Community = a densely connected subset of vertices
+# A connected component of a graph is a connected subset of vertices, none of which are connected to any other vertex in the graph. A disconnected graph is comprised of multiple connected components.
+# Vertex partitioning occurs to cut/split connected graphs into disconnected subgroups. In a partition, all vertices must be in one and only 1 subgroup.
+# Community Detection or Community Discovery = process of determining optimal vertex clusters or communities. (Unsupervised Learning)
+# Louvain Algorithm is one type of Community Detection (most common and fastest) - maximizes modularity of the graph. Modularity measures how dense the connections are within subsets of vertices by comparing the density to that which would be expected from a random graph. The higher the modularity, the more connected the vertices are inside the subgroups compared to between the subgroups. 
+# ^ basically like clustering but for graphs (with relationships).
+# Clique = subset of vertices in an undirected subgraph whose induced subgraph is complete. (Our graph is directed)
+# get weakly connected components:
+graph_components <- components(graph, mode= "weak")
+# how many components? 9
+graph_components$no
+# size of components? 1 huge one & 8 small ones
+graph_components$csize
+# assign component property
+V(graph)$component <- graph_components$membership
+# visualize
+ggraph(graph) +
+  geom_edge_link(color="grey",
+                 arrow = arrow(length=unit(0.2, "cm"))) +
+  geom_node_point(size = 2, aes(color = as.factor(component))) + 
+  labs(color = "Component") +
+  theme_void()
+# Partitioning
+# Detect communities using Louvain - only works for Undirected communities
+graph1 <- igraph::graph_from_data_frame(d = coaching_tree1, directed = FALSE)
+communities <- cluster_louvain(graph1)
+V(graph1)$community <- membership(communities)
+sizes(communities)
+# 41 communities of various sizes
+# pick 1 community to analyze (33 is just random):
+communities[[33]] # selects community #33
+community33 <- induced_subgraph(graph1, vids = communities[[33]])
+plot(community33, layout = layout_on_sphere(community33))
+# test modularity of louvain's partitioning:
+modularity(graph1, V(graph1)$community)
+# after adding the race attribute to vertices, you can test the modularity of the race attribute and compare (the higher the better)
+
+# visualize louvain communities
+set.seed(123)
+louvain_plot <- ggraph(graph1, layout = "kk") +
+  geom_edge_link(color = "black") +
+  geom_node_point(size = 2, aes(color = as.factor(community)),
+                  show.legend = FALSE) +
+  theme_void()
+louvain_plot
+# then visualize divided by race
+set.seed(123)
+g2 <- ggraph(graph1, layout = "kk") +
+  geom_edge_link(color = "black") +
+  geom_node_point(size = 2, aes(color = race),
+                  show.legend = FALSE) +
+  theme_void()
+# display the 2 side-by-side:
+g1 + g2
+
+rcorr(pairs)
+casted_pairs <- reshape2::dcast(pairs, Coach~Coordinator)
+cormatrix <- cor_auto(casted_pairs)
+cor(pairs)
+corrplot(casted_pairs, type="upper", order="hclust", tl.col="black", tl.srt=45)
+graph1 <- qgraph(cormatrix, graph = "glasso", layout = "spring", sampleSize = nrow(pairs), vsize = 7, cut = 0, maximum = 0.45, border.width = 1.5)
+
+# coaching_tree1 <- coaching_tree1[sample(nrow(coaching_tree1), 100),]
+###
 coaching_tree_matrix <- as.matrix(coaching_tree1[, c("Coach", "Coordinator")])
 
 # As 1 big community
-tree_graph <- igraph::graph_from_edgelist(coaching_tree_matrix, directed = FALSE) %>%
+tree_graph <- igraph::graph_from_edgelist(coaching_tree_matrix, directed = TRUE) %>%
   igraph::set.edge.attribute("weight", value = coaching_tree1$years_together)
 tree_graph_plot <- layout_on_sphere(tree_graph)
 plot(tree_graph, rescale = T, layout = tree_graph_plot, main = "Coaching Tree")
 
+###
+modules <- decompose.graph(tree_graph, min.vertices = 1000)
+out <- modules[order(sapply(modules, ecount), decreasing=T)]
+vertexes <- character()
+data_frames <- list()
+for(i in 1:length(out)) {
+  vertexes[i] <- list(vertex.attributes(out[[i]])$name)
+  data_frames[[i]] <- get.data.frame(out[[i]])
+}
+sub_nodes = unlist(vertexes)
+subv <- sub_nodes
+tree3 <- induced.subgraph(graph=tree_graph, vids = subv)
+plot(tree3)
+###
 # tree_graph_plot1 <- layout_with_fr(tree_graph)
 # plot(tree_graph, rescale = T, layout = tree_graph_plot1, main = "Coaching Tree")
 
@@ -1037,25 +1332,25 @@ knitr::kable(
 )
 sort(desc(communities$n_characters))
 # top 5 most important communities:
-top_five <- data.frame()
+small_communities <- data.frame()
 for(i in unique(tree_graph$community)) {
   # create subgraphs for each community
   subgraph <- induced_subgraph(tree_graph, v = which(tree_graph$community == i))
   # for larger communities
-  if (gorder(subgraph) > 20) {
+  if (gorder(subgraph) < 20) {
     # get degree
     degree <- degree(subgraph)
     # get top five degrees
-    top <- names(head(sort(degree, decreasing = TRUE), 5))
-    result <- data.frame(community = i, rank = 1:5, character = top)
+    top <- names(sort(degree, decreasing = TRUE))
+    result <- data.frame(community = i, rank = 1:length(top), character = top)
   } else {
     result <- data.frame(community = NULL, rank = NULL, character = NULL)
   }
-  top_five <- top_five %>%
+  small_communities <- small_communities %>%
     bind_rows(result)
 }
 knitr::kable(
-  top_five %>%
+  small_communities %>%
     pivot_wider(names_from = rank, values_from = character)
 )
 
@@ -1069,11 +1364,14 @@ V(tree_graph)$label.cex <- 1.5
 edge.start <- ends(tree_graph, es = E(tree_graph), names = F)[,1]
 E(tree_graph)$color <- V(tree_graph)$color[edge.start]
 E(tree_graph)$arrow.mode <- 0 # only label top 5 coaches
-V_labels <- which(V(tree_graph)$name %in% c()
+v_labels <- which(V(tree_graph)$name %in% c("Nick Saban"))
 
 for(i in 1:length(V(tree_graph))) {
   if(!(i %in% v_labels)) {V(tree_graph)$label[i] <- ""}
 }
 tree_graph_plot <- layout_on_sphere(tree_graph)
 plot(tree_graph, rescale = TRUE, layout = tree_graph_plot, main = "Coaching Trees")
+# now separate the communities
+tree_graph_plot1 <- layout_with_mds(tree_graph)
+plot(tree_graph, rescale = TRUE, layout = tree_graph_plot1, main = "Coaching Trees")
 ############################################################################################
