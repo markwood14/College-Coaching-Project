@@ -1058,6 +1058,7 @@ library(Hmisc)
 coaching_tree1 <- coaching_tree %>% 
   group_by(Coach, Coordinator) %>%
   summarise(years_together = n())
+
 ###
 # create a  graph from an edgelist
 edgelist <- coaching_tree %>%
@@ -1071,8 +1072,13 @@ graph1
 # create a weighted graph from a dataframe
 coaching_tree1 <- coaching_tree1 %>%
   rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
+vertex_df <- head_coaches %>%
+  rbind(defensive_coordinators) %>%
+  rbind(offensive_coordinators) %>%
+  select(Coach, Race) %>%
+  distinct()
 # create the graph object
-graph <- igraph::graph_from_data_frame(d = coaching_tree1, directed = TRUE)
+graph <- igraph::graph_from_data_frame(d = coaching_tree1, directed = TRUE, vertices = vertex_df)
 graph
 # IGRAPH d0216f2 DNW- 1431 2214 -- 
 #   + attr: name (v/c), weight (e/n)
@@ -1080,13 +1086,8 @@ graph
 # V(graph) # gives vertices of the graph
 # E(graph) # gives edge sets of a graph
 # E(graph)$weight # gives weights of edges
-
-E(graph)$weight <- E(graph)$weight
+# V(graph)$Race # gives Race of each vertex/node
 # assign communities to graph
-louvain_partition <- igraph::cluster_louvain(graph, weights = E(graph)$weight)
-graph$community <- louvain_partition$membership
-length(unique(graph$community))
-# ^there are 43 unique communities in this graph
 
 # LABELS
 set.seed(123)
@@ -1193,10 +1194,9 @@ barplot(dt$res)
 degree(graph)
 degree_centrality <- melt(data.frame(as.list(degree(graph))))
 # Todd Graham at 21, Nick Saban and Tommy Tubberville at 20. I wonder why it says Saban has the most neighbors at 20, but Todd Graham has the highest Degree Centrality at 21.
-# Now reformat the coach's names, add back race, and check mean or median degree centrality by race. Can do this for 1st-degree, 2nd-degree, etc. if we want.
 # Ego Size: the n-th order ego network of a given vertex v is a set including v and all vertices of distance at most n from v. (Saban has a 1st-order ego size of 20)
-ego(graph, order=2, nodes="Nick Saban")
-ego_size(graph, order=2, nodes="Nick Saban")
+ego(graph, order=2)
+ego_size(graph, order=2, nodes = V(graph))
 # Saban has 111 2nd-degree connections (aka 2nd-order edges)
 # Closeness Centrality
 closeness_centrality <- melt(data.frame(as.list(closeness(graph))))
@@ -1204,6 +1204,42 @@ closeness_centrality <- melt(data.frame(as.list(closeness(graph))))
 betweenness_centrality <- melt(data.frame(as.list(betweenness(graph))))
 # Eigenvector Centrality: A measure of overall influence (if you're equally interested in lots of direct connections as well as few connections to other highly connected people)
 eigenvector_centrality <- melt(data.frame(as.list(eigen_centrality(graph)$vector)))
+# Now reformat the coach's names, add back race, and check mean or median degree centrality by race. Can do this for 1st-degree, 2nd-degree, etc. if we want.
+eigenvector_centrality$metric <- "eigen"
+betweenness_centrality$metric <- "betweenness"
+closeness_centrality$metric <- "closeness"
+degree_centrality$metric <- "degree"
+# 2nd & 3rd order (ego) are not included here
+melted_vertex <- eigenvector_centrality %>%
+  rbind(betweenness_centrality) %>%
+  rbind(closeness_centrality) %>%
+  rbind(degree_centrality)
+centrality_df <- melted_vertex %>% reshape2::dcast(variable ~ metric)
+centrality_df$variable <- gsub("\\."," ", centrality_df$variable)
+centrality_df <- centrality_df %>%
+  left_join(vertex_df, by = c("variable" = "Coach"))
+centrality_df["Race"][centrality_df["variable"] == "Aazaar Abdul Rahim"] <- "Black"
+centrality_df["Race"][centrality_df["variable"] == "Joe Salave a"] <- "Other"
+centrality_df["Race"][centrality_df["variable"] == "O Neill Gilbert"] <- "Black"
+centrality_df["Race"][centrality_df["variable"] == "Brian Jean Mary"] <- "Black"
+centrality_df["Race"][centrality_df["variable"] == "Re quan Boyette"] <- "Black"
+centrality_df["Race"][centrality_df["variable"] == "J D  Williams"] <- "Black"
+centrality_df["Race"][centrality_df["variable"] == "Maurice Crum Jr "] <- "Black"
+centrality_df["Race"][centrality_df["variable"] == "Tim Harris Jr "] <- "Black"
+centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
+centrality_mean <- centrality_df %>% 
+  group_by(Race) %>%
+  summarise(eigen = mean(eigen),
+         betweenness = mean(betweenness),
+         closeness = mean(closeness),
+         degree = mean(degree))
+# *****So white coaches are 7 times more influential than Black coaches (eigen) and 1.43 times more connected than Black coaches (degree) on average.*****
+centrality_median <- centrality_df %>% 
+  group_by(Race) %>%
+  summarise(eigen = median(eigen),
+            betweenness = median(betweenness),
+            closeness = median(closeness),
+            degree = median(degree))
 # To add centralities as vertex properties in graphs:
 V(graph)$degree <- degree(graph)
 V(graph)$betweenness <- betweenness(graph)
@@ -1237,19 +1273,21 @@ ggraph(graph) +
   theme_void()
 # Partitioning
 # Detect communities using Louvain - only works for Undirected communities
-graph1 <- igraph::graph_from_data_frame(d = coaching_tree1, directed = FALSE)
+set.seed(123)
+graph1 <- igraph::graph_from_data_frame(d = coaching_tree1, directed = FALSE, vertices = vertex_df)
 communities <- cluster_louvain(graph1)
 V(graph1)$community <- membership(communities)
 sizes(communities)
 # 41 communities of various sizes
-# pick 1 community to analyze (33 is just random):
-communities[[33]] # selects community #33
-community33 <- induced_subgraph(graph1, vids = communities[[33]])
-plot(community33, layout = layout_on_sphere(community33))
+# pick 1 community to analyze (34 is just random):
+communities[[34]] # selects community #34
+community34 <- induced_subgraph(graph1, vids = communities[[34]])
+plot(community34, layout = layout_on_sphere(community34))
 # test modularity of louvain's partitioning:
 modularity(graph1, V(graph1)$community)
 # after adding the race attribute to vertices, you can test the modularity of the race attribute and compare (the higher the better)
-
+modularity(graph1, as.integer(as.factor(V(graph1)$Race)))
+# so Louvain's community structure is a better indicator of connected coaching subgroups than Race.
 # visualize louvain communities
 set.seed(123)
 louvain_plot <- ggraph(graph1, layout = "kk") +
@@ -1260,118 +1298,22 @@ louvain_plot <- ggraph(graph1, layout = "kk") +
 louvain_plot
 # then visualize divided by race
 set.seed(123)
-g2 <- ggraph(graph1, layout = "kk") +
+race_plot <- ggraph(graph1, layout = "kk") +
   geom_edge_link(color = "black") +
-  geom_node_point(size = 2, aes(color = race),
+  geom_node_point(size = 2, aes(color = Race),
                   show.legend = FALSE) +
-  theme_void()
-# display the 2 side-by-side:
-g1 + g2
+  theme_void() +
+race_plot
 
-rcorr(pairs)
-casted_pairs <- reshape2::dcast(pairs, Coach~Coordinator)
-cormatrix <- cor_auto(casted_pairs)
-cor(pairs)
-corrplot(casted_pairs, type="upper", order="hclust", tl.col="black", tl.srt=45)
-graph1 <- qgraph(cormatrix, graph = "glasso", layout = "spring", sampleSize = nrow(pairs), vsize = 7, cut = 0, maximum = 0.45, border.width = 1.5)
+# plot individual communities grouped by Race. (probably don't want to label these w/ coach's names)
+community <- induced_subgraph(graph1, vids = communities[[23]])
+race_plot1 <- ggraph(community, layout = "kk") +
+  geom_edge_link(color = "grey") +
+  geom_node_point(size = 4, aes(color = Race)) +
+  geom_node_text(aes(label = name), repel=T, force=100) +
+  theme_void() +
+  labs(title = "The Butch Jones Community")
+race_plot1
+communities[[23]]
 
-# coaching_tree1 <- coaching_tree1[sample(nrow(coaching_tree1), 100),]
-###
-coaching_tree_matrix <- as.matrix(coaching_tree1[, c("Coach", "Coordinator")])
-
-# As 1 big community
-tree_graph <- igraph::graph_from_edgelist(coaching_tree_matrix, directed = TRUE) %>%
-  igraph::set.edge.attribute("weight", value = coaching_tree1$years_together)
-tree_graph_plot <- layout_on_sphere(tree_graph)
-plot(tree_graph, rescale = T, layout = tree_graph_plot, main = "Coaching Tree")
-
-###
-modules <- decompose.graph(tree_graph, min.vertices = 1000)
-out <- modules[order(sapply(modules, ecount), decreasing=T)]
-vertexes <- character()
-data_frames <- list()
-for(i in 1:length(out)) {
-  vertexes[i] <- list(vertex.attributes(out[[i]])$name)
-  data_frames[[i]] <- get.data.frame(out[[i]])
-}
-sub_nodes = unlist(vertexes)
-subv <- sub_nodes
-tree3 <- induced.subgraph(graph=tree_graph, vids = subv)
-plot(tree3)
-###
-# tree_graph_plot1 <- layout_with_fr(tree_graph)
-# plot(tree_graph, rescale = T, layout = tree_graph_plot1, main = "Coaching Tree")
-
-# To split out different communities...
-# run louvain with edge weights
-louvain_partition <- igraph::cluster_louvain(tree_graph, weights = E(tree_graph)$weight)
-# assign communities to graph
-tree_graph$community <- louvain_partition$membership
-# see how many communities there are
-unique(tree_graph$community)
-# most important communities:
-communities <- data.frame()
-for(i in unique(tree_graph$community)) {
-  # create subgraphs for each community subgraph
-  subgraph <- induced_subgraph(tree_graph, v = which(tree_graph$community == i))
-  # get size of each subgraph
-  size <- igraph::gorder(subgraph)
-  # get betweenness centrality
-  btwn <- igraph::betweenness(subgraph)
-  communities <- communities %>%
-    bind_rows(data.frame(
-      community = i,
-      n_characters = size,
-      most_important = names(which(btwn == max(btwn)))
-    )
-    )
-}
-knitr::kable(
-  communities %>%
-    select(community, n_characters, most_important)
-)
-sort(desc(communities$n_characters))
-# top 5 most important communities:
-small_communities <- data.frame()
-for(i in unique(tree_graph$community)) {
-  # create subgraphs for each community
-  subgraph <- induced_subgraph(tree_graph, v = which(tree_graph$community == i))
-  # for larger communities
-  if (gorder(subgraph) < 20) {
-    # get degree
-    degree <- degree(subgraph)
-    # get top five degrees
-    top <- names(sort(degree, decreasing = TRUE))
-    result <- data.frame(community = i, rank = 1:length(top), character = top)
-  } else {
-    result <- data.frame(community = NULL, rank = NULL, character = NULL)
-  }
-  small_communities <- small_communities %>%
-    bind_rows(result)
-}
-knitr::kable(
-  small_communities %>%
-    pivot_wider(names_from = rank, values_from = character)
-)
-
-#give nodes some properties, incl scaling them by degree and coloring them by community
-V(tree_graph)$size <- 3 
-V(tree_graph)$frame.color <- "white"
-V(tree_graph)$color <- tree_graph$community
-V(tree_graph)$label <- V(tree_graph)$name
-V(tree_graph)$label.cex <- 1.5
-# also color edges according to their sarting node
-edge.start <- ends(tree_graph, es = E(tree_graph), names = F)[,1]
-E(tree_graph)$color <- V(tree_graph)$color[edge.start]
-E(tree_graph)$arrow.mode <- 0 # only label top 5 coaches
-v_labels <- which(V(tree_graph)$name %in% c("Nick Saban"))
-
-for(i in 1:length(V(tree_graph))) {
-  if(!(i %in% v_labels)) {V(tree_graph)$label[i] <- ""}
-}
-tree_graph_plot <- layout_on_sphere(tree_graph)
-plot(tree_graph, rescale = TRUE, layout = tree_graph_plot, main = "Coaching Trees")
-# now separate the communities
-tree_graph_plot1 <- layout_with_mds(tree_graph)
-plot(tree_graph, rescale = TRUE, layout = tree_graph_plot1, main = "Coaching Trees")
 ############################################################################################
