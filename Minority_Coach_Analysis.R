@@ -20,6 +20,7 @@ library(future)
 library(data.table)
 library(stringr)
 library(ggpubr)
+library(colorBlindness)
 
 # Read and clean the coaches csv
 coach_df1 <- read.csv("coaches_by_race.csv")
@@ -59,6 +60,7 @@ head_coaches <- head_coaches %>% filter(!str_detect(Role, "Interim Head"))
 # High Level Analysis
 coach_df %>% group_by(Race) %>% summarise(num_race = n())
 
+# the following numbers are not 'per year' and haven't been fixed for when a coach drops a coordinator/assistant tag.
 head_coaches %>% group_by(Race) %>% summarise(num_race = n())
 #   Race  num_race
 #2 Black       69
@@ -927,8 +929,8 @@ former_oc_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(
 # 4 White           0.0170 
 
 former_oc_head_impact$Race <- ifelse(former_oc_head_impact$Race == "?", "Non-white",
-                                    ifelse(former_oc_head_impact$Race == "Other", "Non-white",
-                                           ifelse(former_oc_head_impact$Race == "Black", "Non-white", "White")))
+                                     ifelse(former_oc_head_impact$Race == "Other", "Non-white",
+                                            ifelse(former_oc_head_impact$Race == "Black", "Non-white", "White")))
 former_oc_head_impact %>% group_by(Race) %>% filter(!is.na(Net_FPI)) %>% summarise(mean_net_fpi_race = mean(Net_FPI))
 # Race  mean_net_fpi_race
 # <chr>             <dbl>
@@ -1013,6 +1015,7 @@ defensive_coordinators["College"][defensive_coordinators["College"] == "UL Monro
 defensive_coordinators["College"][defensive_coordinators["College"] == "USF"] <- "South Florida"
 defensive_coordinators["College"][defensive_coordinators["College"] == "UTSA"] <- "UT San Antonio"
 
+head_coaches %>% group_by(Race) %>% summarise(num_race = n())
 
 coaching_tree <- head_coaches %>%
   select(Coach, Season, College, Race) %>%
@@ -1060,9 +1063,9 @@ minority_hires <- hires_by_years %>%
          rank = rank(years_rank + coords_rank))
 # This may be a good opportunity for a 538-style table
 colnames(minority_hires) <- c("Coach", "Coach_Race", "Alternate_Race", "Non-White_Coordinator_Seasons", 
-      "Available_Coordinator_Seasons", "Available_Seasons_with_Non-White_Coordinator_Percentage", 
-      "Non-White_Coordinators", "Possible_Coordinators", "Non-White_Coordinators_Percentage", 
-      "Non-White_Coordinator_Seasons_Rank", "Non-White_Coordinators_Rank", "Combined_Rank")
+                              "Available_Coordinator_Seasons", "Available_Seasons_with_Non-White_Coordinator_Percentage", 
+                              "Non-White_Coordinators", "Possible_Coordinators", "Non-White_Coordinators_Percentage", 
+                              "Non-White_Coordinator_Seasons_Rank", "Non-White_Coordinators_Rank", "Combined_Rank")
 
 minority_hires_for_table <- minority_hires %>% select(Coach, `Available_Seasons_with_Non-White_Coordinator_Percentage`, `Non-White_Coordinators_Percentage`, Combined_Rank)
 minority_hires_for_table <- minority_hires_for_table %>% mutate_if(is.numeric, round, digits = 2)
@@ -1108,8 +1111,8 @@ gt_theme_538 <- function(data,...) {
 minority_hiring_table <- minority_hires_for_table %>% gt() %>%  tab_spanner(
   label = "Non-White Coordinator Hiring",
   columns = c("Available_Seasons_with_Non-White_Coordinator_Percentage", 
-                 "Non-White_Coordinators_Percentage")) %>% 
-    data_color(
+              "Non-White_Coordinators_Percentage")) %>% 
+  data_color(
     columns = c("Available_Seasons_with_Non-White_Coordinator_Percentage", "Non-White_Coordinators_Percentage"),
     colors = scales::col_numeric(
       palette = c("white", "#3fc1c9"),
@@ -1430,3 +1433,129 @@ communities[[9]]
 # Least diverse communities (by %): 2, 11, 24, 28 
 # most diverse communities: 3, 18, 35, 41
 ############################################################################################
+
+# Racial demographics of CFB ATHLETES (2011 - 2020) (self-reported  data from NCAA member schools' and published at NCAA.org: https://www.ncaa.org/about/resources/research/ncaa-demographics-database)
+
+athletes <- read.csv("racial_demographics_of_cfb_athletes.csv", check.names=FALSE) %>% filter(Race.Ethnicity != "TOTAL")
+athletes$Race.Ethnicity <- ifelse(athletes$Race.Ethnicity == "White", "White",
+         ifelse(athletes$Race.Ethnicity == "Black", "Black", "Other"))
+athletes <- athletes %>%
+  group_by(Division, Race.Ethnicity) %>%
+  summarise(Percent = sum(Percent))
+athletes$Race.Ethnicity <- relevel(as.factor(athletes$Race.Ethnicity), 'White')
+athletes_plot <- athletes %>%
+  ggplot(aes(fill = Race.Ethnicity, y = Percent, x = forcats::fct_rev(Division), label = Percent)) +
+  geom_col(position = position_fill(reverse = TRUE), alpha = 0.8, width = 0.6) +
+  scale_fill_brewer(palette = "Set2") +
+  geom_text(size = 3, position = position_stack(vjust = 0.5, reverse = TRUE)) +
+  coord_flip() +
+  theme_light() +
+  labs(title = "Racial Demographics of CFB Athletes", 
+       subtitle = "From 2011 to 2020",
+       fill = "Race: ",
+       caption = "Plot: @markwood14 & @robert_binion\nData: https://www.ncaa.org/about/resources/research/ncaa-demographics-database") +
+  xlab("Division") +
+  theme(panel.grid.minor = element_blank(),
+        legend.position = ("bottom"),
+        panel.background = element_rect(fill = "#F5F5F5"),
+        plot.subtitle = element_text(size=9),
+        axis.title.x = element_blank())
+athletes_plot
+ggsave('athletes_plot.png', height = 5.625, width = 10, dpi = 300)
+
+## Racial demographics of CFB COACHES (2011 - 2020) (self-reported  data from NCAA member schools' and published at NCAA.org: https://www.ncaa.org/about/resources/research/ncaa-demographics-database)
+
+coaches <- read.csv("racial_demographics_of_cfb_coaches.csv", check.names=FALSE) %>% filter(Race != "TOTAL")
+coaches$Race <- ifelse(coaches$Race == "White", "White",
+                                  ifelse(coaches$Race == "Black", "Black", "Other"))
+coaches <- coaches %>%
+  group_by(Position, Race) %>%
+  summarise(Percent = sum(Percent))
+coaches$Race <- relevel(as.factor(coaches$Race), 'White')
+coaches$Position <- factor(as.factor(coaches$Position), levels = c('Head', 'OC', 'DC', 'Assistant', "GA"))
+coaches_plot <- coaches %>%
+  ggplot(aes(fill = Race, y = Percent, x = forcats::fct_rev(Position), label = Percent)) +
+  geom_col(position = position_fill(reverse = TRUE), alpha = 0.8, width = 0.6) +
+  scale_fill_brewer(palette = "Set2") +
+  geom_text(size = 3, position = position_stack(vjust = 0.5, reverse = TRUE)) +
+  coord_flip() +
+  theme_light() +
+  labs(title = "Racial Demographics of D-I CFB Coaches", 
+       subtitle = "From 2011 to 2020",
+       fill = "Race: ",
+       caption = "Plot: @markwood14 & @robert_binion\nData: https://www.ncaa.org/about/resources/research/ncaa-demographics-database") +
+  xlab("Role") +
+  theme(panel.grid.minor = element_blank(),
+        legend.position = ("bottom"),
+        panel.background = element_rect(fill = "#F5F5F5"),
+        plot.subtitle = element_text(size=9),
+        axis.title.x = element_blank())
+coaches_plot
+ggsave('coaches_plot.png', height = 5.625, width = 10, dpi = 300)
+
+# what should the coaching demographics actually look like?
+ideal_demog <- data.frame(Race = c("White", "Black", "Other"),
+                          united_states = c(0.601, 0.122, 0.277),
+                          cfb = c(0.5065, 0.3900, 0.1035))
+ideal_demog <- ideal_demog %>%
+  mutate(ideal_percent = 0.927*cfb + 0.073*united_states) %>%
+  select(Race, ideal_percent)
+hc_2021 = head_coaches %>%
+  filter(Season == 2021) %>% 
+  mutate(Race = ifelse(Race=="?","Other",Race)) %>%
+  group_by(Race) %>% 
+  summarise(num_race = n()) %>%
+  mutate(actual_2021 = num_race / sum(num_race)) %>%
+  left_join(ideal_demog) %>%
+  mutate(num_ideal = round(sum(num_race)*ideal_percent, 0),
+         difference = num_ideal - num_race)
+oc_2021 = offensive_coordinators %>%
+  filter(Season == 2021) %>% 
+  mutate(Race = ifelse(Race=="?","Other",Race)) %>%
+  group_by(Race) %>% 
+  summarise(num_race = n()) %>%
+  mutate(actual_2021 = num_race / sum(num_race)) %>%
+  left_join(ideal_demog) %>%
+  mutate(num_ideal = round(sum(num_race)*ideal_percent, 0),
+         difference = num_ideal - num_race)
+dc_2021 = defensive_coordinators %>%
+  filter(Season == 2021) %>% 
+  mutate(Race = ifelse(Race=="?","Other",Race)) %>%
+  group_by(Race) %>% 
+  summarise(num_race = n()) %>%
+  mutate(actual_2021 = num_race / sum(num_race)) %>%
+  left_join(ideal_demog) %>%
+  mutate(num_ideal = round(sum(num_race)*ideal_percent, 0),
+         difference = num_ideal - num_race)
+ideal_change <- data.frame(role = c("Head Coach", 
+                                    "Offensive Coordinator", 
+                                    "Defensive Coordinator"),
+                           white = c(hc_2021[hc_2021$Race == "White", "difference"][[1]], 
+                                            oc_2021[oc_2021$Race == "White", "difference"][[1]], 
+                                            dc_2021[dc_2021$Race == "White", "difference"][[1]]),
+                           black = c(hc_2021[hc_2021$Race == "Black", "difference"][[1]], 
+                                            oc_2021[oc_2021$Race == "Black", "difference"][[1]], 
+                                            dc_2021[dc_2021$Race == "Black", "difference"][[1]]),
+                           other = c(hc_2021[hc_2021$Race == "Other", "difference"][[1]], 
+                                            oc_2021[oc_2021$Race == "Other", "difference"][[1]], 
+                                            dc_2021[dc_2021$Race == "Other", "difference"][[1]])) %>%
+  melt(id="role")
+ideal_change$role <- factor(as.factor(ideal_change$role), levels = c('Head Coach', 'Offensive Coordinator', 'Defensive Coordinator'))
+ideal_plot <- ggplot(data=ideal_change, aes(x = role, y = value, fill = variable, label = value)) +
+  geom_col(width = 0.6, alpha=0.8) +
+  geom_hline(yintercept=0) +
+  scale_fill_brewer(palette = "Set2") +
+  geom_text(size = 3, position = position_stack(vjust = 0.5)) +
+  theme_light() +
+  labs(title = "Additional Coaches Needed by Race to Reflect the Demographics of the Candidate Pool", 
+       # subtitle = "",
+       fill = "Race: ",
+       caption = "Plot: @markwood14 & @robert_binion\nData: U.S. Census Bureau & NCAA.org") +
+  ylab("Additional Coaches") +
+  theme(panel.grid.minor = element_blank(),
+        legend.position = ("bottom"),
+        panel.background = element_rect(fill = "#F5F5F5"),
+        plot.subtitle = element_text(size=9),
+        axis.title.x = element_blank())
+ideal_plot
+ggsave('ideal_plot.png', height = 5.625, width = 10, dpi = 300)
