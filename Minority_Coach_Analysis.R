@@ -77,10 +77,30 @@ offensive_coordinators %>% group_by(Race) %>% summarise(num_race = n())
 
 #########################################################################################
 # How long do coaches stay in their roles?
-coach_df %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start))
-head_coaches %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start))
-defensive_coordinators %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start))
-offensive_coordinators %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start))
+coach_df %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start)+1)
+# Race  duration
+# 1 ?         1.96
+# 2 Black     2.12
+# 3 Other     2.37
+# 4 White     2.45
+head_coaches %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start)+1)
+# Race  duration
+# 1 ?         2.5 
+# 2 Black     3.20
+# 3 Other     5.5 
+# 4 White     4.50
+defensive_coordinators %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start)+1)
+# Race  duration
+# 1 ?         2.31
+# 2 Black     1.81
+# 3 Other     2.09
+# 4 White     2.28
+offensive_coordinators %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start)+1)
+# Race  duration
+# 1 ?         1.89
+# 2 Black     2   
+# 3 Other     1.71
+# 4 White     2.31
 # Black coaches have shorter tenures than their white counterparts at every level. Why?
 #########################################################################################
 
@@ -1120,8 +1140,7 @@ minority_hires %>%
 # 2 Black                     0.334                 0.349
 # 3 Other                     0.353                 0.258
 # 4 White                     0.265                 0.281
-# minority HCs are 2-3% more likely than white HCs to hire a minority coordinator.
-# When I ran, looks more like 10%?? That would be worth talking about
+# minority HCs are 6-8 percentage points more likely than white HCs to hire a minority coordinator (20-30% more likely).
 sum(minority_hires$total_coordinators) # <- sample size
 ############################################################################################
 
@@ -1387,14 +1406,27 @@ race_plot <- ggraph(graph1, layout = "kk") +
 race_plot
 
 # plot individual communities grouped by Race. (probably don't want to label these w/ coach's names)
+# Bill Snyder's
 community <- induced_subgraph(graph1, vids = communities[[23]])
-race_plot1 <- ggraph(community, layout = "kk") +
+race_plot23 <- ggraph(community, layout = "kk") +
   geom_edge_link(color = "grey") +
   geom_node_point(size = 4, aes(color = Race)) +
   geom_node_text(aes(label = name), repel=T, force=100) +
   theme_void() +
-  labs(title = "The Butch Jones Community")
-race_plot1
+  labs(title = "The Bill Snyder Community")
+race_plot23
 communities[[23]]
+# Nick Saban's
+community <- induced_subgraph(graph1, vids = communities[[9]])
+race_plot9 <- ggraph(community, layout = "kk") +
+  geom_edge_link(color = "grey") +
+  geom_node_point(size = 4, aes(color = Race)) +
+  geom_node_text(aes(label = name), repel=T, force=100) +
+  theme_void() +
+  labs(title = "The Nick Saban Community")
+race_plot9
+communities[[9]]
 
+# Least diverse communities (by %): 2, 11, 24, 28 
+# most diverse communities: 3, 18, 35, 41
 ############################################################################################
