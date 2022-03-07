@@ -85,6 +85,11 @@ coach_df %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start)
 # 2 Black     2.12
 # 3 Other     2.37
 # 4 White     2.45
+head_coaches <- head_coaches %>% 
+  group_by(College, Coach) %>%
+  mutate(year_start = min(year_start), 
+         year_end = max(year_end)) %>%
+  distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
 head_coaches %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start)+1)
 # Race  duration
 # 1 ?         2.5 
@@ -104,6 +109,37 @@ offensive_coordinators %>% group_by(Race) %>% summarise(duration = mean(year_end
 # 3 Other     1.71
 # 4 White     2.31
 # Black coaches have shorter tenures than their white counterparts at every level. Why?
+tenure <- head_coaches %>%
+  mutate(Role = "Head Coach") %>%
+  rbind(offensive_coordinators %>%
+          mutate(Role = "Offensive Coordinator")) %>%
+  rbind(defensive_coordinators %>%
+          mutate(Role = "Defensive Coordinator")) %>%
+  mutate(Race = ifelse(Race == "?", "Other", Race)) %>%
+  mutate(duration = mean(year_end - year_start)+1)
+tenure$Race <- factor(as.factor(tenure$Race), levels = c('White', 'Black', 'Other'))
+tenure$Role <- factor(as.factor(tenure$Role), levels = c('Head Coach', 'Offensive Coordinator', 'Defensive Coordinator'))
+tenure_jitter <- ggplot(data=tenure, aes(x = Race, y = duration, colour = Role)) +
+  # geom_hline(yintercept=0) +
+  geom_jitter(width = 0.48, height = 0.4, size = 1.5, alpha=0.7) +
+  geom_vline(xintercept = c(1.5, 2.5)) +
+  scale_fill_brewer(palette = "Set2") +
+  # ylim(0.5,22.5) +
+  coord_cartesian(ylim = c(1.4, 22)) +
+  theme_minimal() +
+  theme_light() +
+  labs(title = "Length of Tenure ", 
+       # subtitle = "",
+       fill = "Race: ",
+       caption = "Plot: @markwood14 & @robert_binion") +
+  ylab("Years") +
+  theme(# panel.grid.minor.x = element_line(linetype = 1, color = "red"),
+        # legend.position = ("bottom"),
+        panel.background = element_rect(fill = "#F5F5F5"),
+        plot.subtitle = element_text(size=9),
+        axis.title.x = element_blank())
+tenure_jitter
+ggsave('tenure_jitter.png', height = 5.625, width = 10, dpi = 300)
 #########################################################################################
 
 
