@@ -77,6 +77,46 @@ offensive_coordinators %>% group_by(Race) %>% summarise(num_race = n())
 #3 Other       14
 #4 White     1108
 
+#############  Time Series Data
+
+head_coach_time_series <- head_coaches %>% group_by(Season) %>% mutate(num_coaches = n()) %>%
+        ungroup() %>% group_by(Season, Race) %>% filter(Race == "Black") %>% mutate(percent_black = n()/num_coaches) %>% distinct(Season, .keep_all = TRUE) %>% select(Season, percent_black)
+head_coach_time_series <- head_coach_time_series %>% mutate_if(is.numeric, round, digits = 2)
+head_coach_race_time_plot <- head_coach_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
+  geom_bar(stat="identity")+
+  geom_text(aes(label=percent_black), vjust=1.6, color="white", size=3)+
+  labs(x = "Season", y= "Percentage of Black Head Coaches in the FBS",
+       title = "Percentage of Black Head Coaches since 2000",
+       caption = "Figure: @robert_binion and @markwood 14| Data: Team Info Pages") +
+  theme_minimal()
+head_coach_race_time_plot
+ggsave('head_coach_race_time_plot.png', height = 7, width = 10, dpi = 300)
+
+oc_time_series <- offensive_coordinators %>% group_by(Season) %>% mutate(num_coaches = n()) %>%
+  ungroup() %>% group_by(Season, Race) %>% filter(Race == "Black") %>% mutate(percent_black = n()/num_coaches) %>% distinct(Season, .keep_all = TRUE) %>% select(Season, percent_black)
+oc_time_series <- oc_time_series %>% mutate_if(is.numeric, round, digits = 2)
+oc_race_time_plot <- oc_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
+  geom_bar(stat="identity")+
+  geom_text(aes(label=percent_black), vjust=1.6, color="white", size=3)+
+  labs(x = "Season", y= "Percentage of Black Offensive Coordinators in the FBS",
+       title = "Percentage of Black Offensive Coordinators since 2000",
+       caption = "Figure: @robert_binion and @markwood 14| Data: Team Info Pages") +
+  theme_minimal()
+oc_race_time_plot
+ggsave('oc_race_time_plot.png', height = 7, width = 10, dpi = 300)
+
+dc_time_series <- defensive_coordinators %>% group_by(Season) %>% mutate(num_coaches = n()) %>%
+  ungroup() %>% group_by(Season, Race) %>% filter(Race == "Black") %>% mutate(percent_black = n()/num_coaches) %>% distinct(Season, .keep_all = TRUE) %>% select(Season, percent_black)
+dc_time_series <- dc_time_series %>% mutate_if(is.numeric, round, digits = 2)
+dc_race_time_plot <- dc_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
+  geom_bar(stat="identity")+
+  geom_text(aes(label=percent_black), vjust=1.6, color="white", size=3)+
+  labs(x = "Season", y= "Percentage of Black Defensive Coordinators in the FBS",
+       title = "Percentage of Black Defensive Coordinators since 2000",
+       caption = "Figure: @robert_binion and @markwood 14| Data: Team Info Pages") +
+  theme_minimal()
+dc_race_time_plot
+ggsave('hdc_race_time_plot.png', height = 7, width = 10, dpi = 300)
 #########################################################################################
 # How long do coaches stay in their roles?
 coach_df %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start)+1)
@@ -134,10 +174,10 @@ tenure_jitter <- ggplot(data=tenure, aes(x = Race, y = duration, colour = Role))
        caption = "Plot: @markwood14 & @robert_binion") +
   ylab("Years") +
   theme(# panel.grid.minor.x = element_line(linetype = 1, color = "red"),
-        # legend.position = ("bottom"),
-        panel.background = element_rect(fill = "#F5F5F5"),
-        plot.subtitle = element_text(size=9),
-        axis.title.x = element_blank())
+    # legend.position = ("bottom"),
+    panel.background = element_rect(fill = "#F5F5F5"),
+    plot.subtitle = element_text(size=9),
+    axis.title.x = element_blank())
 tenure_jitter
 ggsave('tenure_jitter.png', height = 5.625, width = 10, dpi = 300)
 #########################################################################################
@@ -1470,11 +1510,11 @@ communities[[9]]
 # most diverse communities: 3, 18, 35, 41
 ############################################################################################
 
-# Racial demographics of CFB ATHLETES (2011 - 2020) (self-reported  data from NCAA member schools' and published at NCAA.org: https://www.ncaa.org/about/resources/research/ncaa-demographics-database)
+# Racial demographics of CFB Football Players (2011 - 2020) (self-reported  data from NCAA member schools' and published at NCAA.org: https://www.ncaa.org/about/resources/research/ncaa-demographics-database)
 
 athletes <- read.csv("racial_demographics_of_cfb_athletes.csv", check.names=FALSE) %>% filter(Race.Ethnicity != "TOTAL")
 athletes$Race.Ethnicity <- ifelse(athletes$Race.Ethnicity == "White", "White",
-         ifelse(athletes$Race.Ethnicity == "Black", "Black", "Other"))
+                                  ifelse(athletes$Race.Ethnicity == "Black", "Black", "Other"))
 athletes <- athletes %>%
   group_by(Division, Race.Ethnicity) %>%
   summarise(Percent = sum(Percent))
@@ -1503,7 +1543,7 @@ ggsave('athletes_plot.png', height = 5.625, width = 10, dpi = 300)
 
 coaches <- read.csv("racial_demographics_of_cfb_coaches.csv", check.names=FALSE) %>% filter(Race != "TOTAL")
 coaches$Race <- ifelse(coaches$Race == "White", "White",
-                                  ifelse(coaches$Race == "Black", "Black", "Other"))
+                       ifelse(coaches$Race == "Black", "Black", "Other"))
 coaches <- coaches %>%
   group_by(Position, Race) %>%
   summarise(Percent = sum(Percent))
@@ -1567,14 +1607,14 @@ ideal_change <- data.frame(role = c("Head Coach",
                                     "Offensive Coordinator", 
                                     "Defensive Coordinator"),
                            white = c(hc_2021[hc_2021$Race == "White", "difference"][[1]], 
-                                            oc_2021[oc_2021$Race == "White", "difference"][[1]], 
-                                            dc_2021[dc_2021$Race == "White", "difference"][[1]]),
+                                     oc_2021[oc_2021$Race == "White", "difference"][[1]], 
+                                     dc_2021[dc_2021$Race == "White", "difference"][[1]]),
                            black = c(hc_2021[hc_2021$Race == "Black", "difference"][[1]], 
-                                            oc_2021[oc_2021$Race == "Black", "difference"][[1]], 
-                                            dc_2021[dc_2021$Race == "Black", "difference"][[1]]),
+                                     oc_2021[oc_2021$Race == "Black", "difference"][[1]], 
+                                     dc_2021[dc_2021$Race == "Black", "difference"][[1]]),
                            other = c(hc_2021[hc_2021$Race == "Other", "difference"][[1]], 
-                                            oc_2021[oc_2021$Race == "Other", "difference"][[1]], 
-                                            dc_2021[dc_2021$Race == "Other", "difference"][[1]])) %>%
+                                     oc_2021[oc_2021$Race == "Other", "difference"][[1]], 
+                                     dc_2021[dc_2021$Race == "Other", "difference"][[1]])) %>%
   melt(id="role")
 ideal_change$role <- factor(as.factor(ideal_change$role), levels = c('Head Coach', 'Offensive Coordinator', 'Defensive Coordinator'))
 ideal_plot <- ggplot(data=ideal_change, aes(x = role, y = value, fill = variable, label = value)) +
