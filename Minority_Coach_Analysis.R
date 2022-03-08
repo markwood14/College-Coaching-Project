@@ -399,6 +399,23 @@ head_coach_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = m
 #3 Other           0.00167
 #4 White           0.0106 
 
+head_coach_impact_results["Race"][head_coach_impact_results["Race"] == "?"] <- "Other" 
+
+head_coach_impact_plot <- head_coach_impact_results %>% ggplot(aes(x = Net_SR, y = Net_PPA, colour = Race)) +
+  geom_jitter(width = 0.48, height = 0.48, size = 1.5, alpha=0.7) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(x = "Net Success Rate Change", y= "Net PPA Change",
+       title = "Head Coach Impact by Race", 
+       subtitle = "FBS, 2005-present\nR-Squared for Race~Net_PPA = 0.0093",
+       fill = "Race: ",
+       caption = "Plot: @markwood14 & @robert_binion\nData: @cfb_data with #cfbfastR") +
+  theme(panel.grid.minor = element_blank(),
+        legend.position = ("top"),
+        panel.background = element_rect(fill = "#F5F5F5"),
+        plot.subtitle = element_text(size=9),
+        axis.title.x = element_blank())
+head_coach_impact_plot
+ggsave("head_coach_impact_plot.png", height = 7, width = 10, dpi = 300)
 head_coach_impact_results %>% group_by(Race) %>% summarise(mean_total_ppa_race = mean(total_ppa))
 # Race  mean_total_ppa_race
 #   1 ?                 -0.0203
@@ -1183,12 +1200,17 @@ gt_theme_538 <- function(data,...) {
       ...
     ) 
 }
-minority_hiring_table <- minority_hires_for_table %>% gt() %>%  tab_spanner(
-  label = "Non-White Coordinator Hiring",
-  columns = c("Available_Seasons_with_Non-White_Coordinator_Percentage", 
-              "Non-White_Coordinators_Percentage")) %>% 
+
+minority_hires_top20 <- minority_hires_for_table[1:20,]
+minority_hires_bottom20 <-minority_hires_for_table[188:207,]
+colnames(minority_hires_top20) <- c('Coach', 'Non-White Coordinator Seasons', 'Non-White Coordinators', "Combined Rank")
+colnames(minority_hires_bottom20) <- c('Coach', 'Non-White Coordinator Seasons', 'Non-White Coordinators', "Combined Rank")
+minority_hiring_table_top20 <- minority_hires_top20 %>% gt() %>%  tab_spanner(
+  label = "Non-White Coordinator Percentages\nTop 20",
+  columns = c("Non-White Coordinator Seasons", 
+              "Non-White Coordinators")) %>% 
   data_color(
-    columns = c("Available_Seasons_with_Non-White_Coordinator_Percentage", "Non-White_Coordinators_Percentage"),
+    columns = c("Non-White Coordinator Seasons", "Non-White Coordinators"),
     colors = scales::col_numeric(
       palette = c("white", "#3fc1c9"),
       domain = NULL
@@ -1202,16 +1224,43 @@ minority_hiring_table <- minority_hires_for_table %>% gt() %>%  tab_spanner(
   ) %>% 
   gt_theme_538(table.width = px(550))
 
-minority_hiring_table
-gtsave(minority_hiring_table, "Minority_Hiring_Table.png")
+minority_hiring_table_top20
+gtsave(minority_hiring_table_top20, "Minority_Hiring_Table_Top20.png")
+
+minority_hiring_table_bottom20 <- minority_hires_bottom20 %>% gt() %>%  tab_spanner(
+  label = "Non-White Coordinator %\nBottom 20",
+  columns = c("Non-White Coordinator Seasons", 
+              "Non-White Coordinators")) %>% 
+  data_color(
+    columns = c("Non-White Coordinator Seasons", "Non-White Coordinators"),
+    colors = scales::col_numeric(
+      palette = c("white", "#3fc1c9"),
+      domain = NULL
+    )
+  ) %>% 
+  #cols_label(
+  #  success_rate = "SUCCESS RATE (%)"
+  #) %>% 
+  tab_source_note(
+    source_note = md("SOURCE: CFB_Data & Team Resource Pages <br>TABLE: @Robert_Binion & @MarkWood14")
+  ) %>% 
+  gt_theme_538(table.width = px(550))
+
+minority_hiring_table_bottom20
+gtsave(minority_hiring_table_bottom20, "Minority_Hiring_Table_bottom20.png")
 # Do minority HCs hire more minority coordinators than white HCs?
-minority_hires$Race.x <- ifelse(minority_hires$Race.x == "?", "Non-white",
-                                ifelse(minority_hires$Race.x == "Other", "Non-white",
-                                       ifelse(minority_hires$Race.x == "Black", "Non-white", "White")))
+minority_hires$Coach_Race <- ifelse(minority_hires$Coach_Race == "?", "Non-white",
+                                ifelse(minority_hires$Coach_Race == "Other", "Non-white",
+                                       ifelse(minority_hires$Coach_Race == "Black", "Non-white", "White")))
 minority_hires %>%
   group_by(Coach_Race) %>%
   summarise(percent_of_years_POC = mean(`Available_Seasons_with_Non-White_Coordinator_Percentage`),
             percent_of_coords_POC = mean(`Non-White_Coordinators_Percentage`))
+
+# Coach_Race percent_of_years_POC percent_of_coords_POC
+# <chr>                     <dbl>                 <dbl>
+#   1 Non-white                 0.345                 0.343
+# 2 White                     0.265                 0.281
 # Coach_Race percent_of_years_POC percent_of_coords_POC
 # <chr>                     <dbl>                 <dbl>
 #   1 ?                         0.5                   0.417
