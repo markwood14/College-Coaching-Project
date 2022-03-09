@@ -133,7 +133,8 @@ tenure_jitter <- ggplot(data=tenure, aes(x = Race, y = duration, colour = Role))
        caption = "Plot: @markwood14 and @robert_binion") +
   ylab("Years") +
   theme(# panel.grid.minor.x = element_line(linetype = 1, color = "red"),
-    # legend.position = ("bottom"),
+    legend.position = c(0.89, 0.85),
+    legend.box.background = element_rect(color="black"),
     panel.background = element_rect(fill = "#F5F5F5"),
     plot.subtitle = element_text(size=9),
     axis.title.x = element_blank())
@@ -1217,8 +1218,8 @@ gtsave(minority_hiring_table_bottom20, "Minority_Hiring_Table_bottom20.png")
 
 # Do minority HCs hire more minority coordinators than white HCs?
 minority_hires$Coach_Race <- ifelse(minority_hires$Coach_Race == "?", "Non-white",
-                                ifelse(minority_hires$Coach_Race == "Other", "Non-white",
-                                       ifelse(minority_hires$Coach_Race == "Black", "Non-white", "White")))
+                                    ifelse(minority_hires$Coach_Race == "Other", "Non-white",
+                                           ifelse(minority_hires$Coach_Race == "Black", "Non-white", "White")))
 minority_hires %>%
   group_by(Coach_Race) %>%
   summarise(percent_of_years_POC = mean(`Available_Seasons_with_Non-White_Coordinator_Percentage`),
@@ -1718,11 +1719,11 @@ ideal_plot <- ggplot(data=ideal_change, aes(x = role, y = value, fill = variable
   scale_fill_brewer(palette = "Set2") +
   geom_text(size = 3, position = position_stack(vjust = 0.5)) +
   theme_light() +
-  labs(title = "Additional Coaches Needed by Race to Reflect the Demographics of the Candidate Pool", 
-       subtitle = "based on 2021 Coaching Staffs",
+  labs(title = "Change in Total Number of Coaches by Race Needed to Reflect the Demographics of the Candidate Pool", 
+       subtitle = "Based on 2021 coaching staffs",
        fill = "Race: ",
        caption = "Plot: @markwood14 & @robert_binion\nData: U.S. Census Bureau & NCAA.org") +
-  ylab("Additional Coaches") +
+  ylab("Change in Number of Coaches") +
   theme(panel.grid.minor = element_blank(),
         legend.position = ("bottom"),
         panel.background = element_rect(fill = "#F5F5F5"),
@@ -1794,7 +1795,7 @@ plot(fitted(es1))
 player_ts1 <- player_ts1 %>%
   melt(variable.name = "Season",
        value.name = "percent_black") %>%
-  mutate(Person = "Player")
+  mutate(Role = "Player")
 player_ts1$Season <- as.numeric(as.character(player_ts1$Season))
 
 coach_time_series <- head_coaches %>% 
@@ -1803,34 +1804,33 @@ coach_time_series <- head_coaches %>%
           mutate(Role = "Offensive Coordinator")) %>%
   rbind(defensive_coordinators %>%
           mutate(Role = "Defensive Coordinator")) %>%
-  group_by(Season) %>% 
-  mutate(num_coaches = n()) %>%
+  group_by(Season, Role) %>% 
+  mutate(num_coaches = n()) #%>%
   ungroup() %>% 
-  group_by(Season, Race) %>% 
   filter(Race == "Black") %>% 
+  group_by(Season, Role) %>% 
   mutate(percent_black = n()/num_coaches) %>% 
-  distinct(Season, .keep_all = TRUE) %>% 
-  select(Season, percent_black) %>%
-  mutate(Person = "Coach") %>%
+  select(Season, Role, percent_black) %>%
+  distinct(Season, Role, percent_black) %>%
   rbind(player_ts1)
-df1 <- coach_time_series %>%
-  filter(Season == 2000 | Season == 2020)
-df<- data.frame(x1 = 2000, x2 = 2000, x3 = 2020, x4 = 2020,
-                y1 = df1[df1$Person == "Player" & df1$Season == 2000, "percent_black"][[1]],
-                y2 = df1[df1$Person == "Coach" & df1$Season == 2000, "percent_black"][[1]],
-                y3 = df1[df1$Person == "Player" & df1$Season == 2020, "percent_black"][[1]],
-                y4 = df1[df1$Person == "Coach" & df1$Season == 2020, "percent_black"][[1]])
-hc_2021[hc_2021$Race == "White", "difference"][[1]]
+# df1 <- coach_time_series %>%
+#   filter(Season == 2000 | Season == 2020)
+# df<- data.frame(x1 = 2000, x2 = 2000, x3 = 2020, x4 = 2020,
+#                 y1 = df1[df1$Person == "Player" & df1$Season == 2000, "percent_black"][[1]],
+#                 y2 = df1[df1$Person == "Coach" & df1$Season == 2000, "percent_black"][[1]],
+#                 y3 = df1[df1$Person == "Player" & df1$Season == 2020, "percent_black"][[1]],
+#                 y4 = df1[df1$Person == "Coach" & df1$Season == 2020, "percent_black"][[1]])
+# hc_2021[hc_2021$Race == "White", "difference"][[1]]
 # coach_time_series <- coach_time_series %>% mutate_if(is.numeric, round, digits = 2)
 coach_race_time_plot <- coach_time_series %>% 
-  ggplot(aes(x=Season, y=percent_black, color = Person)) +
-  geom_line(stat="identity", size=1.5)+
-  geom_point(size=2.5)+
+  ggplot(aes(x=Season, y=percent_black, color = Role)) +
+  geom_line(stat="identity", size=1)+
+  geom_point(size=2)+
   scale_colour_brewer(palette = "Set2") +
-  geom_segment(aes(x=df$x1, y=df$y1, xend=df$x2, yend=df$y2), linetype = "dashed", color="black") +
-  geom_segment(aes(x=df$x3, y=df$y3, xend=df$x4, yend=df$y4), linetype = "dashed", color="black") +
-  geom_text(aes(x=df$x1-0.2, y=(df$y1-df$y2)/2+df$y2), label = round(df$y1-df$y2,3), angle=90, color="black", size=3) +
-  geom_text(aes(x=df$x3-0.2, y=(df$y3-df$y4)/2+df$y4), label = round(df$y3-df$y4,3), angle=90, color="black", size=3) +
+  # geom_segment(aes(x=df$x1, y=df$y1, xend=df$x2, yend=df$y2), linetype = "dashed", color="black") +
+  # geom_segment(aes(x=df$x3, y=df$y3, xend=df$x4, yend=df$y4), linetype = "dashed", color="black") +
+  # geom_text(aes(x=df$x1-0.2, y=(df$y1-df$y2)/2+df$y2), label = round(df$y1-df$y2,3), angle=90, color="black", size=3) +
+  # geom_text(aes(x=df$x3-0.2, y=(df$y3-df$y4)/2+df$y4), label = round(df$y3-df$y4,3), angle=90, color="black", size=3) +
   labs(x = "Season", y= "Percentage",
        title = "% of Black Coaches in FBS vs. Black Players in CFB",
        caption = "Plot: @markwood14 and @robert_binion\nData: Team Info Pages & NCAA.org") +
@@ -1838,30 +1838,4 @@ coach_race_time_plot <- coach_time_series %>%
   theme(legend.title = element_blank(),
         panel.background = element_rect(fill = "#F5F5F5"))
 coach_race_time_plot
-ggsave('coach_race_time_plot.png', height = 5.625, width = 10, dpi = 300)
-
-oc_time_series <- offensive_coordinators %>% group_by(Season) %>% mutate(num_coaches = n()) %>%
-  ungroup() %>% group_by(Season, Race) %>% filter(Race == "Black") %>% mutate(percent_black = n()/num_coaches) %>% distinct(Season, .keep_all = TRUE) %>% select(Season, percent_black)
-oc_time_series <- oc_time_series %>% mutate_if(is.numeric, round, digits = 2)
-oc_race_time_plot <- oc_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
-  geom_bar(stat="identity")+
-  geom_text(aes(label=percent_black), vjust=1.6, color="white", size=3)+
-  labs(x = "Season", y= "Percentage of Black Offensive Coordinators in the FBS",
-       title = "Percentage of Black Offensive Coordinators since 2000",
-       caption = "Figure: @robert_binion and @markwood 14| Data: Team Info Pages") +
-  theme_minimal()
-oc_race_time_plot
-ggsave('oc_race_time_plot.png', height = 7, width = 10, dpi = 300)
-
-dc_time_series <- defensive_coordinators %>% group_by(Season) %>% mutate(num_coaches = n()) %>%
-  ungroup() %>% group_by(Season, Race) %>% filter(Race == "Black") %>% mutate(percent_black = n()/num_coaches) %>% distinct(Season, .keep_all = TRUE) %>% select(Season, percent_black)
-dc_time_series <- dc_time_series %>% mutate_if(is.numeric, round, digits = 2)
-dc_race_time_plot <- dc_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
-  geom_bar(stat="identity")+
-  geom_text(aes(label=percent_black), vjust=1.6, color="white", size=3)+
-  labs(x = "Season", y= "Percentage of Black Defensive Coordinators in the FBS",
-       title = "Percentage of Black Defensive Coordinators since 2000",
-       caption = "Figure: @robert_binion and @markwood 14| Data: Team Info Pages") +
-  theme_minimal()
-dc_race_time_plot
-ggsave('hdc_race_time_plot.png', height = 7, width = 10, dpi = 300)
+ggsave('coach_race_time_plot1.png', height = 5.625, width = 10, dpi = 300)
