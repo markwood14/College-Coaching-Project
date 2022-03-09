@@ -1231,6 +1231,64 @@ minority_hires %>%
 # 4 White                     0.265                 0.281
 # minority HCs are 6-8 percentage points more likely than white HCs to hire a minority coordinator (20-30% more likely).
 # sum(minority_hires$total_coordinators) # <- sample size
+
+# linking the above data with connected and influence data from below:
+centrality_df_modified <- centrality_df %>% select(variable, degree, eigen, Race)
+colnames(centrality_df_modified) <- c("Coach", "Connections", "Influence", "Race")
+centrality_df_scaled <- centrality_df_modified %>% mutate_at("Influence", ~(scale(., center = FALSE) %>% as.vector))
+centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
+
+minority_hires_influence <- minority_hires %>% left_join(centrality_df_scaled, by = "Coach")
+minority_hires_influence <- minority_hires_influence %>% select(Coach, Coach_Race, `Available_Seasons_with_Non-White_Coordinator_Percentage`, `Non-White_Coordinators_Percentage`, Combined_Rank, Connections, Influence)
+minority_hires_influence <- minority_hires_influence %>% mutate_if(is.numeric, round, digits = 2)
+colnames(minority_hires_influence) <- c("Coach", "Coach_Race",'Non-White Coordinator Seasons', 'Non-White Coordinators', "Combined Rank", "Connections", "Influence" )
+minority_hires_connections <- minority_hires_influence %>% arrange(desc(Connections))
+minority_hires_top20_connections <- minority_hires_connections[1:20,]
+
+minority_hires_influential<- minority_hires_influence %>% arrange(desc(Influence))
+minority_hires_top20_influential <- minority_hires_influential[1:20,]
+
+minority_hiring_table_connected20 <- minority_hires_top20_connections %>% gt() %>%  tab_spanner(
+  label = "Most Connected Coaches Coordinator Hiring",
+  columns = c("Non-White Coordinator Seasons", 
+              "Non-White Coordinators", "Combined Rank")) %>% 
+  data_color(
+    columns = c("Combined Rank"),
+    colors = scales::col_numeric(
+      palette = c("white", "#CC0000"),
+      domain = NULL
+    )
+  ) %>% 
+  #cols_label(
+  #  success_rate = "SUCCESS RATE (%)"
+  #) %>% 
+  tab_source_note(
+    source_note = md("SOURCE: CFB_Data & Team Resource Pages <br>TABLE: @Robert_Binion & @MarkWood14")
+  ) %>% 
+  gt_theme_538(table.width = px(550))
+minority_hiring_table_connected20
+gtsave(minority_hiring_table_connected20, "minority_hiring_table_connected20.png")
+
+minority_hiring_table_influential20 <- minority_hires_top20_influential %>% gt() %>%  tab_spanner(
+  label = "Most Influential Coaches Coordinator Hiring",
+  columns = c("Non-White Coordinator Seasons", 
+              "Non-White Coordinators", "Combined Rank")) %>% 
+  data_color(
+    columns = c("Combined Rank"),
+    colors = scales::col_numeric(
+      palette = c("white", "#CC0000"),
+      domain = NULL
+    )
+  ) %>% 
+  #cols_label(
+  #  success_rate = "SUCCESS RATE (%)"
+  #) %>% 
+  tab_source_note(
+    source_note = md("SOURCE: CFB_Data & Team Resource Pages <br>TABLE: @Robert_Binion & @MarkWood14")
+  ) %>% 
+  gt_theme_538(table.width = px(550))
+minority_hiring_table_influential20
+gtsave(minority_hiring_table_influential20, "minority_hiring_table_influential20.png")
 ############################################################################################
 
 # https://ona-book.org/community.html
