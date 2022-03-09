@@ -1806,7 +1806,7 @@ coach_time_series <- head_coaches %>%
           mutate(Role = "Defensive Coordinator")) %>%
   group_by(Season, Role) %>% 
   mutate(num_coaches = n()) #%>%
-  ungroup() %>% 
+ungroup() %>% 
   filter(Race == "Black") %>% 
   group_by(Season, Role) %>% 
   mutate(percent_black = n()/num_coaches) %>% 
@@ -1839,3 +1839,52 @@ coach_race_time_plot <- coach_time_series %>%
         panel.background = element_rect(fill = "#F5F5F5"))
 coach_race_time_plot
 ggsave('coach_race_time_plot1.png', height = 5.625, width = 10, dpi = 300)
+
+######### STAT PROFILES for 
+# Brian Norwood
+# Maurice Harris
+# Alex Atkins 
+# Josh Gattis
+# Newland Isaac
+
+best_candidates_df <- data_frame()
+coach_1 <- dc_impact_results[97:100,] %>% group_by(Coach) %>% summarise(net_ppa = mean(net_ppa),
+            net_sr = mean(net_sr), net_stuff = mean(net_stuff), net_pass_sr = mean(net_pass_sr))
+coach_2 <- oc_impact_results%>%
+  filter(str_detect(Coach, "Alex Atkins"))
+coach_3 <- oc_impact_results%>% filter(str_detect(Coach, "Josh Gattis")) %>% 
+  group_by(Coach) %>% summarise(net_ppa = mean(net_ppa),
+  net_sr = mean(net_sr), net_stuff = mean(net_stuff), net_pass_sr = mean(net_pass_sr))
+coach_4 <- oc_impact_results%>%
+  filter(str_detect(Coach, "Maurice Harris"))
+coach_5 <- oc_impact_results%>%
+  filter(str_detect(Coach, "Newland Isaac"))
+best_candidates_df <- bind_rows(coach_1, coach_2, coach_3, coach_4, coach_5)
+
+# add a column with headshots
+best_candidates_df$headshot <- c("https://seminoles.com/wp-content/uploads/2020/01/Atkins-Alex-scaled.jpg",
+"https://d3kmx57qvxfvw9.cloudfront.net/images/2021/8/23/Norwood_Brian_0125Cropped.jpg?width=300",
+"https://broylesaward.com/wp-content/uploads/sites/5/ninja-forms/8/Josh-Gattis-Headshot-scaled.jpg",
+"https://www.liberty.edu/flames/wp-content/uploads/staff/Harris,%20Maurice%20(2019).jpg",
+"https://broylesaward.com/wp-content/uploads/sites/5/ninja-forms/8/Newland-Isaac-Headshot-scaled.jpg")
+
+best_candidates_plot <- best_candidates_df %>% ggplot(aes(x=net_ppa, y=net_sr, label=Coach)) + 
+  #geom_smooth(method=lm, se=FALSE, col='red', size=0.5) +
+  geom_image(image = best_candidates_df$headshot, asp = 16/9) +
+  geom_label(aes(label = Coach), vjust = 1.2) +
+  geom_vline(xintercept = mean(dc_impact_results$net_ppa), linetype = "dashed", color = "red", alpha = 0.5) +
+  geom_hline(yintercept = mean(dc_impact_results$net_sr), linetype = "dashed", color = "red", alpha = 0.5) +
+  labs(x = "Net Impact on PPA", y= "Net Impact on Success Rate",
+       title = "5 Top Black Head Coaching Candidates",
+       subtitle = "Impact while Coordinator Compared to Average (Dotted Red Lines)",
+       caption = "Figure: @robert_binion @markwood14| Data: @CFB_Data with @cfbfastR") +
+  theme_minimal() +
+  theme(axis.title = element_text(size = 14),
+        axis.text = element_text(size = 10),
+        plot.title = element_text(size = 16),
+        plot.subtitle = element_text(size = 14),
+        plot.caption = element_text(size = 12),
+        panel.grid.minor = element_blank(),
+        legend.position = "right")
+best_candidates_plot
+ggsave('best_candidates_plot.png', height = 7, width = 10, dpi = 300)
