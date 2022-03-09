@@ -359,6 +359,11 @@ head_coach_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = m
 #3 Other           0.00167
 #4 White           0.0106 
 
+
+
+head_coach_impact_results_test <- lapply(head_coach_impact_results, unlist)
+head_coach_impact_results_test <- data.frame(lapply(head_coach_impact_results_test, `length<-`, max(lengths(head_coach_impact_results_test))))
+head_coach_impact_results <- head_coach_impact_results_test
 head_coach_impact_results["Race"][head_coach_impact_results["Race"] == "?"] <- "Other" 
 
 head_coach_impact_plot <- head_coach_impact_results %>% ggplot(aes(x = Net_SR, y = Net_PPA, colour = Race)) +
@@ -366,14 +371,13 @@ head_coach_impact_plot <- head_coach_impact_results %>% ggplot(aes(x = Net_SR, y
   scale_fill_brewer(palette = "Set2") +
   labs(x = "Net Success Rate Change", y= "Net PPA Change",
        title = "Head Coach Impact by Race", 
-       subtitle = "FBS, 2005-present\nR-Squared for Race~Net_PPA = 0.0093",
+       subtitle = "FBS, 2005-present\nR-Squared for Net_PPA~Race = 0.0093",
        fill = "Race: ",
        caption = "Plot: @markwood14 & @robert_binion\nData: @cfb_data with #cfbfastR") +
   theme(panel.grid.minor = element_blank(),
         legend.position = ("top"),
         panel.background = element_rect(fill = "#F5F5F5"),
-        plot.subtitle = element_text(size=9),
-        axis.title.x = element_blank())
+        plot.subtitle = element_text(size=9))
 head_coach_impact_plot
 ggsave("head_coach_impact_plot.png", height = 7, width = 10, dpi = 300)
 
@@ -1162,7 +1166,7 @@ gt_theme_538 <- function(data,...) {
       ...
     ) 
 }
-
+minority_hires_for_table$Combined_Rank <- floor(minority_hires_for_table$Combined_Rank)
 minority_hires_top20 <- minority_hires_for_table[1:20,]
 minority_hires_bottom20 <-minority_hires_for_table[188:207,]
 colnames(minority_hires_top20) <- c('Coach', 'Non-White Coordinator Seasons', 'Non-White Coordinators', "Combined Rank")
@@ -1210,6 +1214,7 @@ minority_hiring_table_bottom20 <- minority_hires_bottom20 %>% gt() %>%  tab_span
 
 minority_hiring_table_bottom20
 gtsave(minority_hiring_table_bottom20, "Minority_Hiring_Table_bottom20.png")
+
 # Do minority HCs hire more minority coordinators than white HCs?
 minority_hires$Coach_Race <- ifelse(minority_hires$Coach_Race == "?", "Non-white",
                                 ifelse(minority_hires$Coach_Race == "Other", "Non-white",
@@ -1233,14 +1238,15 @@ minority_hires %>%
 # sum(minority_hires$total_coordinators) # <- sample size
 
 # linking the above data with connected and influence data from below:
-centrality_df_modified <- centrality_df %>% select(variable, degree, eigen, Race)
-colnames(centrality_df_modified) <- c("Coach", "Connections", "Influence", "Race")
+centrality_df_modified <- centrality_df %>% select(variable, closeness, degree, Race)
+colnames(centrality_df_modified) <- c("Coach", "Influence", "Connections",  "Race")
 centrality_df_scaled <- centrality_df_modified %>% mutate_at("Influence", ~(scale(., center = FALSE) %>% as.vector))
 centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
 
 minority_hires_influence <- minority_hires %>% left_join(centrality_df_scaled, by = "Coach")
 minority_hires_influence <- minority_hires_influence %>% select(Coach, Coach_Race, `Available_Seasons_with_Non-White_Coordinator_Percentage`, `Non-White_Coordinators_Percentage`, Combined_Rank, Connections, Influence)
 minority_hires_influence <- minority_hires_influence %>% mutate_if(is.numeric, round, digits = 2)
+minority_hires_influence$Combined_Rank <- floor(minority_hires_influence$Combined_Rank)
 colnames(minority_hires_influence) <- c("Coach", "Coach_Race",'Non-White Coordinator Seasons', 'Non-White Coordinators', "Combined Rank", "Connections", "Influence" )
 minority_hires_connections <- minority_hires_influence %>% arrange(desc(Connections))
 minority_hires_top20_connections <- minority_hires_connections[1:20,]
@@ -1255,8 +1261,9 @@ minority_hiring_table_connected20 <- minority_hires_top20_connections %>% gt() %
   data_color(
     columns = c("Combined Rank"),
     colors = scales::col_numeric(
-      palette = c("white", "#CC0000"),
-      domain = NULL
+      palette = "RdYlGn",
+      domain = NULL,
+      reverse = TRUE
     )
   ) %>% 
   #cols_label(
@@ -1276,8 +1283,9 @@ minority_hiring_table_influential20 <- minority_hires_top20_influential %>% gt()
   data_color(
     columns = c("Combined Rank"),
     colors = scales::col_numeric(
-      palette = c("white", "#CC0000"),
-      domain = NULL
+      palette = "RdYlGn",
+      domain = NULL,
+      reverse = TRUE
     )
   ) %>% 
   #cols_label(
