@@ -31,7 +31,7 @@ coach_df <- coach_df1 %>%
          year_end = max(Season)) %>%
   select(c(College, Coach, Role, Race, year_start, year_end)) %>%
   distinct()
-save(coach_df,file="coach_df.Rda")
+# save(coach_df,file="coach_df.Rda")
 
 coordinators <- coach_df %>% filter(str_detect(Role, "Coordinator"))
 offensive_coordinators <- coordinators %>% filter(str_detect(Role, "Offensive"))
@@ -77,47 +77,7 @@ offensive_coordinators %>% group_by(Race) %>% summarise(num_race = n())
 #3 Other       14
 #4 White     1108
 
-#############  Time Series Data
 
-head_coach_time_series <- head_coaches %>% group_by(Season) %>% mutate(num_coaches = n()) %>%
-  ungroup() %>% group_by(Season, Race) %>% filter(Race == "Black") %>% mutate(percent_black = n()/num_coaches) %>% distinct(Season, .keep_all = TRUE) %>% select(Season, percent_black)
-head_coach_time_series <- head_coach_time_series %>% mutate_if(is.numeric, round, digits = 2)
-head_coach_race_time_plot <- head_coach_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
-  geom_bar(stat="identity")+
-  geom_text(aes(label=percent_black), vjust=1.6, color="white", size=3)+
-  labs(x = "Season", y= "Percentage of Black Head Coaches in the FBS",
-       title = "Percentage of Black Head Coaches since 2000",
-       caption = "Figure: @robert_binion and @markwood 14| Data: Team Info Pages") +
-  theme_minimal()
-head_coach_race_time_plot
-ggsave('head_coach_race_time_plot.png', height = 7, width = 10, dpi = 300)
-
-oc_time_series <- offensive_coordinators %>% group_by(Season) %>% mutate(num_coaches = n()) %>%
-  ungroup() %>% group_by(Season, Race) %>% filter(Race == "Black") %>% mutate(percent_black = n()/num_coaches) %>% distinct(Season, .keep_all = TRUE) %>% select(Season, percent_black)
-oc_time_series <- oc_time_series %>% mutate_if(is.numeric, round, digits = 2)
-oc_race_time_plot <- oc_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
-  geom_bar(stat="identity")+
-  geom_text(aes(label=percent_black), vjust=1.6, color="white", size=3)+
-  labs(x = "Season", y= "Percentage of Black Offensive Coordinators in the FBS",
-       title = "Percentage of Black Offensive Coordinators since 2000",
-       caption = "Figure: @robert_binion and @markwood 14| Data: Team Info Pages") +
-  theme_minimal()
-oc_race_time_plot
-ggsave('oc_race_time_plot.png', height = 7, width = 10, dpi = 300)
-
-dc_time_series <- defensive_coordinators %>% group_by(Season) %>% mutate(num_coaches = n()) %>%
-  ungroup() %>% group_by(Season, Race) %>% filter(Race == "Black") %>% mutate(percent_black = n()/num_coaches) %>% distinct(Season, .keep_all = TRUE) %>% select(Season, percent_black)
-dc_time_series <- dc_time_series %>% mutate_if(is.numeric, round, digits = 2)
-dc_race_time_plot <- dc_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
-  geom_bar(stat="identity")+
-  geom_text(aes(label=percent_black), vjust=1.6, color="white", size=3)+
-  labs(x = "Season", y= "Percentage of Black Defensive Coordinators in the FBS",
-       title = "Percentage of Black Defensive Coordinators since 2000",
-       caption = "Figure: @robert_binion and @markwood 14| Data: Team Info Pages") +
-  theme_minimal()
-dc_race_time_plot
-ggsave('hdc_race_time_plot.png', height = 7, width = 10, dpi = 300)
-#########################################################################################
 # How long do coaches stay in their roles?
 coach_df %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start)+1)
 # Race  duration
@@ -333,7 +293,7 @@ for(i in 1:nrow(head_coaches_recent)){
 
 save(head_coach_impact, file="head_coach_impact.Rda")
 
-# load("head_coach_impact.Rda")
+load("head_coach_impact.Rda")
 head_coach_impact_weighted <- head_coach_impact %>% filter(BeforeAfter == "after") %>% group_by(Coach, team) %>%
   summarise(tenure_length = n())
 # use code from Coaching Analysis to summarise before/after, net change, etc
@@ -375,7 +335,7 @@ colnames(head_coach_impact_results) <- c(toString("Coach"), "Team", "Race", "Net
 
 save(head_coach_impact_results, file="head_coach_impact_results.Rda")
 
-# load("head_coach_impact_results.Rda")
+load("head_coach_impact_results.Rda")
 # need to remove the three coaches we removed in the other df - Lambert, Moglia, Coker UTSA
 head_coach_impact_weighted <- head_coach_impact_weighted[-c(26, 171, 203),]
 
@@ -416,7 +376,8 @@ head_coach_impact_plot <- head_coach_impact_results %>% ggplot(aes(x = Net_SR, y
         axis.title.x = element_blank())
 head_coach_impact_plot
 ggsave("head_coach_impact_plot.png", height = 7, width = 10, dpi = 300)
-head_coach_impact_results %>% group_by(Race) %>% summarise(mean_total_ppa_race = mean(total_ppa))
+
+head_coach_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
 # Race  mean_total_ppa_race
 #   1 ?                 -0.0203
 # 2 Black             -0.0713
@@ -590,7 +551,7 @@ for(i in 1:nrow(oc_recent)){
 
 save(oc_impact, file="oc_impact.Rda")
 
-# load("oc_impact.Rda")
+load("oc_impact.Rda")
 
 # use code from Coaching Analysis to summarise before/after, net change, etc
 oc_impact_summary <-oc_impact %>% select(c("Coach", "team", "off_ppa", "off_success_rate", "off_stuff_rate", "off_passing_plays_success_rate",
@@ -624,7 +585,7 @@ while (i < nrow(oc_impact_summary)){
 
 save(oc_impact_results, file="oc_impact_results.Rda")
 
-# load("head_coach_impact_results.Rda")
+load("oc_impact_results.Rda")
 
 # Fixing issue where individual columns are lists
 oc_impact_results_test <- lapply(oc_impact_results, unlist)
@@ -786,7 +747,7 @@ for(i in 1:nrow(dc_recent)){
 
 save(dc_impact, file="dc_impact.Rda")
 
-# load("dc_impact.Rda")
+load("dc_impact.Rda")
 
 # use code from Coaching Analysis to summarise before/after, net change, etc
 dc_impact_summary <-dc_impact %>% select(c("Coach", "team", "def_ppa", "def_success_rate", "def_stuff_rate", "def_passing_plays_success_rate",
@@ -819,6 +780,7 @@ while (i < nrow(dc_impact_summary)){
   i=i+2
 }
 
+load("dc_impact_results.Rda")
 # Fixing issue where individual columns are lists
 dc_impact_results_test <- lapply(dc_impact_results, unlist)
 dc_impact_results_test <- data.frame(lapply(dc_impact_results_test, `length<-`, max(lengths(dc_impact_results_test))))
@@ -834,7 +796,7 @@ dc_impact_results["Race"][dc_impact_results["Coach"] == "Justin Hamilton"] <- "W
 
 save(dc_impact_results, file="dc_impact_results.Rda")
 
-# load("dc_impact_results.Rda")
+load("dc_impact_results.Rda")
 
 # doing some preliminary analysis
 dc_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_ppa))
@@ -1268,7 +1230,7 @@ minority_hires %>%
 # 3 Other                     0.353                 0.258
 # 4 White                     0.265                 0.281
 # minority HCs are 6-8 percentage points more likely than white HCs to hire a minority coordinator (20-30% more likely).
-sum(minority_hires$total_coordinators) # <- sample size
+# sum(minority_hires$total_coordinators) # <- sample size
 ############################################################################################
 
 # https://ona-book.org/community.html
@@ -1574,7 +1536,7 @@ athletes_plot <- athletes %>%
   geom_text(size = 3, position = position_stack(vjust = 0.5, reverse = TRUE)) +
   coord_flip() +
   theme_light() +
-  labs(title = "Racial Demographics of CFB Athletes", 
+  labs(title = "Racial Demographics of CFB Football Players", 
        subtitle = "From 2011 to 2020",
        fill = "Race: ",
        caption = "Plot: @markwood14 & @robert_binion\nData: https://www.ncaa.org/about/resources/research/ncaa-demographics-database") +
@@ -1683,6 +1645,48 @@ ideal_plot <- ggplot(data=ideal_change, aes(x = role, y = value, fill = variable
         axis.title.x = element_blank())
 ideal_plot
 ggsave('ideal_plot.png', height = 5.625, width = 10, dpi = 300)
+#############  Time Series Data
+
+head_coach_time_series <- head_coaches %>% group_by(Season) %>% mutate(num_coaches = n()) %>%
+  ungroup() %>% group_by(Season, Race) %>% filter(Race == "Black") %>% mutate(percent_black = n()/num_coaches) %>% distinct(Season, .keep_all = TRUE) %>% select(Season, percent_black)
+head_coach_time_series <- head_coach_time_series %>% mutate_if(is.numeric, round, digits = 2)
+head_coach_race_time_plot <- head_coach_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
+  geom_bar(stat="identity")+
+  geom_text(aes(label=percent_black), vjust=1.6, color="white", size=3)+
+  labs(x = "Season", y= "Percentage of Black Head Coaches in the FBS",
+       title = "Percentage of Black Head Coaches since 2000",
+       caption = "Figure: @robert_binion and @markwood 14| Data: Team Info Pages") +
+  theme_minimal()
+head_coach_race_time_plot
+ggsave('head_coach_race_time_plot.png', height = 7, width = 10, dpi = 300)
+
+oc_time_series <- offensive_coordinators %>% group_by(Season) %>% mutate(num_coaches = n()) %>%
+  ungroup() %>% group_by(Season, Race) %>% filter(Race == "Black") %>% mutate(percent_black = n()/num_coaches) %>% distinct(Season, .keep_all = TRUE) %>% select(Season, percent_black)
+oc_time_series <- oc_time_series %>% mutate_if(is.numeric, round, digits = 2)
+oc_race_time_plot <- oc_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
+  geom_bar(stat="identity")+
+  geom_text(aes(label=percent_black), vjust=1.6, color="white", size=3)+
+  labs(x = "Season", y= "Percentage of Black Offensive Coordinators in the FBS",
+       title = "Percentage of Black Offensive Coordinators since 2000",
+       caption = "Figure: @robert_binion and @markwood 14| Data: Team Info Pages") +
+  theme_minimal()
+oc_race_time_plot
+ggsave('oc_race_time_plot.png', height = 7, width = 10, dpi = 300)
+
+dc_time_series <- defensive_coordinators %>% group_by(Season) %>% mutate(num_coaches = n()) %>%
+  ungroup() %>% group_by(Season, Race) %>% filter(Race == "Black") %>% mutate(percent_black = n()/num_coaches) %>% distinct(Season, .keep_all = TRUE) %>% select(Season, percent_black)
+dc_time_series <- dc_time_series %>% mutate_if(is.numeric, round, digits = 2)
+dc_race_time_plot <- dc_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
+  geom_bar(stat="identity")+
+  geom_text(aes(label=percent_black), vjust=1.6, color="white", size=3)+
+  labs(x = "Season", y= "Percentage of Black Defensive Coordinators in the FBS",
+       title = "Percentage of Black Defensive Coordinators since 2000",
+       caption = "Figure: @robert_binion and @markwood 14| Data: Team Info Pages") +
+  theme_minimal()
+dc_race_time_plot
+ggsave('hdc_race_time_plot.png', height = 7, width = 10, dpi = 300)
+#########################################################################################
+
 ###############################################################################################
 
 # Time Series
