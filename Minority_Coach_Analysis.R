@@ -1247,22 +1247,41 @@ minority_hires_influence <- minority_hires %>% left_join(centrality_df_scaled, b
 minority_hires_influence <- minority_hires_influence %>% select(Coach, Coach_Race, `Available_Seasons_with_Non-White_Coordinator_Percentage`, `Non-White_Coordinators_Percentage`, Combined_Rank, Connections, Influence)
 minority_hires_influence <- minority_hires_influence %>% mutate_if(is.numeric, round, digits = 2)
 minority_hires_influence$Combined_Rank <- floor(minority_hires_influence$Combined_Rank)
-colnames(minority_hires_influence) <- c("Coach", "Coach_Race",'Non-White Coordinator Seasons', 'Non-White Coordinators', "Combined Rank", "Connections", "Influence" )
-minority_hires_connections <- minority_hires_influence %>% arrange(desc(Connections))
-minority_hires_top20_connections <- minority_hires_connections[1:20,]
 
-minority_hires_influential<- minority_hires_influence %>% arrange(desc(Influence))
-minority_hires_top20_influential <- minority_hires_influential[1:20,]
+# sort based on the Connections
+minority_hires_connection_rank <- minority_hires_influence[order(-minority_hires_influence$Connections),]
+
+# add a rank column
+minority_hires_connection_rank <- rowid_to_column(minority_hires_connection_rank, "Connections Rank")
+minority_hires_connection_rank <- minority_hires_connection_rank %>% relocate("Connections Rank", .after = "Influence")
+
+# sort based on the Influence
+minority_hires_connection_rank <- minority_hires_connection_rank[order(-minority_hires_connection_rank$Influence),]
+
+# add a rank column
+minority_hires_connection_rank <- rowid_to_column(minority_hires_connection_rank, "Influence Rank")
+minority_hires_connection_rank <- minority_hires_connection_rank %>% relocate("Influence Rank", .after = "Connections Rank")
+
+
+colnames(minority_hires_connection_rank) <- c("Coach", "Coach_Race",'Non-White Coordinator Seasons', 'Non-White Coordinators', "Non-White Coordinator Hiring Rank", "Connections", "Influence", "Connections Rank", "Influence Rank" )
+
+minority_hires_connection_for_table <- minority_hires_connection_rank %>% select(Coach, Coach_Race, 'Non-White Coordinator Seasons', 'Non-White Coordinators', "Non-White Coordinator Hiring Rank", "Connections Rank", "Influence Rank" )
+
+minority_hires_connection_for_table <- minority_hires_connection_for_table %>% arrange(`Connections Rank`)
+minority_hires_top20_connections <- minority_hires_connection_for_table[1:20,]
+
+minority_hires_connection_for_table <- minority_hires_connection_for_table %>% arrange(`Influence Rank`)
+minority_hires_top20_influential <- minority_hires_connection_for_table[1:20,]
 
 minority_hiring_table_connected20 <- minority_hires_top20_connections %>% gt() %>%  tab_spanner(
   label = "Most Connected Coaches Coordinator Hiring",
   columns = c("Non-White Coordinator Seasons", 
-              "Non-White Coordinators", "Combined Rank")) %>% 
+              "Non-White Coordinators", "Non-White Coordinator Hiring Rank")) %>% 
   data_color(
-    columns = c("Combined Rank"),
+    columns = c("Non-White Coordinator Hiring Rank"),
     colors = scales::col_numeric(
       palette = "RdBu",
-      domain = NULL,
+      domain = c(1:208),
       reverse = TRUE
     )
   ) %>% 
@@ -1279,12 +1298,12 @@ gtsave(minority_hiring_table_connected20, "minority_hiring_table_connected20.png
 minority_hiring_table_influential20 <- minority_hires_top20_influential %>% gt() %>%  tab_spanner(
   label = "Most Influential Coaches Coordinator Hiring",
   columns = c("Non-White Coordinator Seasons", 
-              "Non-White Coordinators", "Combined Rank")) %>% 
+              "Non-White Coordinators", "Non-White Coordinator Hiring Rank")) %>% 
   data_color(
-    columns = c("Combined Rank"),
+    columns = c("Non-White Coordinator Hiring Rank"),
     colors = scales::col_numeric(
       palette = "RdBu",
-      domain = NULL,
+      domain = c(1:208),
       reverse = TRUE
     )
   ) %>% 
