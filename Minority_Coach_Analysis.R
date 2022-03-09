@@ -1261,7 +1261,7 @@ minority_hiring_table_connected20 <- minority_hires_top20_connections %>% gt() %
   data_color(
     columns = c("Combined Rank"),
     colors = scales::col_numeric(
-      palette = "RdYlGn",
+      palette = "RdBu",
       domain = NULL,
       reverse = TRUE
     )
@@ -1283,7 +1283,7 @@ minority_hiring_table_influential20 <- minority_hires_top20_influential %>% gt()
   data_color(
     columns = c("Combined Rank"),
     colors = scales::col_numeric(
-      palette = "RdYlGn",
+      palette = "RdBu",
       domain = NULL,
       reverse = TRUE
     )
