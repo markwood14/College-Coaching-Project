@@ -1382,31 +1382,31 @@ V(graph)$frame.color = "black"
 #E(graph)$width <- graph$weight
 E(graph)$arrow.size <- 0.5
 # how to get alpha or width of edges to change based on weights?
-#create plot layout
-layout1 = layout_randomly(graph)
-# shape oriented layouts
-layout2 = layout_as_tree(graph)
-layout3 = layout_in_circle(graph)
-layout4 = layout_on_sphere(graph)
-# force-directed layouts - use algorithms to attract connected vertices together and repel non-connected vertices
-layout5 = layout_with_fr(graph)
-layout6 = layout_with_kk(graph)
-# Sugiyama is suitable for directed graphs and minimizes edge crossings by introducing bends on edges
-layout7 = layout_with_sugiyama(graph) # says layout must be a matrix?
-# for large graphs
-layout8 = layout_with_lgl(graph)
-layout9 = layout_with_drl(graph)
-layout10 = layout_with_graphopt(graph)
-plot(graph, layout = layout1)
-plot(graph, layout = layout2)
-plot(graph, layout = layout3)
-plot(graph, layout = layout4)
-plot(graph, layout = layout5)
-plot(graph, layout = layout6)
-plot(graph, layout = layout7)
-plot(graph, layout = layout8)
-plot(graph, layout = layout9)
-plot(graph, layout = layout10)
+# #create plot layout
+# layout1 = layout_randomly(graph)
+# # shape oriented layouts
+# layout2 = layout_as_tree(graph)
+# layout3 = layout_in_circle(graph)
+# layout4 = layout_on_sphere(graph)
+# # force-directed layouts - use algorithms to attract connected vertices together and repel non-connected vertices
+# layout5 = layout_with_fr(graph)
+# layout6 = layout_with_kk(graph)
+# # Sugiyama is suitable for directed graphs and minimizes edge crossings by introducing bends on edges
+# layout7 = layout_with_sugiyama(graph) # says layout must be a matrix?
+# # for large graphs
+# layout8 = layout_with_lgl(graph)
+# layout9 = layout_with_drl(graph)
+# layout10 = layout_with_graphopt(graph)
+# plot(graph, layout = layout1)
+# plot(graph, layout = layout2)
+# plot(graph, layout = layout3)
+# plot(graph, layout = layout4)
+# plot(graph, layout = layout5)
+# plot(graph, layout = layout6)
+# plot(graph, layout = layout7)
+# plot(graph, layout = layout8)
+# plot(graph, layout = layout9)
+# plot(graph, layout = layout10)
 # or use ggraph similar to ggplot2
 # install.packages("ggraph")
 library(ggraph)
@@ -1418,7 +1418,7 @@ ggraph(graph, layout = "kk") +
   theme_void() +
   labs(title = "Coaching Tree")
 # or use library(networkD3) for interactive graphs (I don't know how to embed this in an article while keeping the interactive features though)
-install.packages("networkD3")
+# install.packages("networkD3")
 library(networkD3)
 networkD3::simpleNetwork(coaching_tree1)
 V(graph)$group <- ifelse(V(graph)$name %in% c("Nick Saban", "Geoff Collins"), 1, 2)
@@ -1583,13 +1583,32 @@ race_plot
 # plot individual communities grouped by Race. (probably don't want to label these w/ coach's names)
 # Bill Snyder's
 community <- induced_subgraph(graph1, vids = communities[[23]])
+labs1 <- c("Bill Snyder", "Turner Gill")
+v_labels <- which(V(community)$name %in% labs1)
+for(i in 1:length(V(community))){
+   if(!(i %in% v_labels)) {V(community)$name[i] <- ""}
+}
+V(community)$name
+# only label certain coaches:
 race_plot23 <- ggraph(community, layout = "kk") +
   geom_edge_link(color = "grey") +
   geom_node_point(size = 4, aes(color = Race)) +
   geom_node_text(aes(label = name), repel=T, force=100) +
-  theme_void() +
-  labs(title = "The Bill Snyder Community")
+  scale_colour_brewer(palette = "Set2") +
+  theme_light() +
+  labs(title = "Bill Snyder's Community",
+       caption = "Plot: @markwood14 and @robert_binion") +
+  theme(# panel.grid.minor.x = element_line(linetype = 1, color = "red"),
+    # legend.position = c(0.89, 0.85),
+    # legend.box.background = element_rect(color="black"),
+    panel.background = element_rect(fill = "#F5F5F5"),
+    # plot.subtitle = element_text(size=9),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    axis.text = element_blank()
+    )
 race_plot23
+ggsave('race_plot23.png', height = 5.625, width = 10, dpi = 300)
 communities[[23]]
 # Nick Saban's
 community <- induced_subgraph(graph1, vids = communities[[9]])
@@ -1599,6 +1618,7 @@ race_plot9 <- ggraph(community, layout = "kk") +
   geom_node_text(aes(label = name), repel=T, force=100) +
   theme_void() +
   labs(title = "The Nick Saban Community")
+  
 race_plot9
 communities[[9]]
 
@@ -1643,19 +1663,53 @@ coaches$Race <- ifelse(coaches$Race == "White", "White",
 coaches <- coaches %>%
   group_by(Position, Race) %>%
   summarise(Percent = sum(Percent))
+hc <- head_coaches %>%
+  filter(Season > 2010) %>%
+  mutate(Race = ifelse(Race=="?","Other",Race)) %>%
+  group_by(Race) %>%
+  summarise(num_race = n()) %>%
+  mutate(Percent = num_race / sum(num_race),
+         Position = "Head")
+oc <- offensive_coordinators %>%
+  filter(Season > 2010) %>%
+  mutate(Race = ifelse(Race=="?","Other",Race)) %>%
+  group_by(Race) %>%
+  summarise(num_race = n()) %>%
+  mutate(Percent = num_race / sum(num_race),
+         Position = "OC")
+dc <- defensive_coordinators %>%
+  filter(Season > 2010) %>%
+  mutate(Race = ifelse(Race=="?","Other",Race)) %>%
+  group_by(Race) %>%
+  summarise(num_race = n()) %>%
+  mutate(Percent = num_race / sum(num_race),
+         Position = "DC")
+Race <- c("White", "Black", "Other")
+Percent <- c(0.514, 0.370, 0.116)
+expected <- data.frame(Position = "Expectation",
+                       Race,
+                       Percent)
+coaches <- hc %>%
+  rbind(oc) %>%
+  rbind(dc) %>%
+  select(Position, Race, Percent) %>%
+  rbind(expected)
+
 coaches$Race <- relevel(as.factor(coaches$Race), 'White')
-coaches$Position <- factor(as.factor(coaches$Position), levels = c('Head', 'OC', 'DC', 'Assistant', "GA"))
+coaches$Position <- factor(as.factor(coaches$Position), levels = c('Expectation', 'Head', 'OC', 'DC'))
 coaches_plot <- coaches %>%
-  ggplot(aes(fill = Race, y = Percent, x = forcats::fct_rev(Position), label = Percent)) +
+  ggplot(aes(fill = Race, y = Percent, x = forcats::fct_rev(Position), label = round(Percent,2))) +
   geom_col(position = position_fill(reverse = TRUE), alpha = 0.8, width = 0.6) +
   scale_fill_brewer(palette = "Set2") +
   geom_text(size = 3, position = position_stack(vjust = 0.5, reverse = TRUE)) +
+  annotate("segment",x=3.5, y=0, xend=3.5, yend=1,
+           lwd=1.3, col="black") +
   coord_flip() +
   theme_light() +
   labs(title = "Racial Demographics of D-I CFB Coaches", 
        subtitle = "From 2011 to 2020",
        fill = "Race: ",
-       caption = "Plot: @markwood14 & @robert_binion\nData: https://www.ncaa.org/about/resources/research/ncaa-demographics-database") +
+       caption = "Plot: @markwood14 & @robert_binion\nData: NCAA.org & Team Info Pages") +
   xlab("Role") +
   theme(panel.grid.minor = element_blank(),
         legend.position = ("bottom"),
@@ -1849,12 +1903,12 @@ ggsave('coach_race_time_plot1.png', height = 5.625, width = 10, dpi = 300)
 
 best_candidates_df <- data_frame()
 coach_1 <- dc_impact_results[97:100,] %>% group_by(Coach) %>% summarise(net_ppa = mean(net_ppa),
-            net_sr = mean(net_sr), net_stuff = mean(net_stuff), net_pass_sr = mean(net_pass_sr))
+                                                                        net_sr = mean(net_sr), net_stuff = mean(net_stuff), net_pass_sr = mean(net_pass_sr))
 coach_2 <- oc_impact_results%>%
   filter(str_detect(Coach, "Alex Atkins"))
 coach_3 <- oc_impact_results%>% filter(str_detect(Coach, "Josh Gattis")) %>% 
   group_by(Coach) %>% summarise(net_ppa = mean(net_ppa),
-  net_sr = mean(net_sr), net_stuff = mean(net_stuff), net_pass_sr = mean(net_pass_sr))
+                                net_sr = mean(net_sr), net_stuff = mean(net_stuff), net_pass_sr = mean(net_pass_sr))
 coach_4 <- oc_impact_results%>%
   filter(str_detect(Coach, "Maurice Harris"))
 coach_5 <- oc_impact_results%>%
@@ -1863,10 +1917,10 @@ best_candidates_df <- bind_rows(coach_1, coach_2, coach_3, coach_4, coach_5)
 
 # add a column with headshots
 best_candidates_df$headshot <- c("https://seminoles.com/wp-content/uploads/2020/01/Atkins-Alex-scaled.jpg",
-"https://d3kmx57qvxfvw9.cloudfront.net/images/2021/8/23/Norwood_Brian_0125Cropped.jpg?width=300",
-"https://broylesaward.com/wp-content/uploads/sites/5/ninja-forms/8/Josh-Gattis-Headshot-scaled.jpg",
-"https://www.liberty.edu/flames/wp-content/uploads/staff/Harris,%20Maurice%20(2019).jpg",
-"https://broylesaward.com/wp-content/uploads/sites/5/ninja-forms/8/Newland-Isaac-Headshot-scaled.jpg")
+                                 "https://d3kmx57qvxfvw9.cloudfront.net/images/2021/8/23/Norwood_Brian_0125Cropped.jpg?width=300",
+                                 "https://broylesaward.com/wp-content/uploads/sites/5/ninja-forms/8/Josh-Gattis-Headshot-scaled.jpg",
+                                 "https://www.liberty.edu/flames/wp-content/uploads/staff/Harris,%20Maurice%20(2019).jpg",
+                                 "https://broylesaward.com/wp-content/uploads/sites/5/ninja-forms/8/Newland-Isaac-Headshot-scaled.jpg")
 
 best_candidates_plot <- best_candidates_df %>% ggplot(aes(x=net_ppa, y=net_sr, label=Coach)) + 
   #geom_smooth(method=lm, se=FALSE, col='red', size=0.5) +
