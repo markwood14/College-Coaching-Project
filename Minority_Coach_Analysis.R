@@ -20,6 +20,7 @@ library(future)
 library(data.table)
 library(stringr)
 library(ggpubr)
+install.packages("colorBlindness")
 library(colorBlindness)
 
 # Read and clean the coaches csv
@@ -1179,7 +1180,7 @@ minority_hiring_table_top20 <- minority_hires_top20 %>% gt() %>%  tab_spanner(
   data_color(
     columns = c("Non-White Coordinator Seasons", "Non-White Coordinators"),
     colors = scales::col_numeric(
-      palette = c("white", "#3fc1c9"),
+      palette = c("white", "#66C2A5"),
       domain = NULL
     )
   ) %>% 
@@ -1201,7 +1202,7 @@ minority_hiring_table_bottom20 <- minority_hires_bottom20 %>% gt() %>%  tab_span
   data_color(
     columns = c("Non-White Coordinator Seasons", "Non-White Coordinators"),
     colors = scales::col_numeric(
-      palette = c("white", "#3fc1c9"),
+      palette = c("white", "#66C2A5"),
       domain = NULL
     )
   ) %>% 
@@ -1586,7 +1587,7 @@ community <- induced_subgraph(graph1, vids = communities[[23]])
 labs1 <- c("Bill Snyder", "Turner Gill")
 v_labels <- which(V(community)$name %in% labs1)
 for(i in 1:length(V(community))){
-   if(!(i %in% v_labels)) {V(community)$name[i] <- ""}
+  if(!(i %in% v_labels)) {V(community)$name[i] <- ""}
 }
 V(community)$name
 # only label certain coaches:
@@ -1606,7 +1607,7 @@ race_plot23 <- ggraph(community, layout = "kk") +
     axis.title = element_blank(),
     panel.grid = element_blank(),
     axis.text = element_blank()
-    )
+  )
 race_plot23
 ggsave('race_plot23.png', height = 5.625, width = 10, dpi = 300)
 communities[[23]]
@@ -1618,7 +1619,7 @@ race_plot9 <- ggraph(community, layout = "kk") +
   geom_node_text(aes(label = name), repel=T, force=100) +
   theme_void() +
   labs(title = "The Nick Saban Community")
-  
+
 race_plot9
 communities[[9]]
 
