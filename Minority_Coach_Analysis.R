@@ -20,8 +20,7 @@ library(future)
 library(data.table)
 library(stringr)
 library(ggpubr)
-#install.packages("colorBlindness")
-library(colorBlindness)
+library(RColorBrewer)
 
 # Read and clean the coaches csv
 coach_df1 <- read.csv("coaches_by_race.csv")
@@ -1180,7 +1179,7 @@ minority_hiring_table_top20 <- minority_hires_top20 %>% gt() %>%  tab_spanner(
   data_color(
     columns = c("Non-White Coordinator Seasons", "Non-White Coordinators"),
     colors = scales::col_numeric(
-      palette = c("white", "#66C2A5"),
+      palette = c("white", brewer.pal(n=5,"Set2")[[1]]),
       domain = c(0:1)
     )
   ) %>% 
@@ -1202,7 +1201,7 @@ minority_hiring_table_bottom20 <- minority_hires_bottom20 %>% gt() %>%  tab_span
   data_color(
     columns = c("Non-White Coordinator Seasons", "Non-White Coordinators"),
     colors = scales::col_numeric(
-      palette = c("white", "#66C2A5"),
+      palette = c("white", brewer.pal(n=5,"Set2")[[1]]),
       domain = c(0:1)
     )
   ) %>% 
