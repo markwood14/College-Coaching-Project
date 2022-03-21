@@ -1142,7 +1142,7 @@ gt_theme_538 <- function(data,...) {
     ) %>%
     tab_style(
       style = cell_borders(
-        sides = "bottom", color = "transparent", weight = px(2)
+        sides = "bottom", color = "#FFFFFF00", weight = px(2)
       ),
       locations = cells_body(
         columns = everything(),
@@ -1154,11 +1154,11 @@ gt_theme_538 <- function(data,...) {
     tab_options(
       column_labels.background.color = "white",
       table.border.top.width = px(3),
-      table.border.top.color = "transparent",
-      table.border.bottom.color = "transparent",
+      table.border.top.color = "#FFFFFF00",
+      table.border.bottom.color = "#FFFFFF00",
       table.border.bottom.width = px(3),
       column_labels.border.top.width = px(3),
-      column_labels.border.top.color = "transparent",
+      column_labels.border.top.color = "#FFFFFF00",
       column_labels.border.bottom.width = px(3),
       column_labels.border.bottom.color = "black",
       data_row.padding = px(3),
@@ -1276,13 +1276,13 @@ minority_hires_connection_for_table <- minority_hires_connection_for_table %>% a
 minority_hires_top20_influential <- minority_hires_connection_for_table[1:20,]
 
 minority_hiring_table_connected20 <- minority_hires_top20_connections %>% gt() %>%  tab_spanner(
-  label = "Most Connected Coaches Coordinator Hiring",
+  label = "Most Connected Coaches' Coordinator Hiring",
   columns = c("Non-White Coordinator Seasons", 
               "Non-White Coordinators", "Non-White Coordinator Hiring Rank")) %>% 
   data_color(
     columns = c("Non-White Coordinator Hiring Rank"),
     colors = scales::col_numeric(
-      palette = "RdBu",
+      palette = c("#FC8D62", "white", "#3fc1c9"),
       domain = c(1:208),
       reverse = TRUE
     )
@@ -1298,13 +1298,13 @@ minority_hiring_table_connected20
 gtsave(minority_hiring_table_connected20, "minority_hiring_table_connected20.png")
 
 minority_hiring_table_influential20 <- minority_hires_top20_influential %>% gt() %>%  tab_spanner(
-  label = "Most Influential Coaches Coordinator Hiring",
+  label = "Most Influential Coaches' Coordinator Hiring",
   columns = c("Non-White Coordinator Seasons", 
               "Non-White Coordinators", "Non-White Coordinator Hiring Rank")) %>% 
   data_color(
     columns = c("Non-White Coordinator Hiring Rank"),
     colors = scales::col_numeric(
-      palette = "RdBu",
+      palette = c("#FC8D62", "white", "#3fc1c9"),
       domain = c(1:208),
       reverse = TRUE
     )
