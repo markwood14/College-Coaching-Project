@@ -20,7 +20,7 @@ library(future)
 library(data.table)
 library(stringr)
 library(ggpubr)
-install.packages("colorBlindness")
+#install.packages("colorBlindness")
 library(colorBlindness)
 
 # Read and clean the coaches csv
@@ -1181,7 +1181,7 @@ minority_hiring_table_top20 <- minority_hires_top20 %>% gt() %>%  tab_spanner(
     columns = c("Non-White Coordinator Seasons", "Non-White Coordinators"),
     colors = scales::col_numeric(
       palette = c("white", "#66C2A5"),
-      domain = NULL
+      domain = c(0:1)
     )
   ) %>% 
   #cols_label(
@@ -1203,7 +1203,7 @@ minority_hiring_table_bottom20 <- minority_hires_bottom20 %>% gt() %>%  tab_span
     columns = c("Non-White Coordinator Seasons", "Non-White Coordinators"),
     colors = scales::col_numeric(
       palette = c("white", "#66C2A5"),
-      domain = NULL
+      domain = c(0:1)
     )
   ) %>% 
   #cols_label(
@@ -1917,8 +1917,8 @@ coach_5 <- oc_impact_results%>%
 best_candidates_df <- bind_rows(coach_1, coach_2, coach_3, coach_4, coach_5)
 
 # add a column with headshots
-best_candidates_df$headshot <- c("https://seminoles.com/wp-content/uploads/2020/01/Atkins-Alex-scaled.jpg",
-                                 "https://d3kmx57qvxfvw9.cloudfront.net/images/2021/8/23/Norwood_Brian_0125Cropped.jpg?width=300",
+best_candidates_df$headshot <- c("https://d3kmx57qvxfvw9.cloudfront.net/images/2021/8/23/Norwood_Brian_0125Cropped.jpg?width=300",
+                                 "https://seminoles.com/wp-content/uploads/2020/01/Atkins-Alex-scaled.jpg",
                                  "https://broylesaward.com/wp-content/uploads/sites/5/ninja-forms/8/Josh-Gattis-Headshot-scaled.jpg",
                                  "https://www.liberty.edu/flames/wp-content/uploads/staff/Harris,%20Maurice%20(2019).jpg",
                                  "https://broylesaward.com/wp-content/uploads/sites/5/ninja-forms/8/Newland-Isaac-Headshot-scaled.jpg")
