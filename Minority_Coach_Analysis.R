@@ -1179,7 +1179,7 @@ minority_hiring_table_top20 <- minority_hires_top20 %>% gt() %>%  tab_spanner(
   data_color(
     columns = c("Non-White Coordinator Seasons", "Non-White Coordinators"),
     colors = scales::col_numeric(
-      palette = c("white", brewer.pal(n=5,"Set2")[[1]]),
+      palette = c(brewer.pal(n=5,"Set2")[[2]], "white", brewer.pal(n=5,"Set2")[[1]]),
       domain = c(0:1)
     )
   ) %>% 
@@ -1201,7 +1201,7 @@ minority_hiring_table_bottom20 <- minority_hires_bottom20 %>% gt() %>%  tab_span
   data_color(
     columns = c("Non-White Coordinator Seasons", "Non-White Coordinators"),
     colors = scales::col_numeric(
-      palette = c("white", brewer.pal(n=5,"Set2")[[1]]),
+      palette = c(brewer.pal(n=5,"Set2")[[2]], "white", brewer.pal(n=5,"Set2")[[1]]),
       domain = c(0:1)
     )
   ) %>% 
@@ -1281,7 +1281,7 @@ minority_hiring_table_connected20 <- minority_hires_top20_connections %>% gt() %
   data_color(
     columns = c("Non-White Coordinator Hiring Rank"),
     colors = scales::col_numeric(
-      palette = c("#FC8D62", "white", "#3fc1c9"),
+      palette = c(brewer.pal(n=5,"Set2")[[2]], "white", brewer.pal(n=5,"Set2")[[1]]),
       domain = c(1:208),
       reverse = TRUE
     )
@@ -1303,7 +1303,7 @@ minority_hiring_table_influential20 <- minority_hires_top20_influential %>% gt()
   data_color(
     columns = c("Non-White Coordinator Hiring Rank"),
     colors = scales::col_numeric(
-      palette = c("#FC8D62", "white", "#3fc1c9"),
+      palette = c(brewer.pal(n=5,"Set2")[[2]], "white", brewer.pal(n=5,"Set2")[[1]]),
       domain = c(1:208),
       reverse = TRUE
     )
@@ -1324,10 +1324,12 @@ gtsave(minority_hiring_table_influential20, "minority_hiring_table_influential20
 # Use the Louvain algorithm to further analyze the social impact of coaching hires?
 # install.packages("igraph")
 library(igraph)
-install.packages("qgraph")
+# install.packages("qgraph")
 library(qgraph)
 library(corrplot)
 library(Hmisc)
+library(ggraph)
+library(networkD3)
 coaching_tree1 <- coaching_tree %>% 
   group_by(Coach, Coordinator) %>%
   summarise(years_together = n())
@@ -1409,7 +1411,6 @@ E(graph)$arrow.size <- 0.5
 # plot(graph, layout = layout10)
 # or use ggraph similar to ggplot2
 # install.packages("ggraph")
-library(ggraph)
 ggraph(graph, layout = "kk") +
   geom_edge_link(aes(edge_width = weight), color = "grey", alpha = 0.7, show.legend = FALSE) +
   geom_node_point(color = "blue", size = 1) +
@@ -1419,7 +1420,6 @@ ggraph(graph, layout = "kk") +
   labs(title = "Coaching Tree")
 # or use library(networkD3) for interactive graphs (I don't know how to embed this in an article while keeping the interactive features though)
 # install.packages("networkD3")
-library(networkD3)
 networkD3::simpleNetwork(coaching_tree1)
 V(graph)$group <- ifelse(V(graph)$name %in% c("Nick Saban", "Geoff Collins"), 1, 2)
 netd3_list <- networkD3::igraph_to_networkD3(graph, group = V(graph)$group)
@@ -1942,3 +1942,11 @@ best_candidates_plot <- best_candidates_df %>% ggplot(aes(x=net_ppa, y=net_sr, l
         legend.position = "right")
 best_candidates_plot
 ggsave('best_candidates_plot.png', height = 7, width = 10, dpi = 300)
+
+centrality_df$Race <- ifelse(centrality_df$Race == "?", "Non-white",
+                                 ifelse(centrality_df$Race == "Other", "Non-white",
+                                        ifelse(centrality_df$Race == "Black", "Non-white", "White")))
+lm4 <- lm(closeness~Race, centrality_df)
+summary(lm4)
+lm5 <- lm(degree~Race, centrality_df)
+summary(lm5)
