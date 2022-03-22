@@ -119,6 +119,7 @@ tenure <- head_coaches %>%
   mutate(duration = mean(year_end - year_start)+1)
 tenure$Race <- factor(as.factor(tenure$Race), levels = c('White', 'Black', 'Other'))
 tenure$Role <- factor(as.factor(tenure$Role), levels = c('Head Coach', 'Offensive Coordinator', 'Defensive Coordinator'))
+# Only 1 "Other" coach with a tenure longer than 6 years (Ken Niumatalolo) and 1 Black coach with a tenure >8 years (Ken's OC, Ivin Jasper). Followed by James Franklin at 8 years (Penn State) and Derek Mason at 7 years (Vanderbilt).
 tenure_jitter <- ggplot(data=tenure, aes(x = Race, y = duration, colour = Role)) +
   # geom_hline(yintercept=0) +
   geom_jitter(width = 0.48, height = 0.48, size = 1.5, alpha=0.7) +
@@ -1767,7 +1768,9 @@ ideal_change <- data.frame(role = c("Head Coach",
                                      dc_2021[dc_2021$Race == "Other", "difference"][[1]])) %>%
   melt(id="role")
 ideal_change$role <- factor(as.factor(ideal_change$role), levels = c('Head Coach', 'Offensive Coordinator', 'Defensive Coordinator'))
-ideal_plot <- ggplot(data=ideal_change, aes(x = role, y = value, fill = variable, label = value)) +
+# force the bar labels to have + or - in front of the values
+ideal_change$value_text <- c("-45","-48","-39","+35","+35","+24","+10","+13","+14")
+ideal_plot <- ggplot(data=ideal_change, aes(x = role, y = value, fill = variable, label = value_text)) +
   geom_col(width = 0.6, alpha=0.8) +
   geom_hline(yintercept=0) +
   scale_fill_brewer(palette = "Set2") +
@@ -1901,7 +1904,7 @@ ggsave('coach_race_time_plot1.png', height = 5.625, width = 10, dpi = 300)
 # Josh Gattis
 # Newland Isaac
 
-best_candidates_df <- data_frame()
+best_candidates_df <- data.frame()
 coach_1 <- dc_impact_results[97:100,] %>% group_by(Coach) %>% summarise(net_ppa = mean(net_ppa),
                                                                         net_sr = mean(net_sr), net_stuff = mean(net_stuff), net_pass_sr = mean(net_pass_sr))
 coach_2 <- oc_impact_results%>%
@@ -1930,8 +1933,10 @@ best_candidates_plot <- best_candidates_df %>% ggplot(aes(x=net_ppa, y=net_sr, l
   geom_hline(yintercept = mean(dc_impact_results$net_sr), linetype = "dashed", color = "red", alpha = 0.5) +
   labs(x = "Net Impact on PPA", y= "Net Impact on Success Rate",
        title = "5 Top Black Head Coaching Candidates",
-       subtitle = "Impact while Coordinator Compared to Average (Dotted Red Lines)",
-       caption = "Figure: @robert_binion @markwood14| Data: @CFB_Data with @cfbfastR") +
+       subtitle = "Impact While Coordinator Compared to Average (Dotted Red Lines)",
+       caption = "Figure: @robert_binion @markwood14 | Data: @CFB_Data with @cfbfastR") +
+  coord_cartesian(xlim = c(-0.03, 0.225),
+                  ylim = c(-0.01, 0.085)) +
   theme_minimal() +
   theme(axis.title = element_text(size = 14),
         axis.text = element_text(size = 10),
@@ -1939,6 +1944,7 @@ best_candidates_plot <- best_candidates_df %>% ggplot(aes(x=net_ppa, y=net_sr, l
         plot.subtitle = element_text(size = 14),
         plot.caption = element_text(size = 12),
         panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill = "#F5F5F5"),
         legend.position = "right")
 best_candidates_plot
 ggsave('best_candidates_plot.png', height = 7, width = 10, dpi = 300)
