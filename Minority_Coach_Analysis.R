@@ -119,7 +119,6 @@ tenure <- head_coaches %>%
   mutate(duration = mean(year_end - year_start)+1)
 tenure$Race <- factor(as.factor(tenure$Race), levels = c('White', 'Black', 'Other'))
 tenure$Role <- factor(as.factor(tenure$Role), levels = c('Head Coach', 'Offensive Coordinator', 'Defensive Coordinator'))
-# Only 1 "Other" coach with a tenure longer than 6 years (Ken Niumatalolo) and 1 Black coach with a tenure >8 years (Ken's OC, Ivin Jasper). Followed by James Franklin at 8 years (Penn State) and Derek Mason at 7 years (Vanderbilt).
 tenure_jitter <- ggplot(data=tenure, aes(x = Race, y = duration, colour = Role)) +
   # geom_hline(yintercept=0) +
   geom_jitter(width = 0.48, height = 0.48, size = 1.5, alpha=0.7) +
@@ -369,7 +368,7 @@ head_coach_impact_results <- head_coach_impact_results_test
 head_coach_impact_results["Race"][head_coach_impact_results["Race"] == "?"] <- "Other" 
 
 head_coach_impact_plot <- head_coach_impact_results %>% ggplot(aes(x = Net_SR, y = Net_PPA, colour = Race)) +
-  geom_jitter(width = 0.48, height = 0.48, size = 1.5, alpha=0.7) +
+  geom_point(inherit.aes = TRUE, stat = "identity", position = "identity") +
   scale_fill_brewer(palette = "Set2") +
   labs(x = "Net Success Rate Change", y= "Net PPA Change",
        title = "Head Coach Impact by Race", 
@@ -878,6 +877,22 @@ dc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_
 #2 Other          -0.0133 
 #3 White          -0.00471
 ## - We have something!
+
+dc_to_head_impact_plot <- dc_to_head_impact %>% ggplot(aes(x = Net_SR, y = Net_PPA, colour = Race)) +
+  geom_point(inherit.aes = TRUE, stat = "identity", position = "identity") +
+  scale_fill_brewer(palette = "Set2") +
+  labs(x = "Net Success Rate Change", y= "Net PPA Change",
+       title = "DC's --> HC Impact by Race", 
+       subtitle = "FBS, 2005-present\nR-Squared for Net_PPA~Race = 0.013",
+       fill = "Race: ",
+       caption = "Plot: @markwood14 & @robert_binion\nData: @cfb_data with #cfbfastR") +
+  theme(panel.grid.minor = element_blank(),
+        legend.position = ("top"),
+        panel.background = element_rect(fill = "#F5F5F5"),
+        plot.subtitle = element_text(size=9))
+dc_to_head_impact_plot
+ggsave("dc_to_head_impact_plot.png", height = 7, width = 10, dpi = 300)
+
 sd(dc_to_head_impact$Net_PPA)
 # SD is 0.067, so black DCs about 0.5 sd's better
 
@@ -1171,14 +1186,13 @@ gt_theme_538 <- function(data,...) {
 minority_hires_for_table$Combined_Rank <- floor(minority_hires_for_table$Combined_Rank)
 minority_hires_top20 <- minority_hires_for_table[1:20,]
 minority_hires_bottom20 <-minority_hires_for_table[188:207,]
-colnames(minority_hires_top20) <- c('Coach', 'Non-White Coordinator Seasons', 'Non-White Coordinators', "Combined Rank")
-colnames(minority_hires_bottom20) <- c('Coach', 'Non-White Coordinator Seasons', 'Non-White Coordinators', "Combined Rank")
+colnames(minority_hires_top20) <- c('Head Coach', 'Coach_Race' , '% of Seasons with Non-White Coordinators', '% of Non-white coordinators hired', "Combined Rank")
+colnames(minority_hires_bottom20) <- c('Head Coach', 'Coach_Race' , '% of Seasons with Non-White Coordinators', '% of Non-white coordinators hired', "Combined Rank")
 minority_hiring_table_top20 <- minority_hires_top20 %>% gt() %>%  tab_spanner(
-  label = "Non-White Coordinator Percentages\nTop 20",
-  columns = c("Non-White Coordinator Seasons", 
-              "Non-White Coordinators")) %>% 
+  label = "Who Hires Non-White Coordinators?\nTop 20",
+  columns = c('% of Seasons with Non-White Coordinators', '% of Non-white coordinators hired')) %>% 
   data_color(
-    columns = c("Non-White Coordinator Seasons", "Non-White Coordinators"),
+    columns = c('% of Seasons with Non-White Coordinators', '% of Non-white coordinators hired'),
     colors = scales::col_numeric(
       palette = c(brewer.pal(n=5,"Set2")[[2]], "white", brewer.pal(n=5,"Set2")[[1]]),
       domain = c(0:1)
@@ -1196,11 +1210,10 @@ minority_hiring_table_top20
 gtsave(minority_hiring_table_top20, "Minority_Hiring_Table_Top20.png")
 
 minority_hiring_table_bottom20 <- minority_hires_bottom20 %>% gt() %>%  tab_spanner(
-  label = "Non-White Coordinator %\nBottom 20",
-  columns = c("Non-White Coordinator Seasons", 
-              "Non-White Coordinators")) %>% 
+  label = "Who Hires Non-White Coordinators?\nBottom 20",
+  columns = c('% of Seasons with Non-White Coordinators', '% of Non-white coordinators hired')) %>% 
   data_color(
-    columns = c("Non-White Coordinator Seasons", "Non-White Coordinators"),
+    columns = c('% of Seasons with Non-White Coordinators', '% of Non-white coordinators hired'),
     colors = scales::col_numeric(
       palette = c(brewer.pal(n=5,"Set2")[[2]], "white", brewer.pal(n=5,"Set2")[[1]]),
       domain = c(0:1)
@@ -1768,9 +1781,7 @@ ideal_change <- data.frame(role = c("Head Coach",
                                      dc_2021[dc_2021$Race == "Other", "difference"][[1]])) %>%
   melt(id="role")
 ideal_change$role <- factor(as.factor(ideal_change$role), levels = c('Head Coach', 'Offensive Coordinator', 'Defensive Coordinator'))
-# force the bar labels to have + or - in front of the values
-ideal_change$value_text <- c("-45","-48","-39","+35","+35","+24","+10","+13","+14")
-ideal_plot <- ggplot(data=ideal_change, aes(x = role, y = value, fill = variable, label = value_text)) +
+ideal_plot <- ggplot(data=ideal_change, aes(x = role, y = value, fill = variable, label = value)) +
   geom_col(width = 0.6, alpha=0.8) +
   geom_hline(yintercept=0) +
   scale_fill_brewer(palette = "Set2") +
@@ -1880,7 +1891,7 @@ ungroup() %>%
 # hc_2021[hc_2021$Race == "White", "difference"][[1]]
 # coach_time_series <- coach_time_series %>% mutate_if(is.numeric, round, digits = 2)
 coach_race_time_plot <- coach_time_series %>% 
-  ggplot(aes(x=Season, y=percent_black, color = Role)) +
+  ggplot(aes(x=Season, y=percent_black, color = Person)) +
   geom_line(stat="identity", size=1)+
   geom_point(size=2)+
   scale_colour_brewer(palette = "Set2") +
@@ -1904,7 +1915,7 @@ ggsave('coach_race_time_plot1.png', height = 5.625, width = 10, dpi = 300)
 # Josh Gattis
 # Newland Isaac
 
-best_candidates_df <- data.frame()
+best_candidates_df <- data_frame()
 coach_1 <- dc_impact_results[97:100,] %>% group_by(Coach) %>% summarise(net_ppa = mean(net_ppa),
                                                                         net_sr = mean(net_sr), net_stuff = mean(net_stuff), net_pass_sr = mean(net_pass_sr))
 coach_2 <- oc_impact_results%>%
@@ -1933,10 +1944,8 @@ best_candidates_plot <- best_candidates_df %>% ggplot(aes(x=net_ppa, y=net_sr, l
   geom_hline(yintercept = mean(dc_impact_results$net_sr), linetype = "dashed", color = "red", alpha = 0.5) +
   labs(x = "Net Impact on PPA", y= "Net Impact on Success Rate",
        title = "5 Top Black Head Coaching Candidates",
-       subtitle = "Impact While Coordinator Compared to Average (Dotted Red Lines)",
-       caption = "Figure: @robert_binion @markwood14 | Data: @CFB_Data with @cfbfastR") +
-  coord_cartesian(xlim = c(-0.03, 0.225),
-                  ylim = c(-0.01, 0.085)) +
+       subtitle = "Impact while Coordinator Compared to Average (Dotted Red Lines)",
+       caption = "Figure: @robert_binion @markwood14| Data: @CFB_Data with @cfbfastR") +
   theme_minimal() +
   theme(axis.title = element_text(size = 14),
         axis.text = element_text(size = 10),
@@ -1944,14 +1953,13 @@ best_candidates_plot <- best_candidates_df %>% ggplot(aes(x=net_ppa, y=net_sr, l
         plot.subtitle = element_text(size = 14),
         plot.caption = element_text(size = 12),
         panel.grid.minor = element_blank(),
-        panel.background = element_rect(fill = "#F5F5F5"),
         legend.position = "right")
 best_candidates_plot
 ggsave('best_candidates_plot.png', height = 7, width = 10, dpi = 300)
 
 centrality_df$Race <- ifelse(centrality_df$Race == "?", "Non-white",
-                                 ifelse(centrality_df$Race == "Other", "Non-white",
-                                        ifelse(centrality_df$Race == "Black", "Non-white", "White")))
+                             ifelse(centrality_df$Race == "Other", "Non-white",
+                                    ifelse(centrality_df$Race == "Black", "Non-white", "White")))
 lm4 <- lm(closeness~Race, centrality_df)
 summary(lm4)
 lm5 <- lm(degree~Race, centrality_df)
