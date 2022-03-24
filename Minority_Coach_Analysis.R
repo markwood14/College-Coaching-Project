@@ -21,9 +21,32 @@ library(data.table)
 library(stringr)
 library(ggpubr)
 library(RColorBrewer)
+# Packages for Louvain network analysis:
+library(igraph)
+library(qgraph)
+library(corrplot)
+library(Hmisc)
+library(ggraph)
+library(networkD3)
+
+##########################################################################################
+# Set up the primary dataframes:
 
 # Read and clean the coaches csv
 coach_df1 <- read.csv("coaches_by_race.csv")
+coach_df1 <- coach_df1 %>% 
+  mutate(College = ifelse(College == "FAU", "Florida Atlantic",
+                          ifelse(College == "FIU", "Florida International",
+                                 ifelse(College == "Hawaii", "Hawai'i",
+                                        ifelse(College == "Massachusetts", "UMass", 
+                                               ifelse(College == "Miami (FL)", "Miami",
+                                                      ifelse(College == "San Jose State", "San José State",
+                                                             ifelse(College == "Southern Miss", "Southern Mississippi",
+                                                                    ifelse(College == "UConn", "Connecticut",
+                                                                           ifelse(College == "UL Monroe", "Louisiana Monroe",
+                                                                                  ifelse(College == "USF", "South Florida",
+                                                                                         ifelse(College == "UTSA", "UT San Antonio",
+                                                                                                College))))))))))))
 coach_df <- coach_df1 %>%
   filter(Race != "#N/A") %>%
   group_by(Coach, College, Role) %>%
@@ -34,81 +57,257 @@ coach_df <- coach_df1 %>%
 # save(coach_df,file="coach_df.Rda")
 
 coordinators <- coach_df %>% filter(str_detect(Role, "Coordinator"))
-offensive_coordinators <- coordinators %>% filter(str_detect(Role, "Offensive"))
-offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Run Game Coordinator"))
-offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Pass Game Coordinator"))
-offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Associate offensive"))
-offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Special Teams"))
-offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Assistant offensive"))
-offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Offensive Recruiting Coordinator"))
-offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Head Coach"))
 
-defensive_coordinators <- coordinators %>% filter(str_detect(Role, "Defensive"))
-defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Associate Defensive"))
-defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Special Teams"))
-defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Assistant Defensive"))
-defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Recruiting Coordinator"))
-defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Pass Game Coordinator"))
-defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Run Game Coordinator"))
-defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Head Coach"))
+# the following dataframes have one row per tenure with year_start and year_end
+head_coaches <- coach_df %>% 
+  filter(str_detect(Role, "Head")) %>% 
+  filter(!str_detect(Role, "Associate Head")) %>% 
+  filter(!str_detect(Role, "Assistant Head")) %>% 
+  filter(!str_detect(Role, "Interim Head"))
+offensive_coordinators <- coordinators %>% 
+  filter(str_detect(Role, "Offensive")) %>% 
+  filter(!str_detect(Role, "Run Game Coordinator")) %>% 
+  filter(!str_detect(Role, "Pass Game Coordinator")) %>% 
+  filter(!str_detect(Role, "Associate offensive")) %>% 
+  filter(!str_detect(Role, "Special Teams")) %>% 
+  filter(!str_detect(Role, "Assistant offensive")) %>% 
+  filter(!str_detect(Role, "Offensive Recruiting Coordinator")) %>% 
+  filter(!str_detect(Role, "Head Coach"))
+defensive_coordinators <- coordinators %>% 
+  filter(str_detect(Role, "Defensive")) %>% 
+  filter(!str_detect(Role, "Associate Defensive")) %>% 
+  filter(!str_detect(Role, "Special Teams")) %>% 
+  filter(!str_detect(Role, "Assistant Defensive")) %>% 
+  filter(!str_detect(Role, "Recruiting Coordinator")) %>% 
+  filter(!str_detect(Role, "Pass Game Coordinator")) %>%
+  filter(!str_detect(Role, "Run Game Coordinator")) %>%
+  filter(!str_detect(Role, "Head Coach"))
 
-head_coaches <- coach_df %>% filter(str_detect(Role, "Head"))
-head_coaches <- head_coaches %>% filter(!str_detect(Role, "Associate Head"))
-head_coaches <- head_coaches %>% filter(!str_detect(Role, "Assistant Head"))
-head_coaches <- head_coaches %>% filter(!str_detect(Role, "Interim Head"))
-
-# High Level Analysis
-coach_df %>% group_by(Race) %>% summarise(num_race = n())
-
-# the following numbers are not 'per year' and haven't been fixed for when a coach drops a coordinator/assistant tag.
-head_coaches %>% group_by(Race) %>% summarise(num_race = n())
-#   Race  num_race
-#2 Black       69
-#3 Other        8
-#4 White      557
-defensive_coordinators %>% group_by(Race) %>% summarise(num_race = n())
-#  Race  num_race
-#2 Black      230
-#3 Other       23
-#4 White     1094
-offensive_coordinators %>% group_by(Race) %>% summarise(num_race = n())
-#Race  num_race
-#2 Black      121
-#3 Other       14
-#4 White     1108
-
-
-# How long do coaches stay in their roles?
-coach_df %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start)+1)
-# Race  duration
-# 1 ?         1.96
-# 2 Black     2.12
-# 3 Other     2.37
-# 4 White     2.45
+# Currently each DF has separate rows (splits up tenures) when a coach, for example, goes from "Head Coach/Offensive Coordinator" to just Head Coach or "Offensive Coordinator/WR Coach" to just Offensive Coordinator. The following combines those tenures into 1 row..
 head_coaches <- head_coaches %>% 
   group_by(College, Coach) %>%
   mutate(year_start = min(year_start), 
          year_end = max(year_end)) %>%
   distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
-head_coaches %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start)+1)
-# Race  duration
-# 1 ?         2.5 
-# 2 Black     3.20
-# 3 Other     5.5 
-# 4 White     4.50
-defensive_coordinators %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start)+1)
-# Race  duration
-# 1 ?         2.31
-# 2 Black     1.81
-# 3 Other     2.09
-# 4 White     2.28
-offensive_coordinators %>% group_by(Race) %>% summarise(duration = mean(year_end - year_start)+1)
-# Race  duration
-# 1 ?         1.89
-# 2 Black     2   
-# 3 Other     1.71
-# 4 White     2.31
-# Black coaches have shorter tenures than their white counterparts at every level. Why?
+defensive_coordinators <- defensive_coordinators %>%
+  group_by(College, Coach) %>%
+  mutate(year_start = min(year_start),
+         year_end = max(year_end)) %>%
+  distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
+offensive_coordinators <- offensive_coordinators %>%
+  group_by(College, Coach) %>%
+  mutate(year_start = min(year_start),
+         year_end = max(year_end)) %>%
+  distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
+# updating a few of the Race entries
+offensive_coordinators <- offensive_coordinators %>%
+  mutate(Race = ifelse(Coach == "Billy Gonzales", "Other",
+                        ifelse(Coach == "Ron Prince", "Black",
+                               Race)))
+defensive_coordinators <- defensive_coordinators %>%
+  mutate(Race = ifelse(Coach == "Phil Elmassian", "White",
+                        ifelse(Coach == "Chris Simpson", "Black",
+                               ifelse(Coach == "John Chavis", "White",
+                                      ifelse(Coach == "John Papuchis", "White",
+                                             ifelse(Coach == "Justin Ena", "White",
+                                                    ifelse(Coach == "Justin Hamilton", "White",
+                                                           Race)))))))
+
+# Coordinators who became head coaches:
+offensive_to_head <- offensive_coordinators %>% 
+  inner_join(head_coaches, by = "Coach") %>% 
+  distinct(Coach, .keep_all = TRUE) %>%
+  select(College.x, Coach, Race.x, College.y)
+defensive_to_head <- defensive_coordinators %>% 
+  inner_join(head_coaches, by = "Coach") %>% 
+  distinct(Coach, .keep_all = TRUE) %>% 
+  select(College.x, Coach, Race.x, College.y)
+colnames(defensive_to_head) <- c("Coordinator_School", "Coach", "Race", "Head_Coach_School")
+colnames(offensive_to_head) <- c("Coordinator_School", "Coach", "Race", "Head_Coach_School")
+
+# filtering to only coaches where we will have before/after data
+head_coaches_recent <- head_coaches %>% filter(year_start >= 2006)
+oc_recent <- offensive_coordinators %>% filter(year_start >= 2006)
+dc_recent <- defensive_coordinators %>% filter(year_start >= 2006)
+
+# fixing issue with mismatched school names (I don't think this is needed anymore because it was done on the coach_df1 dataframe initially...but just in case, I'm leaving this here for now.)
+# head_coaches_recent <- head_coaches_recent %>% 
+#   mutate(College = ifelse(College == "FAU", "Florida Atlantic",
+#                           ifelse(College == "FIU", "Florida International",
+#                                  ifelse(College == "Hawaii", "Hawai'i",
+#                                         ifelse(College == "Massachusetts", "UMass", 
+#                                                ifelse(College == "Miami (FL)", "Miami",
+#                                                       ifelse(College == "San Jose State", "San José State",
+#                                                              ifelse(College == "Southern Miss", "Southern Mississippi",
+#                                                                     ifelse(College == "UConn", "Connecticut",
+#                                                                            ifelse(College == "UL Monroe", "Louisiana Monroe",
+#                                                                                   ifelse(College == "USF", "South Florida",
+#                                                                                          ifelse(College == "UTSA", "UT San Antonio",
+#                                                                                                 College))))))))))))
+# oc_recent <- oc_recent %>% 
+#   mutate(College = ifelse(College == "FAU", "Florida Atlantic",
+#                           ifelse(College == "FIU", "Florida International",
+#                                  ifelse(College == "Hawaii", "Hawai'i",
+#                                         ifelse(College == "Massachusetts", "UMass", 
+#                                                ifelse(College == "Miami (FL)", "Miami",
+#                                                       ifelse(College == "San Jose State", "San José State",
+#                                                              ifelse(College == "Southern Miss", "Southern Mississippi",
+#                                                                     ifelse(College == "UConn", "Connecticut",
+#                                                                            ifelse(College == "UL Monroe", "Louisiana Monroe",
+#                                                                                   ifelse(College == "USF", "South Florida",
+#                                                                                          ifelse(College == "UTSA", "UT San Antonio",
+#                                                                                                 College))))))))))))
+# dc_recent <- dc_recent %>% 
+#   mutate(College = ifelse(College == "FAU", "Florida Atlantic",
+#                           ifelse(College == "FIU", "Florida International",
+#                                  ifelse(College == "Hawaii", "Hawai'i",
+#                                         ifelse(College == "Massachusetts", "UMass", 
+#                                                ifelse(College == "Miami (FL)", "Miami",
+#                                                       ifelse(College == "San Jose State", "San José State",
+#                                                              ifelse(College == "Southern Miss", "Southern Mississippi",
+#                                                                     ifelse(College == "UConn", "Connecticut",
+#                                                                            ifelse(College == "UL Monroe", "Louisiana Monroe",
+#                                                                                   ifelse(College == "USF", "South Florida",
+#                                                                                          ifelse(College == "UTSA", "UT San Antonio",
+#                                                                                                 College))))))))))))
+# defensive_to_head <- defensive_to_head %>% 
+#   mutate(College = ifelse(College == "FAU", "Florida Atlantic",
+#                           ifelse(College == "FIU", "Florida International",
+#                                  ifelse(College == "Hawaii", "Hawai'i",
+#                                         ifelse(College == "Massachusetts", "UMass", 
+#                                                ifelse(College == "Miami (FL)", "Miami",
+#                                                       ifelse(College == "San Jose State", "San José State",
+#                                                              ifelse(College == "Southern Miss", "Southern Mississippi",
+#                                                                     ifelse(College == "UConn", "Connecticut",
+#                                                                            ifelse(College == "UL Monroe", "Louisiana Monroe",
+#                                                                                   ifelse(College == "USF", "South Florida",
+#                                                                                          ifelse(College == "UTSA", "UT San Antonio",
+#                                                                                                 College))))))))))))
+# offensive_to_head <- offensive_to_head %>% 
+#   mutate(College = ifelse(College == "FAU", "Florida Atlantic",
+#                           ifelse(College == "FIU", "Florida International",
+#                                  ifelse(College == "Hawaii", "Hawai'i",
+#                                         ifelse(College == "Massachusetts", "UMass", 
+#                                                ifelse(College == "Miami (FL)", "Miami",
+#                                                       ifelse(College == "San Jose State", "San José State",
+#                                                              ifelse(College == "Southern Miss", "Southern Mississippi",
+#                                                                     ifelse(College == "UConn", "Connecticut",
+#                                                                            ifelse(College == "UL Monroe", "Louisiana Monroe",
+#                                                                                   ifelse(College == "USF", "South Florida",
+#                                                                                          ifelse(College == "UTSA", "UT San Antonio",
+#                                                                                                 College))))))))))))
+
+# just to get a basic idea of sample size:
+head_coaches_recent %>% group_by(Race) %>% summarise(num_race = n())
+
+### Now the following dataframes have 1 row per year rather than 1 row per tenure.
+
+coordinators1 <- coach_df1 %>% filter(str_detect(Role, "Coordinator"))
+
+head_coaches1 <- coach_df1 %>% 
+  filter(str_detect(Role, "Head")) %>% 
+  filter(!str_detect(Role, "Associate Head")) %>% 
+  filter(!str_detect(Role, "Assistant Head")) %>% 
+  filter(!str_detect(Role, "Interim Head"))
+offensive_coordinators1 <- coordinators1 %>% 
+  filter(str_detect(Role, "Offensive")) %>% 
+  filter(!str_detect(Role, "Run Game Coordinator")) %>% 
+  filter(!str_detect(Role, "Pass Game Coordinator")) %>% 
+  filter(!str_detect(Role, "Associate offensive")) %>% 
+  filter(!str_detect(Role, "Special Teams")) %>% 
+  filter(!str_detect(Role, "Assistant offensive")) %>% 
+  filter(!str_detect(Role, "Offensive Recruiting Coordinator")) %>% 
+  filter(!str_detect(Role, "Head Coach"))
+defensive_coordinators1 <- coordinators1 %>% 
+  filter(str_detect(Role, "Defensive")) %>% 
+  filter(!str_detect(Role, "Associate Defensive")) %>% 
+  filter(!str_detect(Role, "Special Teams")) %>% 
+  filter(!str_detect(Role, "Assistant Defensive")) %>% 
+  filter(!str_detect(Role, "Recruiting Coordinator")) %>% 
+  filter(!str_detect(Role, "Pass Game Coordinator")) %>%
+  filter(!str_detect(Role, "Run Game Coordinator")) %>%
+  filter(!str_detect(Role, "Head Coach"))
+
+# head_coaches1 <- head_coaches1 %>% 
+#   mutate(College = ifelse(College == "FAU", "Florida Atlantic",
+#                           ifelse(College == "FIU", "Florida International",
+#                                  ifelse(College == "Hawaii", "Hawai'i",
+#                                         ifelse(College == "Massachusetts", "UMass", 
+#                                                ifelse(College == "Miami (FL)", "Miami",
+#                                                       ifelse(College == "San Jose State", "San José State",
+#                                                              ifelse(College == "Southern Miss", "Southern Mississippi",
+#                                                                     ifelse(College == "UConn", "Connecticut",
+#                                                                            ifelse(College == "UL Monroe", "Louisiana Monroe",
+#                                                                                   ifelse(College == "USF", "South Florida",
+#                                                                                          ifelse(College == "UTSA", "UT San Antonio",
+#                                                                                                 College))))))))))))
+# offensive_coordinators1 <- offensive_coordinators1 %>% 
+#   mutate(College = ifelse(College == "FAU", "Florida Atlantic",
+#                           ifelse(College == "FIU", "Florida International",
+#                                  ifelse(College == "Hawaii", "Hawai'i",
+#                                         ifelse(College == "Massachusetts", "UMass", 
+#                                                ifelse(College == "Miami (FL)", "Miami",
+#                                                       ifelse(College == "San Jose State", "San José State",
+#                                                              ifelse(College == "Southern Miss", "Southern Mississippi",
+#                                                                     ifelse(College == "UConn", "Connecticut",
+#                                                                            ifelse(College == "UL Monroe", "Louisiana Monroe",
+#                                                                                   ifelse(College == "USF", "South Florida",
+#                                                                                          ifelse(College == "UTSA", "UT San Antonio",
+#                                                                                                 College))))))))))))
+# defensive_coordinators1 <- defensive_coordinators1 %>% 
+#   mutate(College = ifelse(College == "FAU", "Florida Atlantic",
+#                           ifelse(College == "FIU", "Florida International",
+#                                  ifelse(College == "Hawaii", "Hawai'i",
+#                                         ifelse(College == "Massachusetts", "UMass", 
+#                                                ifelse(College == "Miami (FL)", "Miami",
+#                                                       ifelse(College == "San Jose State", "San José State",
+#                                                              ifelse(College == "Southern Miss", "Southern Mississippi",
+#                                                                     ifelse(College == "UConn", "Connecticut",
+#                                                                            ifelse(College == "UL Monroe", "Louisiana Monroe",
+#                                                                                   ifelse(College == "USF", "South Florida",
+#                                                                                          ifelse(College == "UTSA", "UT San Antonio",
+#                                                                                                 College))))))))))))
+head_coaches1 <- head_coaches1 %>%
+  mutate(Race = ifelse(Coach == "Ron Prince", "Black", Race))
+offensive_coordinators1 <- offensive_coordinators1 %>%
+  mutate(Race = ifelse(Coach == "Billy Gonzales", "Other",
+                        ifelse(Coach == "Ron Prince", "Black",
+                               Race)))
+defensive_coordinators1 <- defensive_coordinators1 %>%
+  mutate(Race = ifelse(Coach == "Phil Elmassian", "White",
+                        ifelse(Coach == "Chris Simpson", "Black",
+                               ifelse(Coach == "John Chavis", "White",
+                                      ifelse(Coach == "John Papuchis", "White",
+                                             ifelse(Coach == "Justin Ena", "White",
+                                                    ifelse(Coach == "Justin Hamilton", "White",
+                                                           Race)))))))
+head_coaches %>% group_by(Race) %>% summarise(num_race = n())
+head_coaches1 %>% group_by(Race) %>% summarise(num_race = n())
+
+
+##########################################################################################
+# High Level Analysis using the '1 row per year' dfs
+coach_df1 %>% group_by(Race) %>% summarise(num_race = n())
+
+head_coaches1 %>% group_by(Race) %>% summarise(num_race = n())
+#   Race  num_race
+#2 Black       69
+#3 Other        8
+#4 White      557
+defensive_coordinators1 %>% group_by(Race) %>% summarise(num_race = n())
+#  Race  num_race
+#2 Black      230
+#3 Other       23
+#4 White     1094
+offensive_coordinators1 %>% group_by(Race) %>% summarise(num_race = n())
+#Race  num_race
+#2 Black      121
+#3 Other       14
+#4 White     1108
+
+##########################################################################################
+# How long do coaches stay in their roles?
+
 tenure <- head_coaches %>%
   mutate(Role = "Head Coach") %>%
   rbind(offensive_coordinators %>%
@@ -116,9 +315,10 @@ tenure <- head_coaches %>%
   rbind(defensive_coordinators %>%
           mutate(Role = "Defensive Coordinator")) %>%
   mutate(Race = ifelse(Race == "?", "Other", Race)) %>%
-  mutate(duration = mean(year_end - year_start)+1)
+  mutate(duration = year_end - year_start+1)
 tenure$Race <- factor(as.factor(tenure$Race), levels = c('White', 'Black', 'Other'))
 tenure$Role <- factor(as.factor(tenure$Role), levels = c('Head Coach', 'Offensive Coordinator', 'Defensive Coordinator'))
+# Ken Niumatalolo and his OC, Ivin Jasper, are the 2 Other/Black coaches w/ 14 years. Followed by David Shaw, Stanford HC, 11 years; Brian Stewart, Maryland DC, 10 years; John Chavis, Tennessee DC, 9 years; James Franklin, Penn State HC, 8 years.
 tenure_jitter <- ggplot(data=tenure, aes(x = Race, y = duration, colour = Role)) +
   # geom_hline(yintercept=0) +
   geom_jitter(width = 0.48, height = 0.48, size = 1.5, alpha=0.7) +
@@ -140,65 +340,37 @@ tenure_jitter <- ggplot(data=tenure, aes(x = Race, y = duration, colour = Role))
     axis.title.x = element_blank())
 tenure_jitter
 ggsave('tenure_jitter.png', height = 5.625, width = 10, dpi = 300)
-#########################################################################################
 
+tenure$Role <- as.character(tenure$Role)
+tenure$Race <- as.character(tenure$Race)
+tenure %>%
+  mutate(Role = ifelse(Role=="Offensive Coordinator","Coordinator",
+                       ifelse(Role=="Defensive Coordinator","Coordinator",Role))) %>%
+  group_by(Race, Role) %>% 
+  summarise(duration = mean(duration))
+# Race  Role        duration
+# 1 Black Coordinator     2.26
+# 2 Black Head Coach      3.36
+# 3 Other Coordinator     2.31
+# 4 Other Head Coach      4.9 
+# 5 White Coordinator     2.72
+# 6 White Head Coach      4.94
 
-# Coordinators who became head coaches
+# Black coaches have shorter tenures than their white counterparts at every level. Why?
 
-offensive_to_head <- offensive_coordinators %>% inner_join(head_coaches, by = "Coach") 
-offensive_to_head <- offensive_to_head%>% distinct(Coach, .keep_all = TRUE)
-defensive_to_head <- defensive_coordinators %>% inner_join(head_coaches, by = "Coach")
-defensive_to_head <- defensive_to_head%>% distinct(Coach, .keep_all = TRUE)
+##########################################################################################
+# HEAD COACHES
+# Analysis of impact on on-field performance of Head Coaches by Race
 
-offensive_to_head %>% group_by(Race.x) %>% summarise(num_race = n())
-# Race.x num_race
-#2 Black        12
-#3 Other         2
-#4 White       127
-
-defensive_to_head %>% group_by(Race.x) %>% summarise(num_race = n())
-# Race.x num_race
-#2 Black        11
-#3 Other         3
-#4 White       74
-
-
-
-# filtering to only coaches where we will have before/after data - done
-head_coaches_recent <- head_coaches %>% filter(year_start >= 2006)
-
-# fixing issue with mismatched school names
-head_coaches_recent["College"][head_coaches_recent["College"] == "FAU"] <- "Florida Atlantic"
-head_coaches_recent["College"][head_coaches_recent["College"] == "FIU"] <- "Florida International"
-head_coaches_recent["College"][head_coaches_recent["College"] == "Hawaii"] <- "Hawai'i"
-head_coaches_recent["College"][head_coaches_recent["College"] == "Massachusetts"] <- "UMass"
-head_coaches_recent["College"][head_coaches_recent["College"] == "Miami (FL)"] <- "Miami"
-head_coaches_recent["College"][head_coaches_recent["College"] == "San Jose State"] <- "San José State"
-head_coaches_recent["College"][head_coaches_recent["College"] == "Southern Miss"] <- "Southern Mississippi"
-head_coaches_recent["College"][head_coaches_recent["College"] == "UConn"] <- "Connecticut"
-head_coaches_recent["College"][head_coaches_recent["College"] == "UL Monroe"] <- "Louisiana Monroe"
-head_coaches_recent["College"][head_coaches_recent["College"] == "USF"] <- "South Florida"
-head_coaches_recent["College"][head_coaches_recent["College"] == "UTSA"] <- "UT San Antonio"
-
-# Edit head_coach to combine where the same guy is still the head coach but added/dropped coordinator title, etc
-head_coaches_recent <- head_coaches_recent %>% 
-  group_by(College, Coach) %>%
-  mutate(year_start = min(year_start), 
-         year_end = max(year_end)) %>%
-  distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
-
-head_coaches_recent %>% group_by(Race) %>% summarise(num_race = n())
-
-# creating an empty df that we will use to add rows to throughout - done
+# create an empty df that we will use to add rows to throughout
 head_coach_impact <- data.frame()
 
 
-# for loop that will create a huge before/after stat dataframe - done
+# for loop that will create a huge before/after stat dataframe
 
-# charlotte did not exist before 2015, so it errored out. starting the loop again with 
-# row 66, will healy taking over charlotte
-# same error for coastal, starting at row 73 with chadwell
-# same error for utsa, starting at row 342 with wilson
+# Charlotte did not exist before 2015, so it errored out. starting the loop again from row 66, Will Healy taking over Charlotte
+# Same error for Coastal Carolina, need to re-run loop starting at row 73 with Chadwell
+# Same error for UT San Antonio, need to re-run loop starting at row 342 with Wilson
 
 for(i in 1:nrow(head_coaches_recent)){
   # create a vector of years from start to end - done
@@ -293,8 +465,8 @@ for(i in 1:nrow(head_coaches_recent)){
 }
 
 save(head_coach_impact, file="head_coach_impact.Rda")
+# load("head_coach_impact.Rda")
 
-load("head_coach_impact.Rda")
 head_coach_impact_weighted <- head_coach_impact %>% filter(BeforeAfter == "after") %>% group_by(Coach, team) %>%
   summarise(tenure_length = n())
 # use code from Coaching Analysis to summarise before/after, net change, etc
@@ -335,8 +507,8 @@ while (i < nrow(head_coach_impact_summary)){
 colnames(head_coach_impact_results) <- c(toString("Coach"), "Team", "Race", "Net_PPA", "Net_SR", "Net_Stuff_Rate", "Net_Pass_SR", "Net_FPI")
 
 save(head_coach_impact_results, file="head_coach_impact_results.Rda")
+# load("head_coach_impact_results.Rda")
 
-load("head_coach_impact_results.Rda")
 # need to remove the three coaches we removed in the other df - Lambert, Moglia, Coker UTSA
 head_coach_impact_weighted <- head_coach_impact_weighted[-c(26, 171, 203),]
 
@@ -360,15 +532,60 @@ head_coach_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = m
 #3 Other           0.00167
 #4 White           0.0106 
 
-
-
 head_coach_impact_results_test <- lapply(head_coach_impact_results, unlist)
 head_coach_impact_results_test <- data.frame(lapply(head_coach_impact_results_test, `length<-`, max(lengths(head_coach_impact_results_test))))
 head_coach_impact_results <- head_coach_impact_results_test
 head_coach_impact_results["Race"][head_coach_impact_results["Race"] == "?"] <- "Other" 
 
+# CHECK FOR NORMALITY AND OUTLIERS
+hist(head_coach_impact_results$Net_PPA,
+     xlab = "Net PPA",
+     main = "Histogram of Net PPA")
+# data seems to be normality distributed
+boxplot(head_coach_impact_results$Net_PPA,
+        ylab = "Net PPA",
+        main = "Boxplot of Net PPA")
+# there are 7 outliers. Let's remove them.
+out_vals <- boxplot.stats(head_coach_impact_results$Net_PPA)$out
+out_inds <- which(head_coach_impact_results$Net_PPA %in% c(out_vals))
+out_inds
+head_coach_impact_results <- head_coach_impact_results[-c(out_inds),]
+ggqqplot(head_coach_impact_results$Net_PPA)
+head_coach_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
+head_coach_impact_results %>% group_by(Race) %>% summarise(count = n())
+# analyze via simple linear regression
+lm1 <- lm(Net_PPA ~ Race, head_coach_impact_results)
+summary(lm1)
+# NO SIGNIFICANT VARIABLES (no P-values less than 0.05)
+
+# check the total metric for normality and outliers
+hist(head_coach_impact_results$total_ppa,
+     xlab = "Total PPA",
+     main = "Histogram of Total PPA")
+# data has a decent right tail
+boxplot(head_coach_impact_results$total_ppa,
+        ylab = "Total PPA",
+        main = "Boxplot of Total PPA")
+# there are lots of outliers. Let's remove them.
+out_vals <- boxplot.stats(head_coach_impact_results$total_ppa)$out
+out_inds <- which(head_coach_impact_results$total_ppa %in% c(out_vals))
+out_inds
+head_coach_impact_results_weighted <- head_coach_impact_results[-c(out_inds),]
+ggqqplot(head_coach_impact_results_weighted$total_ppa)
+head_coach_impact_results_weighted %>% group_by(Race) %>% summarise(total_net_ppa_race = mean(total_ppa))
+# Race  total_net_ppa_race
+# <chr>              <dbl>
+#   1 ?                -0.0203
+# 2 Black            -0.0573
+# 3 Other            -0.120 
+# 4 White             0.0571
+# analyze via simple linear regression
+lm1 <- lm(total_ppa ~ Race, head_coach_impact_results_weighted)
+summary(lm1)
+# Still no significant variables
+
 head_coach_impact_plot <- head_coach_impact_results %>% ggplot(aes(x = Net_SR, y = Net_PPA, colour = Race)) +
-  geom_point(inherit.aes = TRUE, stat = "identity", position = "identity") +
+  geom_point(size = 1.5, alpha=0.7) +
   scale_fill_brewer(palette = "Set2") +
   labs(x = "Net Success Rate Change", y= "Net PPA Change",
        title = "Head Coach Impact by Race", 
@@ -384,100 +601,21 @@ ggsave("head_coach_impact_plot.png", height = 7, width = 10, dpi = 300)
 
 head_coach_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
 # Race  mean_total_ppa_race
-#   1 ?                 -0.0203
-# 2 Black             -0.0713
-# 3 Other              0.0202
-# 4 White              0.121 
+# 2 Black             -0.0189
+# 3 Other             -0.00311
+# 4 White              0.00763 
 ####################################################################################
-# check for normality and outliers
-hist(head_coach_impact_results$Net_PPA,
-     xlab = "Net PPA",
-     main = "Histogram of Net PPA")
-# data seems to be normality distributed
-boxplot(head_coach_impact_results$Net_PPA,
-        ylab = "Net PPA",
-        main = "Boxplot of Net PPA")
-# there are 7 outliers. Let's remove them.
-out_vals <- boxplot.stats(head_coach_impact_results$Net_PPA)$out
-out_inds <- which(head_coach_impact_results$Net_PPA %in% c(out_vals))
-out_inds
-# (I didn't want to overwrite your 'head_coach_impact_results' df so I just added the '1' suffix. - MW)
-head_coach_impact_results1 <- head_coach_impact_results[-c(out_inds),]
-ggqqplot(head_coach_impact_results1$Net_PPA)
-head_coach_impact_results1 %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
-head_coach_impact_results1 %>% group_by(Race) %>% summarise(count = n())
-# analyze via simple linear regression
-lm1 <- lm(Net_PPA ~ Race, head_coach_impact_results1)
-summary(lm1)
-# no significant variables
+# OFFENSIVE COORDINATORS
+# Repeat of Analysis of impact on on-field performance for Offensive Coordinators by Race
+# pull offensive advanced stats
 
-# check the total metric for normality and outliers
-hist(head_coach_impact_results$total_ppa,
-     xlab = "Total PPA",
-     main = "Histogram of Total PPA")
-# data has a decent right tail
-boxplot(head_coach_impact_results$total_ppa,
-        ylab = "Total PPA",
-        main = "Boxplot of Total PPA")
-# there are lots of outliers. Let's remove them.
-out_vals <- boxplot.stats(head_coach_impact_results$total_ppa)$out
-out_inds <- which(head_coach_impact_results$total_ppa %in% c(out_vals))
-out_inds
-# (I didn't want to overwrite your 'head_coach_impact_results' df so I just added the 'weighted' suffix. - MW)
-head_coach_impact_results_weighted <- head_coach_impact_results[-c(out_inds),]
-library(ggpubr)
-ggqqplot(head_coach_impact_results_weighted$total_ppa)
-head_coach_impact_results_weighted %>% group_by(Race) %>% summarise(total_net_ppa_race = mean(total_ppa))
-# Race  total_net_ppa_race
-# <chr>              <dbl>
-#   1 ?                -0.0203
-# 2 Black            -0.0573
-# 3 Other            -0.120 
-# 4 White             0.0571
-# analyze via simple linear regression
-lm1 <- lm(total_ppa ~ Race, head_coach_impact_results_weighted)
-summary(lm1)
-# Still no significant variables
-
-########################################################################################
-
-
-# repeat for offensive coordinators - pull offensive advanced stats
-
-# data cleaning for OC dataframe
-
-# filtering to only coaches where we will have before/after data - done
-oc_recent <- offensive_coordinators %>% filter(year_start >= 2006)
-
-# fixing issue with mismatched school names
-oc_recent["College"][oc_recent["College"] == "FAU"] <- "Florida Atlantic"
-oc_recent["College"][oc_recent["College"] == "FIU"] <- "Florida International"
-oc_recent["College"][oc_recent["College"] == "Hawaii"] <- "Hawai'i"
-oc_recent["College"][oc_recent["College"] == "Massachusetts"] <- "UMass"
-oc_recent["College"][oc_recent["College"] == "Miami (FL)"] <- "Miami"
-oc_recent["College"][oc_recent["College"] == "San Jose State"] <- "San José State"
-oc_recent["College"][oc_recent["College"] == "Southern Miss"] <- "Southern Mississippi"
-oc_recent["College"][oc_recent["College"] == "UConn"] <- "Connecticut"
-oc_recent["College"][oc_recent["College"] == "UL Monroe"] <- "Louisiana Monroe"
-oc_recent["College"][oc_recent["College"] == "USF"] <- "South Florida"
-oc_recent["College"][oc_recent["College"] == "UTSA"] <- "UT San Antonio"
-
-# Edit oc_recent to combine where the same guy is still the head coach but added/dropped coordinator title, etc
-oc_recent <- oc_recent %>% 
-  group_by(College, Coach) %>%
-  mutate(year_start = min(year_start), 
-         year_end = max(year_end)) %>%
-  distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
-
-# creating an empty df that we will use to add rows to throughout - done
+# creating an empty df that we will use to add rows to throughout
 oc_impact <- data.frame()
 
+# for loop that will create a huge before/after stat dataframe
 
-# for loop that will create a huge before/after stat dataframe - done
-
-# charlotte did not exist before 2015, so it errored out. starting the loop again with 
-# row 135, shane montgomery taking over charlotte
-# same error for UTSA, starting again on row 771
+# Charlotte did not exist before 2015, so it errored out. starting the loop again from row 135, Shane Montgomery taking over Charlotte
+# Same error for UT San Antonio, need to re-run loop starting at row 771
 
 for(i in 1:nrow(oc_recent)){
   # create a vector of years from start to end - done
@@ -555,19 +693,18 @@ for(i in 1:nrow(oc_recent)){
 }
 
 save(oc_impact, file="oc_impact.Rda")
-
-load("oc_impact.Rda")
+# load("oc_impact.Rda")
 
 # use code from Coaching Analysis to summarise before/after, net change, etc
-oc_impact_summary <-oc_impact %>% select(c("Coach", "team", "off_ppa", "off_success_rate", "off_stuff_rate", "off_passing_plays_success_rate",
-                                           "Race", "BeforeAfter"))
+oc_impact_summary <-oc_impact %>% select(c("Coach", "team", "off_ppa", "off_success_rate", "off_stuff_rate", "off_passing_plays_success_rate", "Race", "BeforeAfter"))
 
-oc_impact_summary <- oc_impact_summary %>% group_by(Coach, team, Race, BeforeAfter) %>% summarise(
-  mean_ppa = mean(off_ppa), 
-  mean_sr = mean(off_success_rate),
-  mean_stuff = mean(off_stuff_rate),
-  mean_pass_sr = mean(off_passing_plays_success_rate),
-)
+oc_impact_summary <- oc_impact_summary %>% 
+  group_by(Coach, team, Race, BeforeAfter) %>% 
+  summarise(mean_ppa = mean(off_ppa), 
+            mean_sr = mean(off_success_rate),
+            mean_stuff = mean(off_stuff_rate),
+            mean_pass_sr = mean(off_passing_plays_success_rate)
+            )
 
 # fixing to account for the three instances with no "before"
 oc_impact_summary <- oc_impact_summary[-c(737, 920),]
@@ -589,17 +726,17 @@ while (i < nrow(oc_impact_summary)){
 }
 
 save(oc_impact_results, file="oc_impact_results.Rda")
-
-load("oc_impact_results.Rda")
+# load("oc_impact_results.Rda")
 
 # Fixing issue where individual columns are lists
 oc_impact_results_test <- lapply(oc_impact_results, unlist)
 oc_impact_results_test <- data.frame(lapply(oc_impact_results_test, `length<-`, max(lengths(oc_impact_results_test))))
 oc_impact_results <- oc_impact_results_test
 
-# updating a few of the Race entries
+# updating a few of the Race entries (this is now done at the beginning, but if you're starting from just loading the previously saved "oc_impact_results.Rda", you'll need to do this again)
 oc_impact_results["Race"][oc_impact_results["Coach"] == "Billy Gonzales"] <- "Other"
 oc_impact_results["Race"][oc_impact_results["Coach"] == "Ron Prince"] <- "Black"
+
 # doing some preliminary analysis
 oc_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_ppa))
 #Race  mean_net_ppa_race
@@ -608,8 +745,7 @@ oc_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_
 #3 Other           -0.0145
 #4 White            0.0259 
 
-####################################################################################
-# check for normality and outliers
+# CHECK FOR NORMALITY & OUTLIERS
 hist(oc_impact_results$net_ppa,
      xlab = "Net PPA",
      main = "Histogram of Net PPA")
@@ -621,59 +757,34 @@ boxplot(oc_impact_results$net_ppa,
 out_vals <- boxplot.stats(oc_impact_results$net_ppa)$out
 out_inds <- which(oc_impact_results$net_ppa %in% c(out_vals))
 out_inds
-
-oc_impact_results1 <- oc_impact_results[-c(out_inds),]
-ggqqplot(oc_impact_results1$net_ppa)
-oc_impact_results1 %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_ppa))
+# 8 outliers to remove
+oc_impact_results <- oc_impact_results[-c(out_inds),]
+ggqqplot(oc_impact_results$net_ppa)
+oc_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_ppa))
 
 # analyze via simple linear regression
 lm1 <- lm(net_ppa ~ Race, oc_impact_results)
 summary(lm1)
-# no significant variables
+# NO SIGNIFICANT VARIABLES - in other words, Race is not a valid predictor of on-field performance.
 
 # I wonder if it would be worth scraping the FPI offensive and defensive efficiencies instead of using PPA. Only if there seemed to be some signal here maybe...
-########################################################################################
+
 
 oc_impact_results %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(net_sr))
 oc_impact_results %>% group_by(Race) %>% summarise(mean_net_passsr_race = mean(net_pass_sr))
+##########################################################################################
+# DEFENSIVE COORDINATORS
+# Repeat of Analysis of impact on on-field performance for Defensive Coordinators by Race
+# pull defensive advanced stats
 
-# repeat for defensive coordinators - pull defensive advanced stats
-
-# data cleaning for DC dataframe
-
-# filtering to only coaches where we will have before/after data - done
-dc_recent <- defensive_coordinators %>% filter(year_start >= 2006)
-
-# fixing issue with mismatched school names
-dc_recent["College"][dc_recent["College"] == "FAU"] <- "Florida Atlantic"
-dc_recent["College"][dc_recent["College"] == "FIU"] <- "Florida International"
-dc_recent["College"][dc_recent["College"] == "Hawaii"] <- "Hawai'i"
-dc_recent["College"][dc_recent["College"] == "Massachusetts"] <- "UMass"
-dc_recent["College"][dc_recent["College"] == "Miami (FL)"] <- "Miami"
-dc_recent["College"][dc_recent["College"] == "San Jose State"] <- "San José State"
-dc_recent["College"][dc_recent["College"] == "Southern Miss"] <- "Southern Mississippi"
-dc_recent["College"][dc_recent["College"] == "UConn"] <- "Connecticut"
-dc_recent["College"][dc_recent["College"] == "UL Monroe"] <- "Louisiana Monroe"
-dc_recent["College"][dc_recent["College"] == "USF"] <- "South Florida"
-dc_recent["College"][dc_recent["College"] == "UTSA"] <- "UT San Antonio"
-
-# Edit dc_recent to combine where the same guy is still the head coach but added/dropped coordinator title, etc
-dc_recent <- dc_recent %>% 
-  group_by(College, Coach) %>%
-  mutate(year_start = min(year_start), 
-         year_end = max(year_end)) %>%
-  distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
-
-# creating an empty df that we will use to add rows to throughout - done
+# creating an empty df that we will use to add rows to throughout
 dc_impact <- data.frame()
 
+# for loop that will create a huge before/after stat dataframe
 
-# for loop that will create a huge before/after stat dataframe - done
-
-# charlotte did not exist before 2015, so it errored out. starting the loop again with 
-# row 115,  charlotte
-# row 134, coastal
-# same error for UTSA, starting again on row 764
+# Charlotte did not exist before 2015, so it errored out. Starting the loop again from row 115.
+# Same error for Coastal Carolina, need to re-run loop starting at row 134
+# Same error for UT San Antonio, need to re-run loop starting at row 764
 
 for(i in 1:nrow(dc_recent)){
   # create a vector of years from start to end - done
@@ -751,8 +862,7 @@ for(i in 1:nrow(dc_recent)){
 }
 
 save(dc_impact, file="dc_impact.Rda")
-
-load("dc_impact.Rda")
+# load("dc_impact.Rda")
 
 # use code from Coaching Analysis to summarise before/after, net change, etc
 dc_impact_summary <-dc_impact %>% select(c("Coach", "team", "def_ppa", "def_success_rate", "def_stuff_rate", "def_passing_plays_success_rate",
@@ -785,13 +895,12 @@ while (i < nrow(dc_impact_summary)){
   i=i+2
 }
 
-load("dc_impact_results.Rda")
 # Fixing issue where individual columns are lists
 dc_impact_results_test <- lapply(dc_impact_results, unlist)
 dc_impact_results_test <- data.frame(lapply(dc_impact_results_test, `length<-`, max(lengths(dc_impact_results_test))))
 dc_impact_results <- dc_impact_results_test
 
-# updating a few of the Race entries
+# updating a few of the Race entries (this is now done at the beginning, but if you're starting from just loading the previously saved "oc_impact_results.Rda", you'll need to do this again)
 dc_impact_results["Race"][dc_impact_results["Coach"] == "Phil Elmassian"] <- "White"
 dc_impact_results["Race"][dc_impact_results["Coach"] == "Chris Simpson"] <- "Black"
 dc_impact_results["Race"][dc_impact_results["Coach"] == "John Chavis"] <- "White"
@@ -800,8 +909,7 @@ dc_impact_results["Race"][dc_impact_results["Coach"] == "Justin Ena"] <- "White"
 dc_impact_results["Race"][dc_impact_results["Coach"] == "Justin Hamilton"] <- "White"
 
 save(dc_impact_results, file="dc_impact_results.Rda")
-
-load("dc_impact_results.Rda")
+# load("dc_impact_results.Rda")
 
 # doing some preliminary analysis
 dc_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_ppa))
@@ -813,13 +921,12 @@ dc_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_
 dc_impact_results %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(net_sr))
 dc_impact_results %>% group_by(Race) %>% summarise(mean_net_passsr_race = mean(net_pass_sr))
 
-####################################################################################
-# Try grouping minorities together to see how they compare:
+# Could try grouping minorities together to see how they compare:
 # dc_impact_results$Race <- ifelse(dc_impact_results$Race == "?", "Non-white",
 #                                  ifelse(dc_impact_results$Race == "Other", "Non-white",
 #                                         ifelse(dc_impact_results$Race == "Black", "Non-white", "White")))
 
-# check for normality and outliers
+# CHECK FOR NORMALITY AND OUTLIERS
 hist(dc_impact_results$net_ppa,
      xlab = "Net PPA",
      main = "Histogram of Net PPA")
@@ -831,43 +938,24 @@ boxplot(dc_impact_results$net_ppa,
 out_vals <- boxplot.stats(dc_impact_results$net_ppa)$out
 out_inds <- which(dc_impact_results$net_ppa %in% c(out_vals))
 out_inds
-
-dc_impact_results1 <- dc_impact_results[-c(out_inds),]
-ggqqplot(dc_impact_results1$net_ppa)
-dc_impact_results1 %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_ppa))
+# 11 outliers to remove
+# (one of these outliers is Brian Norwood so we'll copy the current df which includes this row for later use)
+dc_impact_results1 <- dc_impact_results
+dc_impact_results <- dc_impact_results[-c(out_inds),]
+ggqqplot(dc_impact_results$net_ppa)
+dc_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_ppa))
 
 # analyze via simple linear regression
 lm1 <- lm(net_ppa ~ Race, dc_impact_results)
 summary(lm1)
 
-########################################################################################
-
+##########################################################################################
 # We want to compare the impact of white and black coordinators who got hired as HC
 
-
-
-defensive_to_head <- defensive_to_head %>% select(College.x, Coach, Race.x, College.y)
-colnames(defensive_to_head) <- c("Coordinator_School", "Coach", "Race", "Head_Coach_School")
-
-# fixing issue with mismatched school names
-
-defensive_to_head["Head_Coach_School"][defensive_to_head["Head_Coach_School"] == "FAU"] <- "Florida Atlantic"
-defensive_to_head["Head_Coach_School"][defensive_to_head["Head_Coach_School"] == "Miami (FL)"] <- "Miami"
-dc_recent["College"][dc_recent["College"] == "Miami (FL)"] <- "Miami"
-dc_recent["College"][dc_recent["College"] == "San Jose State"] <- "San José State"
-defensive_to_head["Head_Coach_School"][defensive_to_head["Head_Coach_School"] == "Southern Miss"] <- "Southern Mississippi"
-dc_recent["College"][dc_recent["College"] == "Southern Miss"] <- "Southern Mississippi"
-dc_recent["College"][dc_recent["College"] == "UConn"] <- "Connecticut"
-defensive_to_head["Head_Coach_School"][defensive_to_head["Head_Coach_School"] == "UConn"] <- "Connecticut"
-dc_recent["College"][dc_recent["College"] == "UL Monroe"] <- "Louisiana Monroe"
-dc_recent["College"][dc_recent["College"] == "USF"] <- "South Florida"
-defensive_to_head["Head_Coach_School"][defensive_to_head["Head_Coach_School"] == "USF"] <- "South Florida"
-dc_recent["College"][dc_recent["College"] == "UTSA"] <- "UT San Antonio"
-
 dc_to_head_impact <- data.frame()
-dc_to_head_impact <- defensive_to_head %>% inner_join(dc_impact_results, by = "Coach") %>% select(
-  Coach, Race.x, Head_Coach_School, team, net_ppa, net_sr, net_stuff, net_pass_sr
-)
+dc_to_head_impact <- defensive_to_head %>% 
+  inner_join(dc_impact_results, by = "Coach") %>% 
+  select(Coach, Race.x, Head_Coach_School, team, net_ppa, net_sr, net_stuff, net_pass_sr)
 colnames(dc_to_head_impact) <- c("Coach", "Race", "Head_Coach_School", "Coordinator School", "Net_PPA",
                                  "Net_SR", "Net_Stuff", "Net_Pass_SR")
 
@@ -909,23 +997,6 @@ dc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(Net_S
 #3 White         -0.00154
 
 # doing the same for offense
-offensive_to_head <- offensive_to_head %>% select(College.x, Coach, Race.x, College.y)
-colnames(offensive_to_head) <- c("Coordinator_School", "Coach", "Race", "Head_Coach_School")
-
-offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "FAU"] <- "Florida Atlantic"
-offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "FIU"] <- "Florida International"
-offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "Miami (FL)"] <- "Miami"
-offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "Hawaii"] <- "Hawai'i"
-offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "Miami (FL)"] <- "Miami"
-offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "San Jose State"] <- "San José State"
-defensive_to_head["Head_Coach_School"][defensive_to_head["Head_Coach_School"] == "Southern Miss"] <- "Southern Mississippi"
-offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "Southern Miss"] <- "Southern Mississippi"
-offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "UConn"] <- "Connecticut"
-offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "Massachusetts"] <- "UMass"
-offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "UL Monroe"] <- "Louisiana Monroe"
-offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "USF"] <- "South Florida"
-defensive_to_head["Head_Coach_School"][defensive_to_head["Head_Coach_School"] == "USF"] <- "South Florida"
-offensive_to_head["Head_Coach_School"][offensive_to_head["Head_Coach_School"] == "UTSA"] <- "UT San Antonio"
 
 oc_to_head_impact <- data.frame()
 oc_to_head_impact <- offensive_to_head %>% inner_join(oc_impact_results, by = "Coach") %>% select(
@@ -941,7 +1012,6 @@ oc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_
 #3 Other           -0.0743
 #4 White            0.0358
 
-##########################################################################################
 # dc_to_head_impact and oc_to_head_impact had a total of 19 unique Black coaches included. 
 # I don't think there's a great reason to keep these 2 separate, so combine datasets and minority races to increase sample size
 coord_to_head_impact <- dc_to_head_impact %>%
@@ -954,14 +1024,13 @@ coord_to_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(N
 # 1 Non-white           0.00546
 # 2 White               0.0191 
 
-# (no signal)
-##########################################################################################
+# No signal here.
 
 oc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(Net_SR))
 oc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_stuff_race = mean(Net_Stuff))
 
 ## need to run again with the numbers for their impact as head coaches
-# Show that the head coach results have been better for black defensive coordinators? they have not
+# Show that the head coach results have been better for black defensive coordinators? (They have not.)
 
 former_dc_head_impact <- data.frame()
 former_dc_head_impact <- defensive_to_head %>% inner_join(head_coach_impact_results, by = "Coach") %>% select(
@@ -983,7 +1052,7 @@ former_dc_head_impact %>% group_by(Race) %>% filter(!is.na(Net_FPI)) %>% summari
 #   1 Black           -6.80  
 # 2 Other           -1.96  
 # 3 White            0.0311
-#This definitely does not support hypothesis
+# This definitely does not support hypothesis
 # Then propose some black defensive coordinators as good head coach options?
 # Brian Norwood
 
@@ -1025,82 +1094,19 @@ former_oc_head_impact %>% group_by(Race) %>% filter(!is.na(Net_FPI)) %>% summari
 # Josh Gattis
 # Newland Isaac
 
-
-############################################################################################
+##########################################################################################
 
 # Are there certain HCs who seem to more readily give minorities promotions / coordinator opportunities?
 
-coordinators <- coach_df1 %>% filter(str_detect(Role, "Coordinator"))
-offensive_coordinators <- coordinators %>% filter(str_detect(Role, "Offensive"))
-offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Run Game Coordinator"))
-offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Pass Game Coordinator"))
-offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Associate offensive"))
-offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Special Teams"))
-offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Assistant offensive"))
-offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Offensive Recruiting Coordinator"))
-offensive_coordinators <- offensive_coordinators %>% filter(!str_detect(Role, "Head Coach"))
-
-defensive_coordinators <- coordinators %>% filter(str_detect(Role, "Defensive"))
-defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Associate Defensive"))
-defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Special Teams"))
-defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Assistant Defensive"))
-defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Recruiting Coordinator"))
-defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Pass Game Coordinator"))
-defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Run Game Coordinator"))
-defensive_coordinators <- defensive_coordinators %>% filter(!str_detect(Role, "Head Coach"))
-
-head_coaches <- coach_df1 %>% filter(str_detect(Role, "Head"))
-head_coaches <- head_coaches %>% filter(!str_detect(Role, "Associate Head"))
-head_coaches <- head_coaches %>% filter(!str_detect(Role, "Assistant Head"))
-head_coaches <- head_coaches %>% filter(!str_detect(Role, "Interim Head"))
-
-head_coaches["College"][head_coaches["College"] == "FAU"] <- "Florida Atlantic"
-head_coaches["College"][head_coaches["College"] == "FIU"] <- "Florida International"
-head_coaches["College"][head_coaches["College"] == "Hawaii"] <- "Hawai'i"
-head_coaches["College"][head_coaches["College"] == "Massachusetts"] <- "UMass"
-head_coaches["College"][head_coaches["College"] == "Miami (FL)"] <- "Miami"
-head_coaches["College"][head_coaches["College"] == "San Jose State"] <- "San José State"
-head_coaches["College"][head_coaches["College"] == "Southern Miss"] <- "Southern Mississippi"
-head_coaches["College"][head_coaches["College"] == "UConn"] <- "Connecticut"
-head_coaches["College"][head_coaches["College"] == "UL Monroe"] <- "Louisiana Monroe"
-head_coaches["College"][head_coaches["College"] == "USF"] <- "South Florida"
-head_coaches["College"][head_coaches["College"] == "UTSA"] <- "UT San Antonio"
-
-offensive_coordinators["College"][offensive_coordinators["College"] == "FAU"] <- "Florida Atlantic"
-offensive_coordinators["College"][offensive_coordinators["College"] == "FIU"] <- "Florida International"
-offensive_coordinators["College"][offensive_coordinators["College"] == "Hawaii"] <- "Hawai'i"
-offensive_coordinators["College"][offensive_coordinators["College"] == "Massachusetts"] <- "UMass"
-offensive_coordinators["College"][offensive_coordinators["College"] == "Miami (FL)"] <- "Miami"
-offensive_coordinators["College"][offensive_coordinators["College"] == "San Jose State"] <- "San José State"
-offensive_coordinators["College"][offensive_coordinators["College"] == "Southern Miss"] <- "Southern Mississippi"
-offensive_coordinators["College"][offensive_coordinators["College"] == "UConn"] <- "Connecticut"
-offensive_coordinators["College"][offensive_coordinators["College"] == "UL Monroe"] <- "Louisiana Monroe"
-offensive_coordinators["College"][offensive_coordinators["College"] == "USF"] <- "South Florida"
-offensive_coordinators["College"][offensive_coordinators["College"] == "UTSA"] <- "UT San Antonio"
-
-defensive_coordinators["College"][defensive_coordinators["College"] == "FAU"] <- "Florida Atlantic"
-defensive_coordinators["College"][defensive_coordinators["College"] == "FIU"] <- "Florida International"
-defensive_coordinators["College"][defensive_coordinators["College"] == "Hawaii"] <- "Hawai'i"
-defensive_coordinators["College"][defensive_coordinators["College"] == "Massachusetts"] <- "UMass"
-defensive_coordinators["College"][defensive_coordinators["College"] == "Miami (FL)"] <- "Miami"
-defensive_coordinators["College"][defensive_coordinators["College"] == "San Jose State"] <- "San José State"
-defensive_coordinators["College"][defensive_coordinators["College"] == "Southern Miss"] <- "Southern Mississippi"
-defensive_coordinators["College"][defensive_coordinators["College"] == "UConn"] <- "Connecticut"
-defensive_coordinators["College"][defensive_coordinators["College"] == "UL Monroe"] <- "Louisiana Monroe"
-defensive_coordinators["College"][defensive_coordinators["College"] == "USF"] <- "South Florida"
-defensive_coordinators["College"][defensive_coordinators["College"] == "UTSA"] <- "UT San Antonio"
-
-head_coaches %>% group_by(Race) %>% summarise(num_race = n())
-
-coaching_tree <- head_coaches %>%
+coaching_tree <- head_coaches1 %>%
   select(Coach, Season, College, Race) %>%
-  left_join((defensive_coordinators %>% 
+  left_join((defensive_coordinators1 %>% 
                select(Coach, Season, College, Race) %>% 
                rename(Coordinator = Coach)), 
             by = c("Season", "College"))
-coaching_tree1 <- head_coaches %>%
+coaching_tree1 <- head_coaches1 %>%
   select(Coach, Season, College, Race) %>%
-  left_join((offensive_coordinators %>%
+  left_join((offensive_coordinators1 %>%
                select(Coach, Season, College, Race) %>%
                rename(Coordinator = Coach)),
             by = c("Season", "College"))
@@ -1136,7 +1142,8 @@ minority_hires <- hires_by_years %>%
   mutate(years_rank = rank(desc(percent_of_years_POC)),
          coords_rank = rank(desc(percent_of_coords_POC)),
          rank = rank(years_rank + coords_rank))
-# This may be a good opportunity for a 538-style table
+
+# 538-style table from Thomas Mock's tutorial using the gt package
 colnames(minority_hires) <- c("Coach", "Coach_Race", "Alternate_Race", "Non-White_Coordinator_Seasons", 
                               "Available_Coordinator_Seasons", "Available_Seasons_with_Non-White_Coordinator_Percentage", 
                               "Non-White_Coordinators", "Possible_Coordinators", "Non-White_Coordinators_Percentage", 
@@ -1157,6 +1164,7 @@ gt_theme_538 <- function(data,...) {
     ) %>%
     tab_style(
       style = cell_borders(
+        # color = "transparent" does not work in latest version of gt(). "#FFFFFF00" is the Hex version of transparent.
         sides = "bottom", color = "#FFFFFF00", weight = px(2)
       ),
       locations = cells_body(
@@ -1183,17 +1191,21 @@ gt_theme_538 <- function(data,...) {
       ...
     ) 
 }
+
 minority_hires_for_table$Combined_Rank <- floor(minority_hires_for_table$Combined_Rank)
 minority_hires_top20 <- minority_hires_for_table[1:20,]
 minority_hires_bottom20 <-minority_hires_for_table[188:207,]
-colnames(minority_hires_top20) <- c('Head Coach', 'Coach_Race' , '% of Seasons with Non-White Coordinators', '% of Non-white coordinators hired', "Combined Rank")
-colnames(minority_hires_bottom20) <- c('Head Coach', 'Coach_Race' , '% of Seasons with Non-White Coordinators', '% of Non-white coordinators hired', "Combined Rank")
+colnames(minority_hires_top20) <- c('Coach', 'Non-White Coordinator Seasons', 'Non-White Coordinators', "Combined Rank")
+colnames(minority_hires_bottom20) <- c('Coach', 'Non-White Coordinator Seasons', 'Non-White Coordinators', "Combined Rank")
+
 minority_hiring_table_top20 <- minority_hires_top20 %>% gt() %>%  tab_spanner(
   label = "Who Hires Non-White Coordinators?\nTop 20",
-  columns = c('% of Seasons with Non-White Coordinators', '% of Non-white coordinators hired')) %>% 
+  columns = c("% of Seasons with Non-White Coordinators", 
+              "% of Non-White Coordinators Hired")) %>% 
   data_color(
-    columns = c('% of Seasons with Non-White Coordinators', '% of Non-white coordinators hired'),
+    columns = c("% of Seasons with Non-White Coordinators", "% of Non-White Coordinators Hired"),
     colors = scales::col_numeric(
+      # use a 3-color scale with the 1st 2 colors from RColorBrewer Set2
       palette = c(brewer.pal(n=5,"Set2")[[2]], "white", brewer.pal(n=5,"Set2")[[1]]),
       domain = c(0:1)
     )
@@ -1211,9 +1223,10 @@ gtsave(minority_hiring_table_top20, "Minority_Hiring_Table_Top20.png")
 
 minority_hiring_table_bottom20 <- minority_hires_bottom20 %>% gt() %>%  tab_spanner(
   label = "Who Hires Non-White Coordinators?\nBottom 20",
-  columns = c('% of Seasons with Non-White Coordinators', '% of Non-white coordinators hired')) %>% 
+  columns = c("% of Seasons with Non-White Coordinators", 
+              "% of Non-White Coordinators Hired")) %>% 
   data_color(
-    columns = c('% of Seasons with Non-White Coordinators', '% of Non-white coordinators hired'),
+    columns = c("% of Seasons with Non-White Coordinators", "% of Non-White Coordinators Hired"),
     colors = scales::col_numeric(
       palette = c(brewer.pal(n=5,"Set2")[[2]], "white", brewer.pal(n=5,"Set2")[[1]]),
       domain = c(0:1)
@@ -1252,7 +1265,224 @@ minority_hires %>%
 # minority HCs are 6-8 percentage points more likely than white HCs to hire a minority coordinator (20-30% more likely).
 # sum(minority_hires$total_coordinators) # <- sample size
 
-# linking the above data with connected and influence data from below:
+# later we will combine this data with the centrality data from the Network Analysis...
+
+##########################################################################################
+
+# https://ona-book.org/community.html
+
+# Use the Louvain algorithm to further analyze the social impact of coaching hires?
+
+coaching_tree1 <- coaching_tree %>% 
+  group_by(Coach, Coordinator) %>%
+  summarise(years_together = n())
+
+###
+# # To create a  graph from an edgelist:
+# edgelist <- coaching_tree %>%
+#   select(Coach, Coordinator) %>%
+#   rename(c("from" = "Coach", "to" = "Coordinator"))
+# edgelist_matrix <- as.matrix(edgelist)
+# graph1 <- igraph::graph_from_edgelist(el = edgelist_matrix, directed = TRUE)
+# graph1
+# # IGRAPH 5da95ff DN-- 1431 5643 -- 
+# # ^ denotes 'D'irected graph with 'N'amed vertices containing 1,431 vertices and 5,643 edges
+# To create a weighted graph from a dataframe:
+edges_df <- coaching_tree1 %>%
+  rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
+vertex_df <- head_coaches1 %>%
+  rbind(defensive_coordinators1) %>%
+  rbind(offensive_coordinators1) %>%
+  select(Coach, Race) %>%
+  distinct()
+# this checks to see if there are any duplicates, because if there are, the following graph function will error out.
+# n_occur <- data.frame(table(vertex_df$Coach))
+# create the graph object
+graph <- igraph::graph_from_data_frame(d = edges_df, directed = TRUE, vertices = vertex_df)
+graph
+# IGRAPH d0216f2 DNW- 1431 2214 -- 
+#   + attr: name (v/c), weight (e/n)
+# ^ denotes a Directed graph with Named vertices and numerically (e/n) Weighted edges 
+# V(graph) # gives vertices of the graph
+# E(graph) # gives edge sets of a graph
+# E(graph)$weight # gives weights of edges
+# V(graph)$Race # gives Race of each vertex/node
+# assign communities to graph
+
+# LABELS
+set.seed(123)
+# only store a label if "Nick Saban" or "Geoff Collins"
+V(graph)$label <- ifelse(V(graph)$name %in% c("Nick Saban", "Geoff Collins"),
+                         V(graph)$name,
+                         "")
+# change label font color, size, and font family
+V(graph)$label.color <- "black"
+V(graph)$label.cex <- 0.8
+# V(graph)$label.family <- "arial"
+
+# VERTICES
+V(graph)$size <- 3 
+V(graph)$frame.color = "black"
+
+# EDGES
+#E(graph)$width <- graph$weight
+E(graph)$arrow.size <- 0.5
+# #create plot layout
+# layout1 = layout_randomly(graph)
+# # shape-oriented layouts
+# layout2 = layout_as_tree(graph)
+# layout3 = layout_in_circle(graph)
+# layout4 = layout_on_sphere(graph)
+# # force-directed layouts - use algorithms to attract connected vertices together and repel non-connected vertices
+# layout5 = layout_with_fr(graph)
+# layout6 = layout_with_kk(graph)
+# # Sugiyama is suitable for directed graphs and minimizes edge crossings by introducing bends on edges
+# layout7 = layout_with_sugiyama(graph) # says layout must be a matrix?
+# # for large graphs
+# layout8 = layout_with_lgl(graph)
+# layout9 = layout_with_drl(graph)
+# layout10 = layout_with_graphopt(graph)
+# # plot with base R:
+# plot(graph, layout = layout1)
+# plot(graph, layout = layout2)
+# plot(graph, layout = layout3)
+# plot(graph, layout = layout4)
+# plot(graph, layout = layout5)
+# plot(graph, layout = layout6)
+# plot(graph, layout = layout7)
+# plot(graph, layout = layout8)
+# plot(graph, layout = layout9)
+# plot(graph, layout = layout10)
+
+# # # ...or use ggraph similar to ggplot2
+# ggraph(graph, layout = "kk") +
+#   geom_edge_link(show.legend = FALSE) +
+#   geom_node_point(color = "blue", size = 1) +
+#   # geom_node_label(aes(label = name), color = "blue") +
+#   # or geom_node_point(aes(color = community))
+#   theme_void() +
+#   labs(title = "Coaching Tree")
+# # how do you get alpha or width of edges to change based on weights?
+# # I tried  putting the following in geom_edge_link() but it didn't work --> aes(edge_width = weight), color = "grey", alpha = 0.7,
+# 
+# # or use library(networkD3) for interactive graphs (I don't know how to embed this in an article while keeping the interactive features though)
+# networkD3::simpleNetwork(coaching_tree1)
+# V(graph)$group <- ifelse(V(graph)$name %in% c("Nick Saban", "Geoff Collins"), 1, 2)
+# netd3_list <- networkD3::igraph_to_networkD3(graph, group = V(graph)$group)
+# networkD3::forceNetwork(
+#   Links = netd3_list$links,
+#   Nodes = netd3_list$nodes,
+#   NodeID = "name",
+#   Source = "source",
+#   Target = "target",
+#   Group = "group"
+# )
+
+# PATHS, DISTANCE, & CENTRALITY
+edge_density(graph)
+# 0.001081937 (it's a sparse graph)
+get_diameter(graph)
+get_diameter(graph, weights = NA)
+diameter_list <- as.list(get_diameter(graph, weights = NA))
+# Bret was a coordinator for Bill, Paul was a coordinator for Bret, Dave was a coordinator for Paul, etc. This is the longest "shortest path".
+# # how to create a subgraph with only certain coaches included - this subgraph only includes coaches (nodes) from the diameter above:
+# subgraph <- induced_subgraph(graph, vids = c(diameter_list))
+# plot(subgraph, layout = layout.auto, label = get_diameter(graph))
+# diameter_plot <- ggraph(subgraph, layout = "tree") +
+#   geom_edge_link(show.legend = FALSE) +
+#   geom_node_point(color = "blue", size = 1) +
+#   geom_node_label(aes(label = name), color = "blue") +
+#   # or geom_node_point(aes(color = community))
+#   theme_void() +
+#   labs(title = "The Longest Direct Line in a Coaching Tree Since 2000")
+# diameter_plot
+# ggsave('diameter_plot.png', height = 10, width = 4.55, dpi = 300)
+# are there any disconnected nodes in this graph?
+is.connected(graph)
+# FALSE so it is not connected, ie there are disconnected nodes in the graph.
+# now who has the most connections?
+# create empty vectors:
+v_name <- c()
+n_neighbors <- c()
+# capture name and number of neighbors for every vertex. A vertex is a neighbor of another one (in other words, the two vertices are adjacent), if they are incident to the same edge.
+for(v in V(graph)$name) {
+  v_name <- append(v_name, v)
+  n_neighbors <- append(n_neighbors, 
+                        length(neighbors(graph, v)))
+}
+# find the max
+v_name[which.max(n_neighbors)]
+n_neighbors[which.max(n_neighbors)]
+# Nick Saban has the most neighbors in this data set at 20.
+# average distance, not considering weights. Distance is the length of shortest paths
+mean_distance(graph) # 3.578102
+dt <- distance_table(graph, directed = TRUE)
+barplot(dt$res)
+# calculate Degree Centrality for all vertices. Degree Centrality is the # of edges connected to the vertex, a measure of immediate connection.
+degree(graph)
+degree_centrality <- reshape2::melt(data.frame(as.list(degree(graph))))
+# Todd Graham at 21, Nick Saban and Tommy Tubberville at 20. I wonder why it says Saban has the most neighbors at 20, but Todd Graham has the highest Degree Centrality at 21.
+# Ego Size: the n-th order ego network of a given vertex v is a set including v and all vertices of distance at most n from v. (Saban has a 1st-order ego size of 20)
+ego(graph, order=2)
+ego_size(graph, order=2, nodes = V(graph))
+# Saban has 111 2nd-degree connections (aka 2nd-order edges)
+# Closeness Centrality
+closeness_centrality <- reshape2::melt(data.frame(as.list(closeness(graph))))
+# Betweenness Centrality: a measure of how important a given vertex is in connecting other pairs of vertices in the graph. People with high Betweenness Centrality are known as Superconnectors (or networkers)
+betweenness_centrality <- reshape2::melt(data.frame(as.list(betweenness(graph))))
+# Eigenvector Centrality: A measure of overall influence (if you're equally interested in lots of direct connections as well as few connections to other highly connected people)
+eigenvector_centrality <- reshape2::melt(data.frame(as.list(eigen_centrality(graph)$vector)))
+# Now reformat the coach's names, add back race, and check mean or median degree centrality by race. Can do this for 1st-degree, 2nd-degree, etc. if we want.
+eigenvector_centrality$metric <- "eigen"
+betweenness_centrality$metric <- "betweenness"
+closeness_centrality$metric <- "closeness"
+degree_centrality$metric <- "degree"
+# 2nd & 3rd order (ego) are not included here
+melted_vertex <- eigenvector_centrality %>%
+  rbind(betweenness_centrality) %>%
+  rbind(closeness_centrality) %>%
+  rbind(degree_centrality)
+centrality_df <- melted_vertex %>% reshape2::dcast(variable ~ metric)
+centrality_df$variable <- gsub("\\."," ", centrality_df$variable)
+centrality_df <- centrality_df %>%
+  left_join(vertex_df, by = c("variable" = "Coach"))
+
+centrality_df <- centrality_df %>%
+  mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
+                        ifelse(variable == "Joe Salave a", "Other",
+                               ifelse(variable == "O Neill Gilbert", "Black",
+                                      ifelse(variable == "Brian Jean Mary", "Black",
+                                             ifelse(variable == "Re quan Boyette", "Black",
+                                                    ifelse(variable == "J D Williams", "Black",
+                                                           ifelse(variable == "Maurice Crum Jr ", "Black",
+                                                                  ifelse(variable == "Time Harris Jr ", "Black",
+                                                                         Race)))))))))
+
+centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
+centrality_mean <- centrality_df %>% 
+  group_by(Race) %>%
+  summarise(eigen = mean(eigen),
+            betweenness = mean(betweenness),
+            closeness = mean(closeness),
+            degree = mean(degree))
+# So white coaches are 1.43 times more connected than Black coaches (degree) on average.
+centrality_median <- centrality_df %>% 
+  group_by(Race) %>%
+  summarise(eigen = median(eigen),
+            betweenness = median(betweenness),
+            closeness = median(closeness),
+            degree = median(degree))
+# To add centralities as vertex properties in graphs:
+V(graph)$degree <- degree(graph)
+V(graph)$betweenness <- betweenness(graph)
+V(graph)$closeness <- closeness(graph)
+V(graph)$eigen <- eigen_centrality(graph)$vector
+# so now you can adjust the size of the node (for example) according to the degree centrality (aes(size = degree))
+
+########
+
+# 538-style table showing influence and connectivity
+
 centrality_df_modified <- centrality_df %>% select(variable, closeness, degree, Race)
 colnames(centrality_df_modified) <- c("Coach", "Influence", "Connections",  "Race")
 centrality_df_scaled <- centrality_df_modified %>% mutate_at("Influence", ~(scale(., center = FALSE) %>% as.vector))
@@ -1290,9 +1520,9 @@ minority_hires_top20_influential <- minority_hires_connection_for_table[1:20,]
 
 minority_hiring_table_connected20 <- minority_hires_top20_connections %>% gt() %>%  tab_spanner(
   label = "Most Connected Coaches' Coordinator Hiring",
-  columns = c("Non-White Coordinator Seasons", 
-              "Non-White Coordinators", "Non-White Coordinator Hiring Rank")) %>% 
-  data_color(
+  columns = c("% of Seasons with Non-White Coordinators", 
+              "% of Non-White Coordinators Hired", "Non-White Coordinator Hiring Rank")) %>% 
+    data_color(
     columns = c("Non-White Coordinator Hiring Rank"),
     colors = scales::col_numeric(
       palette = c(brewer.pal(n=5,"Set2")[[2]], "white", brewer.pal(n=5,"Set2")[[1]]),
@@ -1312,8 +1542,8 @@ gtsave(minority_hiring_table_connected20, "minority_hiring_table_connected20.png
 
 minority_hiring_table_influential20 <- minority_hires_top20_influential %>% gt() %>%  tab_spanner(
   label = "Most Influential Coaches' Coordinator Hiring",
-  columns = c("Non-White Coordinator Seasons", 
-              "Non-White Coordinators", "Non-White Coordinator Hiring Rank")) %>% 
+  columns = c("% of Seasons with Non-White Coordinators", 
+              "% of Non-White Coordinators Hired", "Non-White Coordinator Hiring Rank")) %>% 
   data_color(
     columns = c("Non-White Coordinator Hiring Rank"),
     colors = scales::col_numeric(
@@ -1331,210 +1561,6 @@ minority_hiring_table_influential20 <- minority_hires_top20_influential %>% gt()
   gt_theme_538(table.width = px(550))
 minority_hiring_table_influential20
 gtsave(minority_hiring_table_influential20, "minority_hiring_table_influential20.png")
-############################################################################################
-
-# https://ona-book.org/community.html
-
-# Use the Louvain algorithm to further analyze the social impact of coaching hires?
-# install.packages("igraph")
-library(igraph)
-# install.packages("qgraph")
-library(qgraph)
-library(corrplot)
-library(Hmisc)
-library(ggraph)
-library(networkD3)
-coaching_tree1 <- coaching_tree %>% 
-  group_by(Coach, Coordinator) %>%
-  summarise(years_together = n())
-
-###
-# create a  graph from an edgelist
-edgelist <- coaching_tree %>%
-  select(Coach, Coordinator) %>%
-  rename(c("from" = "Coach", "to" = "Coordinator"))
-edgelist_matrix <- as.matrix(edgelist)
-graph1 <- igraph::graph_from_edgelist(el = edgelist_matrix, directed = TRUE)
-graph1
-# IGRAPH 5da95ff DN-- 1431 5643 -- 
-# ^ denotes 'D'irected graph with 'N'amed vertices containing 1,431 vertices and 5,643 edges
-# create a weighted graph from a dataframe
-coaching_tree1 <- coaching_tree1 %>%
-  rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
-vertex_df <- head_coaches %>%
-  rbind(defensive_coordinators) %>%
-  rbind(offensive_coordinators) %>%
-  select(Coach, Race) %>%
-  distinct()
-# create the graph object
-graph <- igraph::graph_from_data_frame(d = coaching_tree1, directed = TRUE, vertices = vertex_df)
-graph
-# IGRAPH d0216f2 DNW- 1431 2214 -- 
-#   + attr: name (v/c), weight (e/n)
-# ^ denotes a Directed graph with Named vertices and numerically (e/n) Weighted edges 
-# V(graph) # gives vertices of the graph
-# E(graph) # gives edge sets of a graph
-# E(graph)$weight # gives weights of edges
-# V(graph)$Race # gives Race of each vertex/node
-# assign communities to graph
-
-# LABELS
-set.seed(123)
-# only store a label if "Nick Saban" or "Geoff Collins"
-V(graph)$label <- ifelse(V(graph)$name %in% c("Nick Saban", "Geoff Collins"),
-                         V(graph)$name,
-                         "")
-# change label font color, size, and font family
-V(graph)$label.color <- "black"
-V(graph)$label.cex <- 0.8
-# V(graph)$label.family <- "arial"
-
-# VERTICES
-V(graph)$color <- graph$community
-V(graph)$size <- 3 
-V(graph)$frame.color = "black"
-
-# EDGES
-#E(graph)$width <- graph$weight
-E(graph)$arrow.size <- 0.5
-# how to get alpha or width of edges to change based on weights?
-# #create plot layout
-# layout1 = layout_randomly(graph)
-# # shape oriented layouts
-# layout2 = layout_as_tree(graph)
-# layout3 = layout_in_circle(graph)
-# layout4 = layout_on_sphere(graph)
-# # force-directed layouts - use algorithms to attract connected vertices together and repel non-connected vertices
-# layout5 = layout_with_fr(graph)
-# layout6 = layout_with_kk(graph)
-# # Sugiyama is suitable for directed graphs and minimizes edge crossings by introducing bends on edges
-# layout7 = layout_with_sugiyama(graph) # says layout must be a matrix?
-# # for large graphs
-# layout8 = layout_with_lgl(graph)
-# layout9 = layout_with_drl(graph)
-# layout10 = layout_with_graphopt(graph)
-# plot(graph, layout = layout1)
-# plot(graph, layout = layout2)
-# plot(graph, layout = layout3)
-# plot(graph, layout = layout4)
-# plot(graph, layout = layout5)
-# plot(graph, layout = layout6)
-# plot(graph, layout = layout7)
-# plot(graph, layout = layout8)
-# plot(graph, layout = layout9)
-# plot(graph, layout = layout10)
-# or use ggraph similar to ggplot2
-# install.packages("ggraph")
-ggraph(graph, layout = "kk") +
-  geom_edge_link(aes(edge_width = weight), color = "grey", alpha = 0.7, show.legend = FALSE) +
-  geom_node_point(color = "blue", size = 1) +
-  # geom_node_label(aes(label = name), color = "blue") +
-  # or geom_node_point(aes(color = community))
-  theme_void() +
-  labs(title = "Coaching Tree")
-# or use library(networkD3) for interactive graphs (I don't know how to embed this in an article while keeping the interactive features though)
-# install.packages("networkD3")
-networkD3::simpleNetwork(coaching_tree1)
-V(graph)$group <- ifelse(V(graph)$name %in% c("Nick Saban", "Geoff Collins"), 1, 2)
-netd3_list <- networkD3::igraph_to_networkD3(graph, group = V(graph)$group)
-networkD3::forceNetwork(
-  Links = netd3_list$links,
-  Nodes = netd3_list$nodes,
-  NodeID = "name",
-  Source = "source",
-  Target = "target",
-  Group = "group"
-)
-
-# PATHS, DISTANCE, & CENTRALITY
-edge_density(graph)
-# 0.001081937 (it's a sparse graph)
-get_diameter(graph)
-get_diameter(graph, weights = NA)
-diameter_list <- as.list(get_diameter(graph, weights = NA))
-# Bret was a coordinator for Bill, Paul was a coordinator for Bret, Dave was a coordinator for Paul, etc. This is the longest "shortest path".
-# how to create a subgraph with only certain coaches included - this subgraph only includes coaches (nodes) from the diameter above:
-subgraph <- induced_subgraph(graph, vids = c(diameter_list))
-plot(subgraph, layout = layout.auto)
-# are there any disconnected nodes in this graph?
-is.connected(graph)
-# FALSE so it is not connected, ie there are disconnected nodes in the graph.
-# now who has the most connections?
-# create empty vectors:
-v_name <- c()
-n_neighbors <- c()
-# capture name and number of neighbors for every vertex. A vertex is a neighbor of another one (in other words, the two vertices are adjacent), if they are incident to the same edge.
-for(v in V(graph)$name) {
-  v_name <- append(v_name, v)
-  n_neighbors <- append(n_neighbors, 
-                        length(neighbors(graph, v)))
-}
-# find the max
-v_name[which.max(n_neighbors)]
-n_neighbors[which.max(n_neighbors)]
-# Nick Saban has the most neighbors in this data set at 20.
-# average distance, not considering weights. Distance is the length of shortest paths
-mean_distance(graph) # 3.578102
-dt <- distance_table(graph, directed = TRUE)
-barplot(dt$res)
-# calculate Degree Centrality for all vertices. Degree Centrality is the # of edges connected to the vertex, a measure of immediate connection.
-degree(graph)
-degree_centrality <- melt(data.frame(as.list(degree(graph))))
-# Todd Graham at 21, Nick Saban and Tommy Tubberville at 20. I wonder why it says Saban has the most neighbors at 20, but Todd Graham has the highest Degree Centrality at 21.
-# Ego Size: the n-th order ego network of a given vertex v is a set including v and all vertices of distance at most n from v. (Saban has a 1st-order ego size of 20)
-ego(graph, order=2)
-ego_size(graph, order=2, nodes = V(graph))
-# Saban has 111 2nd-degree connections (aka 2nd-order edges)
-# Closeness Centrality
-closeness_centrality <- melt(data.frame(as.list(closeness(graph))))
-# Betweenness Centrality: a measure of how important a given vertex is in connecting other pairs of vertices in the graph. People with high Betweenness Centrality are known as Superconnectors (or networkers)
-betweenness_centrality <- melt(data.frame(as.list(betweenness(graph))))
-# Eigenvector Centrality: A measure of overall influence (if you're equally interested in lots of direct connections as well as few connections to other highly connected people)
-eigenvector_centrality <- melt(data.frame(as.list(eigen_centrality(graph)$vector)))
-# Now reformat the coach's names, add back race, and check mean or median degree centrality by race. Can do this for 1st-degree, 2nd-degree, etc. if we want.
-eigenvector_centrality$metric <- "eigen"
-betweenness_centrality$metric <- "betweenness"
-closeness_centrality$metric <- "closeness"
-degree_centrality$metric <- "degree"
-# 2nd & 3rd order (ego) are not included here
-melted_vertex <- eigenvector_centrality %>%
-  rbind(betweenness_centrality) %>%
-  rbind(closeness_centrality) %>%
-  rbind(degree_centrality)
-centrality_df <- melted_vertex %>% reshape2::dcast(variable ~ metric)
-centrality_df$variable <- gsub("\\."," ", centrality_df$variable)
-centrality_df <- centrality_df %>%
-  left_join(vertex_df, by = c("variable" = "Coach"))
-centrality_df["Race"][centrality_df["variable"] == "Aazaar Abdul Rahim"] <- "Black"
-centrality_df["Race"][centrality_df["variable"] == "Joe Salave a"] <- "Other"
-centrality_df["Race"][centrality_df["variable"] == "O Neill Gilbert"] <- "Black"
-centrality_df["Race"][centrality_df["variable"] == "Brian Jean Mary"] <- "Black"
-centrality_df["Race"][centrality_df["variable"] == "Re quan Boyette"] <- "Black"
-centrality_df["Race"][centrality_df["variable"] == "J D  Williams"] <- "Black"
-centrality_df["Race"][centrality_df["variable"] == "Maurice Crum Jr "] <- "Black"
-centrality_df["Race"][centrality_df["variable"] == "Tim Harris Jr "] <- "Black"
-centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
-centrality_mean <- centrality_df %>% 
-  group_by(Race) %>%
-  summarise(eigen = mean(eigen),
-            betweenness = mean(betweenness),
-            closeness = mean(closeness),
-            degree = mean(degree))
-# *****So white coaches are 7 times more influential than Black coaches (eigen) and 1.43 times more connected than Black coaches (degree) on average.*****
-centrality_median <- centrality_df %>% 
-  group_by(Race) %>%
-  summarise(eigen = median(eigen),
-            betweenness = median(betweenness),
-            closeness = median(closeness),
-            degree = median(degree))
-# To add centralities as vertex properties in graphs:
-V(graph)$degree <- degree(graph)
-V(graph)$betweenness <- betweenness(graph)
-V(graph)$closeness <- closeness(graph)
-V(graph)$eigen <- eigen_centrality(graph)$vector
-# so now you can adjust the size of the node (for example) according to the degree centrality (aes(size = degree))
-# Another 538-style table showing the most and least connected and influential people?
-# Let me know what you want in the table here and I can do that
 
 ########
 # COMPONENTS, COMMUNITIES, & CLIQUES
@@ -1563,7 +1589,7 @@ ggraph(graph) +
 # Partitioning
 # Detect communities using Louvain - only works for Undirected communities
 set.seed(123)
-graph1 <- igraph::graph_from_data_frame(d = coaching_tree1, directed = FALSE, vertices = vertex_df)
+graph1 <- igraph::graph_from_data_frame(d = edges_df, directed = FALSE, vertices = vertex_df)
 communities <- cluster_louvain(graph1)
 V(graph1)$community <- membership(communities)
 sizes(communities)
@@ -1577,7 +1603,7 @@ modularity(graph1, V(graph1)$community)
 # after adding the race attribute to vertices, you can test the modularity of the race attribute and compare (the higher the better)
 modularity(graph1, as.integer(as.factor(V(graph1)$Race)))
 # so Louvain's community structure is a better indicator of connected coaching subgroups than Race.
-# visualize louvain communities
+# visualize louvain communities in 1 plot
 set.seed(123)
 louvain_plot <- ggraph(graph1, layout = "kk") +
   geom_edge_link(color = "black") +
@@ -1594,11 +1620,11 @@ race_plot <- ggraph(graph1, layout = "kk") +
   theme_void()
 race_plot
 
-# plot individual communities grouped by Race. (probably don't want to label these w/ coach's names)
+# plot individual communities grouped by Race. (probably don't want to label these w/ all coach's names shown)
 # Bill Snyder's
 community <- induced_subgraph(graph1, vids = communities[[23]])
-labs1 <- c("Bill Snyder", "Turner Gill")
-v_labels <- which(V(community)$name %in% labs1)
+labs23 <- c("Bill Snyder", "Turner Gill")
+v_labels <- which(V(community)$name %in% labs23)
 for(i in 1:length(V(community))){
   if(!(i %in% v_labels)) {V(community)$name[i] <- ""}
 }
@@ -1624,21 +1650,42 @@ race_plot23 <- ggraph(community, layout = "kk") +
 race_plot23
 ggsave('race_plot23.png', height = 5.625, width = 10, dpi = 300)
 communities[[23]]
+
 # Nick Saban's
 community <- induced_subgraph(graph1, vids = communities[[9]])
+labs9 <- c("Nick Saban")
+v_labels <- which(V(community)$name %in% labs9)
+for(i in 1:length(V(community))){
+  if(!(i %in% v_labels)) {V(community)$name[i] <- ""}
+}
+V(community)$name
+
 race_plot9 <- ggraph(community, layout = "kk") +
   geom_edge_link(color = "grey") +
   geom_node_point(size = 4, aes(color = Race)) +
   geom_node_text(aes(label = name), repel=T, force=100) +
-  theme_void() +
-  labs(title = "The Nick Saban Community")
-
+  scale_colour_brewer(palette = "Set2") +
+  theme_light() +
+  labs(title = "Nick Saban's Community",
+       caption = "Plot: @markwood14 and @robert_binion") +
+  theme(# panel.grid.minor.x = element_line(linetype = 1, color = "red"),
+    # legend.position = c(0.89, 0.85),
+    # legend.box.background = element_rect(color="black"),
+    panel.background = element_rect(fill = "#F5F5F5"),
+    # plot.subtitle = element_text(size=9),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    axis.text = element_blank()
+  )
 race_plot9
+ggsave('race_plot9.png', height = 5.625, width = 10, dpi = 300)
 communities[[9]]
 
 # Least diverse communities (by %): 2, 11, 24, 28 
 # most diverse communities: 3, 18, 35, 41
-############################################################################################
+##########################################################################################
+
+# Now analyze the demographics of the candidate pool compared to current demographics of coaches
 
 # Racial demographics of CFB Football Players (2011 - 2020) (self-reported  data from NCAA member schools' and published at NCAA.org: https://www.ncaa.org/about/resources/research/ncaa-demographics-database)
 
@@ -1671,27 +1718,29 @@ ggsave('athletes_plot.png', height = 5.625, width = 10, dpi = 300)
 
 ## Racial demographics of CFB COACHES (2011 - 2020) (self-reported  data from NCAA member schools' and published at NCAA.org: https://www.ncaa.org/about/resources/research/ncaa-demographics-database)
 
-coaches <- read.csv("racial_demographics_of_cfb_coaches.csv", check.names=FALSE) %>% filter(Race != "TOTAL")
-coaches$Race <- ifelse(coaches$Race == "White", "White",
-                       ifelse(coaches$Race == "Black", "Black", "Other"))
-coaches <- coaches %>%
-  group_by(Position, Race) %>%
-  summarise(Percent = sum(Percent))
-hc <- head_coaches %>%
+# This code was used to pull demographics of coaches from NCAA.org, which includes Assistants. We chose to use our data set from Hutch instead, which has fewer race categories and will align better w/ the rest of our findings.
+# coaches <- read.csv("racial_demographics_of_cfb_coaches.csv", check.names=FALSE) %>% filter(Race != "TOTAL")
+# coaches$Race <- ifelse(coaches$Race == "White", "White",
+#                        ifelse(coaches$Race == "Black", "Black", "Other"))
+# coaches <- coaches %>%
+#   group_by(Position, Race) %>%
+#   summarise(Percent = sum(Percent))
+
+hc <- head_coaches1 %>%
   filter(Season > 2010) %>%
   mutate(Race = ifelse(Race=="?","Other",Race)) %>%
   group_by(Race) %>%
   summarise(num_race = n()) %>%
   mutate(Percent = num_race / sum(num_race),
          Position = "Head")
-oc <- offensive_coordinators %>%
+oc <- offensive_coordinators1 %>%
   filter(Season > 2010) %>%
   mutate(Race = ifelse(Race=="?","Other",Race)) %>%
   group_by(Race) %>%
   summarise(num_race = n()) %>%
   mutate(Percent = num_race / sum(num_race),
          Position = "OC")
-dc <- defensive_coordinators %>%
+dc <- defensive_coordinators1 %>%
   filter(Season > 2010) %>%
   mutate(Race = ifelse(Race=="?","Other",Race)) %>%
   group_by(Race) %>%
@@ -1711,6 +1760,7 @@ coaches <- hc %>%
 
 coaches$Race <- relevel(as.factor(coaches$Race), 'White')
 coaches$Position <- factor(as.factor(coaches$Position), levels = c('Expectation', 'Head', 'OC', 'DC'))
+# Plot demographics of HCs, OCs, and DCs, compared to the expected demographics based on the hiring candidate pool.
 coaches_plot <- coaches %>%
   ggplot(aes(fill = Race, y = Percent, x = forcats::fct_rev(Position), label = round(Percent,2))) +
   geom_col(position = position_fill(reverse = TRUE), alpha = 0.8, width = 0.6) +
@@ -1733,14 +1783,14 @@ coaches_plot <- coaches %>%
 coaches_plot
 ggsave('coaches_plot.png', height = 5.625, width = 10, dpi = 300)
 
-# what should the coaching demographics actually look like?
+# what should the coaching demographics actually look like? (Not percentages but total quantities)
 ideal_demog <- data.frame(Race = c("White", "Black", "Other"),
                           united_states = c(0.601, 0.122, 0.277),
                           cfb = c(0.5065, 0.3900, 0.1035))
 ideal_demog <- ideal_demog %>%
   mutate(ideal_percent = 0.927*cfb + 0.073*united_states) %>%
   select(Race, ideal_percent)
-hc_2021 = head_coaches %>%
+hc_2021 = head_coaches1 %>%
   filter(Season == 2021) %>% 
   mutate(Race = ifelse(Race=="?","Other",Race)) %>%
   group_by(Race) %>% 
@@ -1749,7 +1799,7 @@ hc_2021 = head_coaches %>%
   left_join(ideal_demog) %>%
   mutate(num_ideal = round(sum(num_race)*ideal_percent, 0),
          difference = num_ideal - num_race)
-oc_2021 = offensive_coordinators %>%
+oc_2021 = offensive_coordinators1 %>%
   filter(Season == 2021) %>% 
   mutate(Race = ifelse(Race=="?","Other",Race)) %>%
   group_by(Race) %>% 
@@ -1758,7 +1808,7 @@ oc_2021 = offensive_coordinators %>%
   left_join(ideal_demog) %>%
   mutate(num_ideal = round(sum(num_race)*ideal_percent, 0),
          difference = num_ideal - num_race)
-dc_2021 = defensive_coordinators %>%
+dc_2021 = defensive_coordinators1 %>%
   filter(Season == 2021) %>% 
   mutate(Race = ifelse(Race=="?","Other",Race)) %>%
   group_by(Race) %>% 
@@ -1779,9 +1829,12 @@ ideal_change <- data.frame(role = c("Head Coach",
                            other = c(hc_2021[hc_2021$Race == "Other", "difference"][[1]], 
                                      oc_2021[oc_2021$Race == "Other", "difference"][[1]], 
                                      dc_2021[dc_2021$Race == "Other", "difference"][[1]])) %>%
-  melt(id="role")
+  reshape2::melt(id="role")
 ideal_change$role <- factor(as.factor(ideal_change$role), levels = c('Head Coach', 'Offensive Coordinator', 'Defensive Coordinator'))
-ideal_plot <- ggplot(data=ideal_change, aes(x = role, y = value, fill = variable, label = value)) +
+# force the bar labels to have + or - in front of the values
+ideal_change$value_text <- c("-45","-48","-39","+35","+35","+24","+10","+13","+14")
+# Plot how many fewer white coaches and more Black and Other coaches are needed to align w/ candidate pool.
+ideal_plot <- ggplot(data=ideal_change, aes(x = role, y = value, fill = variable, label = value_text)) +
   geom_col(width = 0.6, alpha=0.8) +
   geom_hline(yintercept=0) +
   scale_fill_brewer(palette = "Set2") +
@@ -1799,11 +1852,21 @@ ideal_plot <- ggplot(data=ideal_change, aes(x = role, y = value, fill = variable
         axis.title.x = element_blank())
 ideal_plot
 ggsave('ideal_plot.png', height = 5.625, width = 10, dpi = 300)
-#############  Time Series Data
 
-head_coach_time_series <- head_coaches %>% group_by(Season) %>% mutate(num_coaches = n()) %>%
-  ungroup() %>% group_by(Season, Race) %>% filter(Race == "Black") %>% mutate(percent_black = n()/num_coaches) %>% distinct(Season, .keep_all = TRUE) %>% select(Season, percent_black)
-head_coach_time_series <- head_coach_time_series %>% mutate_if(is.numeric, round, digits = 2)
+##########################################################################################  
+
+# Time Series Data
+
+head_coach_time_series <- head_coaches1 %>% 
+  group_by(Season) %>% 
+  mutate(num_coaches = n()) %>%
+  ungroup() %>% 
+  group_by(Season, Race) %>% 
+  filter(Race == "Black") %>% 
+  mutate(percent_black = n()/num_coaches) %>% 
+  distinct(Season, .keep_all = TRUE) %>% 
+  select(Season, percent_black) %>% 
+  mutate_if(is.numeric, round, digits = 2)
 head_coach_race_time_plot <- head_coach_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
   geom_bar(stat="identity")+
   geom_text(aes(label=percent_black), vjust=1.6, color="white", size=3)+
@@ -1814,9 +1877,16 @@ head_coach_race_time_plot <- head_coach_time_series %>% ggplot(aes(x=Season, y=p
 head_coach_race_time_plot
 ggsave('head_coach_race_time_plot.png', height = 7, width = 10, dpi = 300)
 
-oc_time_series <- offensive_coordinators %>% group_by(Season) %>% mutate(num_coaches = n()) %>%
-  ungroup() %>% group_by(Season, Race) %>% filter(Race == "Black") %>% mutate(percent_black = n()/num_coaches) %>% distinct(Season, .keep_all = TRUE) %>% select(Season, percent_black)
-oc_time_series <- oc_time_series %>% mutate_if(is.numeric, round, digits = 2)
+oc_time_series <- offensive_coordinators1 %>% 
+  group_by(Season) %>% 
+  mutate(num_coaches = n()) %>%
+  ungroup() %>% 
+  group_by(Season, Race) %>% 
+  filter(Race == "Black") %>% 
+  mutate(percent_black = n()/num_coaches) %>% 
+  distinct(Season, .keep_all = TRUE) %>% 
+  select(Season, percent_black) %>% 
+  mutate_if(is.numeric, round, digits = 2)
 oc_race_time_plot <- oc_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
   geom_bar(stat="identity")+
   geom_text(aes(label=percent_black), vjust=1.6, color="white", size=3)+
@@ -1827,9 +1897,16 @@ oc_race_time_plot <- oc_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
 oc_race_time_plot
 ggsave('oc_race_time_plot.png', height = 7, width = 10, dpi = 300)
 
-dc_time_series <- defensive_coordinators %>% group_by(Season) %>% mutate(num_coaches = n()) %>%
-  ungroup() %>% group_by(Season, Race) %>% filter(Race == "Black") %>% mutate(percent_black = n()/num_coaches) %>% distinct(Season, .keep_all = TRUE) %>% select(Season, percent_black)
-dc_time_series <- dc_time_series %>% mutate_if(is.numeric, round, digits = 2)
+dc_time_series <- defensive_coordinators1 %>% 
+  group_by(Season) %>% 
+  mutate(num_coaches = n()) %>%
+  ungroup() %>% 
+  group_by(Season, Race) %>% 
+  filter(Race == "Black") %>% 
+  mutate(percent_black = n()/num_coaches) %>% 
+  distinct(Season, .keep_all = TRUE) %>% 
+  select(Season, percent_black) %>% 
+  mutate_if(is.numeric, round, digits = 2)
 dc_race_time_plot <- dc_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
   geom_bar(stat="identity")+
   geom_text(aes(label=percent_black), vjust=1.6, color="white", size=3)+
@@ -1839,11 +1916,7 @@ dc_race_time_plot <- dc_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
   theme_minimal()
 dc_race_time_plot
 ggsave('hdc_race_time_plot.png', height = 7, width = 10, dpi = 300)
-#########################################################################################
 
-###############################################################################################
-
-# Time Series
 # Exponential Smoothing
 # dataset includes player demographics from NCAA Student-Athlete Ethnicity Reports from all Divisions (I, II, III)
 player_ts1 <- read.csv("player_race_time_series.csv", check.names=FALSE)
@@ -1861,44 +1934,76 @@ plot(es1)
 plot(fitted(es1))
 
 player_ts1 <- player_ts1 %>%
-  melt(variable.name = "Season",
+  reshape2::melt(variable.name = "Season",
        value.name = "percent_black") %>%
   mutate(Role = "Player")
 player_ts1$Season <- as.numeric(as.character(player_ts1$Season))
 
-coach_time_series <- head_coaches %>% 
+coach_time_series <- head_coaches1 %>% 
   mutate(Role = "Head Coach") %>%
-  rbind(offensive_coordinators %>%
+  rbind(offensive_coordinators1 %>%
           mutate(Role = "Offensive Coordinator")) %>%
-  rbind(defensive_coordinators %>%
+  rbind(defensive_coordinators1 %>%
           mutate(Role = "Defensive Coordinator")) %>%
   group_by(Season, Role) %>% 
-  mutate(num_coaches = n()) #%>%
-ungroup() %>% 
+  mutate(num_coaches = n()) %>%
+  ungroup() %>% 
   filter(Race == "Black") %>% 
   group_by(Season, Role) %>% 
   mutate(percent_black = n()/num_coaches) %>% 
   select(Season, Role, percent_black) %>%
   distinct(Season, Role, percent_black) %>%
   rbind(player_ts1)
-# df1 <- coach_time_series %>%
-#   filter(Season == 2000 | Season == 2020)
-# df<- data.frame(x1 = 2000, x2 = 2000, x3 = 2020, x4 = 2020,
-#                 y1 = df1[df1$Person == "Player" & df1$Season == 2000, "percent_black"][[1]],
-#                 y2 = df1[df1$Person == "Coach" & df1$Season == 2000, "percent_black"][[1]],
-#                 y3 = df1[df1$Person == "Player" & df1$Season == 2020, "percent_black"][[1]],
-#                 y4 = df1[df1$Person == "Coach" & df1$Season == 2020, "percent_black"][[1]])
-# hc_2021[hc_2021$Race == "White", "difference"][[1]]
-# coach_time_series <- coach_time_series %>% mutate_if(is.numeric, round, digits = 2)
-coach_race_time_plot <- coach_time_series %>% 
-  ggplot(aes(x=Season, y=percent_black, color = Person)) +
+
+# Plot of percentage of black players, HCs, OCs, and DCs over time
+coach_race_time_plot1 <- coach_time_series %>% 
+  ggplot(aes(x=Season, y=percent_black, color = Role)) +
   geom_line(stat="identity", size=1)+
   geom_point(size=2)+
   scale_colour_brewer(palette = "Set2") +
-  # geom_segment(aes(x=df$x1, y=df$y1, xend=df$x2, yend=df$y2), linetype = "dashed", color="black") +
-  # geom_segment(aes(x=df$x3, y=df$y3, xend=df$x4, yend=df$y4), linetype = "dashed", color="black") +
-  # geom_text(aes(x=df$x1-0.2, y=(df$y1-df$y2)/2+df$y2), label = round(df$y1-df$y2,3), angle=90, color="black", size=3) +
-  # geom_text(aes(x=df$x3-0.2, y=(df$y3-df$y4)/2+df$y4), label = round(df$y3-df$y4,3), angle=90, color="black", size=3) +
+  labs(x = "Season", y= "Percentage",
+       title = "% of Black Coaches in FBS vs. Black Players in CFB",
+       caption = "Plot: @markwood14 and @robert_binion\nData: Team Info Pages & NCAA.org") +
+  theme_light() +
+  theme(legend.title = element_blank(),
+        panel.background = element_rect(fill = "#F5F5F5"))
+coach_race_time_plot1
+ggsave('coach_race_time_plot1.png', height = 5.625, width = 10, dpi = 300)
+
+coach_time_series1 <- head_coaches1 %>%
+  rbind(offensive_coordinators1) %>%
+  rbind(defensive_coordinators1) %>%
+  mutate(Role = "Coach") %>%
+  group_by(Season) %>% 
+  mutate(num_coaches = n()) %>%
+  ungroup() %>% 
+  filter(Race == "Black") %>% 
+  group_by(Season) %>% 
+  mutate(percent_black = n()/num_coaches) %>% 
+  select(Season, Role, percent_black) %>%
+  distinct(Season, Role, percent_black) %>%
+  rbind(player_ts1)
+
+df1 <- coach_time_series1 %>%
+  filter(Season == 2000 | Season == 2020)
+df<- data.frame(x1 = 2000, x2 = 2000, x3 = 2020, x4 = 2020,
+                y1 = df1[df1$Role == "Player" & df1$Season == 2000, "percent_black"][[1]],
+                y2 = df1[df1$Role == "Coach" & df1$Season == 2000, "percent_black"][[1]],
+                y3 = df1[df1$Role == "Player" & df1$Season == 2020, "percent_black"][[1]],
+                y4 = df1[df1$Role == "Coach" & df1$Season == 2020, "percent_black"][[1]])
+hc_2021[hc_2021$Race == "White", "difference"][[1]]
+coach_time_series <- coach_time_series %>% mutate_if(is.numeric, round, digits = 2)
+
+# Plot of percentage of black players vs black coaches over time (HC, OC, and DC combined)
+coach_race_time_plot <- coach_time_series1 %>% 
+  ggplot(aes(x=Season, y=percent_black, color = Role)) +
+  geom_line(stat="identity", size=1)+
+  geom_point(size=2)+
+  scale_colour_brewer(palette = "Set2") +
+  geom_segment(aes(x=df$x1, y=df$y1, xend=df$x2, yend=df$y2), linetype = "dashed", color="black") +
+  geom_segment(aes(x=df$x3, y=df$y3, xend=df$x4, yend=df$y4), linetype = "dashed", color="black") +
+  geom_text(aes(x=df$x1-0.2, y=(df$y1-df$y2)/2+df$y2), label = round(df$y1-df$y2,3), angle=90, color="black", size=3) +
+  geom_text(aes(x=df$x3-0.2, y=(df$y3-df$y4)/2+df$y4), label = round(df$y3-df$y4,3), angle=90, color="black", size=3) +
   labs(x = "Season", y= "Percentage",
        title = "% of Black Coaches in FBS vs. Black Players in CFB",
        caption = "Plot: @markwood14 and @robert_binion\nData: Team Info Pages & NCAA.org") +
@@ -1908,24 +2013,38 @@ coach_race_time_plot <- coach_time_series %>%
 coach_race_time_plot
 ggsave('coach_race_time_plot1.png', height = 5.625, width = 10, dpi = 300)
 
-######### STAT PROFILES for 
+##########################################################################################
+
+# Recommend minority coordinators for promotions who are performing well in their current positions
+
+# STAT PROFILES for 
 # Brian Norwood
 # Maurice Harris
 # Alex Atkins 
 # Josh Gattis
 # Newland Isaac
 
-best_candidates_df <- data_frame()
-coach_1 <- dc_impact_results[97:100,] %>% group_by(Coach) %>% summarise(net_ppa = mean(net_ppa),
-                                                                        net_sr = mean(net_sr), net_stuff = mean(net_stuff), net_pass_sr = mean(net_pass_sr))
+best_candidates_df <- data.frame()
+# for now we're manually adjusting net_ppa and net_sr for Brian Norwood and Josh Gattis to weight their multiple tenures according to # of seasons. (for instance, Norwood's exceptional 1 year at Navy should have less weight than his below-average 3-years at Tulsa) (Need to do a sumproduct of net_ppa*years_in_program/total_years_coaching)
+coach_1 <- dc_impact_results1 %>%
+  filter(str_detect(Coach, "Brian Norwood")) %>% 
+  group_by(Coach) %>% 
+  summarise(net_ppa = 0.010282,
+            net_sr = -0.00156, 
+            net_stuff = mean(net_stuff), 
+            net_pass_sr = mean(net_pass_sr))
 coach_2 <- oc_impact_results%>%
   filter(str_detect(Coach, "Alex Atkins"))
-coach_3 <- oc_impact_results%>% filter(str_detect(Coach, "Josh Gattis")) %>% 
-  group_by(Coach) %>% summarise(net_ppa = mean(net_ppa),
-                                net_sr = mean(net_sr), net_stuff = mean(net_stuff), net_pass_sr = mean(net_pass_sr))
-coach_4 <- oc_impact_results%>%
+coach_3 <- oc_impact_results %>% 
+  filter(str_detect(Coach, "Josh Gattis")) %>% 
+  group_by(Coach) %>% 
+  summarise(net_ppa = 0.080055,
+            net_sr = 0.020677, 
+            net_stuff = mean(net_stuff), 
+            net_pass_sr = mean(net_pass_sr))
+coach_4 <- oc_impact_results %>%
   filter(str_detect(Coach, "Maurice Harris"))
-coach_5 <- oc_impact_results%>%
+coach_5 <- oc_impact_results %>%
   filter(str_detect(Coach, "Newland Isaac"))
 best_candidates_df <- bind_rows(coach_1, coach_2, coach_3, coach_4, coach_5)
 
@@ -1944,8 +2063,10 @@ best_candidates_plot <- best_candidates_df %>% ggplot(aes(x=net_ppa, y=net_sr, l
   geom_hline(yintercept = mean(dc_impact_results$net_sr), linetype = "dashed", color = "red", alpha = 0.5) +
   labs(x = "Net Impact on PPA", y= "Net Impact on Success Rate",
        title = "5 Top Black Head Coaching Candidates",
-       subtitle = "Impact while Coordinator Compared to Average (Dotted Red Lines)",
-       caption = "Figure: @robert_binion @markwood14| Data: @CFB_Data with @cfbfastR") +
+       subtitle = "Impact While Coordinator Compared to Average (Dotted Red Lines)",
+       caption = "Figure: @robert_binion @markwood14 | Data: @CFB_Data with @cfbfastR") +
+  coord_cartesian(xlim = c(-0.03, 0.225),
+                  ylim = c(-0.01, 0.085)) +
   theme_minimal() +
   theme(axis.title = element_text(size = 14),
         axis.text = element_text(size = 10),
@@ -1953,13 +2074,17 @@ best_candidates_plot <- best_candidates_df %>% ggplot(aes(x=net_ppa, y=net_sr, l
         plot.subtitle = element_text(size = 14),
         plot.caption = element_text(size = 12),
         panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill = "#F5F5F5"),
         legend.position = "right")
 best_candidates_plot
 ggsave('best_candidates_plot.png', height = 7, width = 10, dpi = 300)
 
+##########################################################################################
+# miscellaneous analysis
+
 centrality_df$Race <- ifelse(centrality_df$Race == "?", "Non-white",
-                             ifelse(centrality_df$Race == "Other", "Non-white",
-                                    ifelse(centrality_df$Race == "Black", "Non-white", "White")))
+                                 ifelse(centrality_df$Race == "Other", "Non-white",
+                                        ifelse(centrality_df$Race == "Black", "Non-white", "White")))
 lm4 <- lm(closeness~Race, centrality_df)
 summary(lm4)
 lm5 <- lm(degree~Race, centrality_df)
