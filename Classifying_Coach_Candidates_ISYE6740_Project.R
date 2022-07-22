@@ -130,9 +130,9 @@ V(graph)$betweenness <- betweenness(graph)
 V(graph)$closeness <- closeness(graph)
 V(graph)$eigen <- eigen_centrality(graph)$vector
 
-centrality_df_modified <- centrality_df %>% select(variable, closeness, degree, Race)
-colnames(centrality_df_modified) <- c("Coach", "Influence", "Connections",  "Race")
-centrality_df_scaled <- centrality_df_modified %>% mutate_at("Influence", ~(scale(., center = FALSE) %>% as.vector))
+centrality_df_modified <- centrality_df %>% select(variable, betweenness, closeness, degree, eigen, Race)
+colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
+centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
 # centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
@@ -143,7 +143,7 @@ coordinators_training_year_with_louvain <- coordinators_training_year %>% left_j
 # merge(df1, df2, by.x=c('col1', 'col2'), by.y=c('col1', 'col2'))
 coordinators_training_year_with_dcmetrics <-merge(coordinators_training_year_with_louvain, dc_impact_results, by.x = c("Coach", "College"), by.y = c("Coach", "team"))
 coordinators_training_year_with_ocmetrics <-merge(coordinators_training_year_with_louvain, oc_impact_results, by.x = c("Coach", "College"), by.y = c("Coach", "team"))
-coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with_dcmetrics, coordinators_training_year_with_ocmetrics) %>% select(Coach, College, Season, Role, Influence, Connections, Race, net_ppa, net_sr, net_stuff, net_pass_sr)
+coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with_dcmetrics, coordinators_training_year_with_ocmetrics) %>% select(Coach, College, Season, Role, Networking, Influence, Connections, InfluencePlus, Race, net_ppa, net_sr, net_stuff, net_pass_sr)
 
 # Create new columns populated with 1 if the coach became a HC in target year, 0 if they did not. 
 # This will be the response variable.
@@ -257,9 +257,9 @@ V(graph)$betweenness <- betweenness(graph)
 V(graph)$closeness <- closeness(graph)
 V(graph)$eigen <- eigen_centrality(graph)$vector
 
-centrality_df_modified <- centrality_df %>% select(variable, closeness, degree, Race)
-colnames(centrality_df_modified) <- c("Coach", "Influence", "Connections",  "Race")
-centrality_df_scaled <- centrality_df_modified %>% mutate_at("Influence", ~(scale(., center = FALSE) %>% as.vector))
+centrality_df_modified <- centrality_df %>% select(variable, betweenness, closeness, degree, eigen, Race)
+colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
+centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
 # centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
@@ -270,7 +270,7 @@ coordinators_training_year_with_louvain <- coordinators_training_year %>% left_j
 # merge(df1, df2, by.x=c('col1', 'col2'), by.y=c('col1', 'col2'))
 coordinators_training_year_with_dcmetrics <-merge(coordinators_training_year_with_louvain, dc_impact_results, by.x = c("Coach", "College"), by.y = c("Coach", "team"))
 coordinators_training_year_with_ocmetrics <-merge(coordinators_training_year_with_louvain, oc_impact_results, by.x = c("Coach", "College"), by.y = c("Coach", "team"))
-coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with_dcmetrics, coordinators_training_year_with_ocmetrics) %>% select(Coach, College, Season, Role, Influence, Connections, Race, net_ppa, net_sr, net_stuff, net_pass_sr)
+coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with_dcmetrics, coordinators_training_year_with_ocmetrics) %>% select(Coach, College, Season, Role, Networking, Influence, Connections, InfluencePlus, Race, net_ppa, net_sr, net_stuff, net_pass_sr)
 
 # Create new columns populated with 1 if the coach became a HC in target year, 0 if they did not. 
 # This will be the response variable.
@@ -278,10 +278,15 @@ coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with
 head_coaches_target_year <- head_coaches1 %>% filter(Season == target_year)
 
 coordinators_became_hc_target_year <- coordinators_training_year %>% inner_join(head_coaches_target_year, by = "Coach")
+
+#A[A$C %in% B$C,  ]
+# data$num1[data$num1 == 1] <- 99  
+
 coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% mutate("BecameHC"=0)
 coordinators_training_year_with_metrics$BecameHC[coordinators_training_year_with_metrics$Coach %in% coordinators_became_hc_target_year$Coach] <- 1
 
 # save current year
+
 coordinators_training_year_2020_with_metrics <- coordinators_training_year_with_metrics
 
 target_year = 2019
@@ -376,9 +381,9 @@ V(graph)$betweenness <- betweenness(graph)
 V(graph)$closeness <- closeness(graph)
 V(graph)$eigen <- eigen_centrality(graph)$vector
 
-centrality_df_modified <- centrality_df %>% select(variable, closeness, degree, Race)
-colnames(centrality_df_modified) <- c("Coach", "Influence", "Connections",  "Race")
-centrality_df_scaled <- centrality_df_modified %>% mutate_at("Influence", ~(scale(., center = FALSE) %>% as.vector))
+centrality_df_modified <- centrality_df %>% select(variable, betweenness, closeness, degree, eigen, Race)
+colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
+centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
 # centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
@@ -386,10 +391,10 @@ centrality_df_scaled <- centrality_df_modified %>% mutate_at("Influence", ~(scal
 coordinators_training_year_with_louvain <- coordinators_training_year %>% left_join(centrality_df_scaled, by = "Coach")
 # Obtain performance metrics (averages) for each coach from 2005 to 2020 (t-1).
 # Join to the data frame.
-
+# merge(df1, df2, by.x=c('col1', 'col2'), by.y=c('col1', 'col2'))
 coordinators_training_year_with_dcmetrics <-merge(coordinators_training_year_with_louvain, dc_impact_results, by.x = c("Coach", "College"), by.y = c("Coach", "team"))
 coordinators_training_year_with_ocmetrics <-merge(coordinators_training_year_with_louvain, oc_impact_results, by.x = c("Coach", "College"), by.y = c("Coach", "team"))
-coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with_dcmetrics, coordinators_training_year_with_ocmetrics) %>% select(Coach, College, Season, Role, Influence, Connections, Race, net_ppa, net_sr, net_stuff, net_pass_sr)
+coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with_dcmetrics, coordinators_training_year_with_ocmetrics) %>% select(Coach, College, Season, Role, Networking, Influence, Connections, InfluencePlus, Race, net_ppa, net_sr, net_stuff, net_pass_sr)
 
 # Create new columns populated with 1 if the coach became a HC in target year, 0 if they did not. 
 # This will be the response variable.
@@ -397,6 +402,10 @@ coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with
 head_coaches_target_year <- head_coaches1 %>% filter(Season == target_year)
 
 coordinators_became_hc_target_year <- coordinators_training_year %>% inner_join(head_coaches_target_year, by = "Coach")
+
+#A[A$C %in% B$C,  ]
+# data$num1[data$num1 == 1] <- 99  
+
 coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% mutate("BecameHC"=0)
 coordinators_training_year_with_metrics$BecameHC[coordinators_training_year_with_metrics$Coach %in% coordinators_became_hc_target_year$Coach] <- 1
 
@@ -495,9 +504,9 @@ V(graph)$betweenness <- betweenness(graph)
 V(graph)$closeness <- closeness(graph)
 V(graph)$eigen <- eigen_centrality(graph)$vector
 
-centrality_df_modified <- centrality_df %>% select(variable, closeness, degree, Race)
-colnames(centrality_df_modified) <- c("Coach", "Influence", "Connections",  "Race")
-centrality_df_scaled <- centrality_df_modified %>% mutate_at("Influence", ~(scale(., center = FALSE) %>% as.vector))
+centrality_df_modified <- centrality_df %>% select(variable, betweenness, closeness, degree, eigen, Race)
+colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
+centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
 # centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
@@ -508,7 +517,7 @@ coordinators_training_year_with_louvain <- coordinators_training_year %>% left_j
 # merge(df1, df2, by.x=c('col1', 'col2'), by.y=c('col1', 'col2'))
 coordinators_training_year_with_dcmetrics <-merge(coordinators_training_year_with_louvain, dc_impact_results, by.x = c("Coach", "College"), by.y = c("Coach", "team"))
 coordinators_training_year_with_ocmetrics <-merge(coordinators_training_year_with_louvain, oc_impact_results, by.x = c("Coach", "College"), by.y = c("Coach", "team"))
-coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with_dcmetrics, coordinators_training_year_with_ocmetrics) %>% select(Coach, College, Season, Role, Influence, Connections, Race, net_ppa, net_sr, net_stuff, net_pass_sr)
+coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with_dcmetrics, coordinators_training_year_with_ocmetrics) %>% select(Coach, College, Season, Role, Networking, Influence, Connections, InfluencePlus, Race, net_ppa, net_sr, net_stuff, net_pass_sr)
 
 # Create new columns populated with 1 if the coach became a HC in target year, 0 if they did not. 
 # This will be the response variable.
@@ -516,10 +525,15 @@ coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with
 head_coaches_target_year <- head_coaches1 %>% filter(Season == target_year)
 
 coordinators_became_hc_target_year <- coordinators_training_year %>% inner_join(head_coaches_target_year, by = "Coach")
+
+#A[A$C %in% B$C,  ]
+# data$num1[data$num1 == 1] <- 99  
+
 coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% mutate("BecameHC"=0)
 coordinators_training_year_with_metrics$BecameHC[coordinators_training_year_with_metrics$Coach %in% coordinators_became_hc_target_year$Coach] <- 1
 
 # save current year
+
 coordinators_training_year_2018_with_metrics <- coordinators_training_year_with_metrics
 
 target_year = 2017
@@ -614,9 +628,9 @@ V(graph)$betweenness <- betweenness(graph)
 V(graph)$closeness <- closeness(graph)
 V(graph)$eigen <- eigen_centrality(graph)$vector
 
-centrality_df_modified <- centrality_df %>% select(variable, closeness, degree, Race)
-colnames(centrality_df_modified) <- c("Coach", "Influence", "Connections",  "Race")
-centrality_df_scaled <- centrality_df_modified %>% mutate_at("Influence", ~(scale(., center = FALSE) %>% as.vector))
+centrality_df_modified <- centrality_df %>% select(variable, betweenness, closeness, degree, eigen, Race)
+colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
+centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
 # centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
@@ -627,7 +641,7 @@ coordinators_training_year_with_louvain <- coordinators_training_year %>% left_j
 # merge(df1, df2, by.x=c('col1', 'col2'), by.y=c('col1', 'col2'))
 coordinators_training_year_with_dcmetrics <-merge(coordinators_training_year_with_louvain, dc_impact_results, by.x = c("Coach", "College"), by.y = c("Coach", "team"))
 coordinators_training_year_with_ocmetrics <-merge(coordinators_training_year_with_louvain, oc_impact_results, by.x = c("Coach", "College"), by.y = c("Coach", "team"))
-coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with_dcmetrics, coordinators_training_year_with_ocmetrics) %>% select(Coach, College, Season, Role, Influence, Connections, Race, net_ppa, net_sr, net_stuff, net_pass_sr)
+coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with_dcmetrics, coordinators_training_year_with_ocmetrics) %>% select(Coach, College, Season, Role, Networking, Influence, Connections, InfluencePlus, Race, net_ppa, net_sr, net_stuff, net_pass_sr)
 
 # Create new columns populated with 1 if the coach became a HC in target year, 0 if they did not. 
 # This will be the response variable.
@@ -635,10 +649,15 @@ coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with
 head_coaches_target_year <- head_coaches1 %>% filter(Season == target_year)
 
 coordinators_became_hc_target_year <- coordinators_training_year %>% inner_join(head_coaches_target_year, by = "Coach")
+
+#A[A$C %in% B$C,  ]
+# data$num1[data$num1 == 1] <- 99  
+
 coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% mutate("BecameHC"=0)
 coordinators_training_year_with_metrics$BecameHC[coordinators_training_year_with_metrics$Coach %in% coordinators_became_hc_target_year$Coach] <- 1
 
 # save current year
+
 coordinators_training_year_2017_with_metrics <- coordinators_training_year_with_metrics
 
 target_year = 2016
@@ -733,9 +752,9 @@ V(graph)$betweenness <- betweenness(graph)
 V(graph)$closeness <- closeness(graph)
 V(graph)$eigen <- eigen_centrality(graph)$vector
 
-centrality_df_modified <- centrality_df %>% select(variable, closeness, degree, Race)
-colnames(centrality_df_modified) <- c("Coach", "Influence", "Connections",  "Race")
-centrality_df_scaled <- centrality_df_modified %>% mutate_at("Influence", ~(scale(., center = FALSE) %>% as.vector))
+centrality_df_modified <- centrality_df %>% select(variable, betweenness, closeness, degree, eigen, Race)
+colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
+centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
 # centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
@@ -746,7 +765,7 @@ coordinators_training_year_with_louvain <- coordinators_training_year %>% left_j
 # merge(df1, df2, by.x=c('col1', 'col2'), by.y=c('col1', 'col2'))
 coordinators_training_year_with_dcmetrics <-merge(coordinators_training_year_with_louvain, dc_impact_results, by.x = c("Coach", "College"), by.y = c("Coach", "team"))
 coordinators_training_year_with_ocmetrics <-merge(coordinators_training_year_with_louvain, oc_impact_results, by.x = c("Coach", "College"), by.y = c("Coach", "team"))
-coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with_dcmetrics, coordinators_training_year_with_ocmetrics) %>% select(Coach, College, Season, Role, Influence, Connections, Race, net_ppa, net_sr, net_stuff, net_pass_sr)
+coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with_dcmetrics, coordinators_training_year_with_ocmetrics) %>% select(Coach, College, Season, Role, Networking, Influence, Connections, InfluencePlus, Race, net_ppa, net_sr, net_stuff, net_pass_sr)
 
 # Create new columns populated with 1 if the coach became a HC in target year, 0 if they did not. 
 # This will be the response variable.
@@ -754,10 +773,15 @@ coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with
 head_coaches_target_year <- head_coaches1 %>% filter(Season == target_year)
 
 coordinators_became_hc_target_year <- coordinators_training_year %>% inner_join(head_coaches_target_year, by = "Coach")
+
+#A[A$C %in% B$C,  ]
+# data$num1[data$num1 == 1] <- 99  
+
 coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% mutate("BecameHC"=0)
 coordinators_training_year_with_metrics$BecameHC[coordinators_training_year_with_metrics$Coach %in% coordinators_became_hc_target_year$Coach] <- 1
 
 # save current year
+
 coordinators_training_year_2016_with_metrics <- coordinators_training_year_with_metrics
 
 target_year = 2015
@@ -852,9 +876,9 @@ V(graph)$betweenness <- betweenness(graph)
 V(graph)$closeness <- closeness(graph)
 V(graph)$eigen <- eigen_centrality(graph)$vector
 
-centrality_df_modified <- centrality_df %>% select(variable, closeness, degree, Race)
-colnames(centrality_df_modified) <- c("Coach", "Influence", "Connections",  "Race")
-centrality_df_scaled <- centrality_df_modified %>% mutate_at("Influence", ~(scale(., center = FALSE) %>% as.vector))
+centrality_df_modified <- centrality_df %>% select(variable, betweenness, closeness, degree, eigen, Race)
+colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
+centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
 # centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
@@ -865,7 +889,7 @@ coordinators_training_year_with_louvain <- coordinators_training_year %>% left_j
 # merge(df1, df2, by.x=c('col1', 'col2'), by.y=c('col1', 'col2'))
 coordinators_training_year_with_dcmetrics <-merge(coordinators_training_year_with_louvain, dc_impact_results, by.x = c("Coach", "College"), by.y = c("Coach", "team"))
 coordinators_training_year_with_ocmetrics <-merge(coordinators_training_year_with_louvain, oc_impact_results, by.x = c("Coach", "College"), by.y = c("Coach", "team"))
-coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with_dcmetrics, coordinators_training_year_with_ocmetrics) %>% select(Coach, College, Season, Role, Influence, Connections, Race, net_ppa, net_sr, net_stuff, net_pass_sr)
+coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with_dcmetrics, coordinators_training_year_with_ocmetrics) %>% select(Coach, College, Season, Role, Networking, Influence, Connections, InfluencePlus, Race, net_ppa, net_sr, net_stuff, net_pass_sr)
 
 # Create new columns populated with 1 if the coach became a HC in target year, 0 if they did not. 
 # This will be the response variable.
@@ -873,16 +897,21 @@ coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with
 head_coaches_target_year <- head_coaches1 %>% filter(Season == target_year)
 
 coordinators_became_hc_target_year <- coordinators_training_year %>% inner_join(head_coaches_target_year, by = "Coach")
+
+#A[A$C %in% B$C,  ]
+# data$num1[data$num1 == 1] <- 99  
+
 coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% mutate("BecameHC"=0)
 coordinators_training_year_with_metrics$BecameHC[coordinators_training_year_with_metrics$Coach %in% coordinators_became_hc_target_year$Coach] <- 1
 
 # save current year
+
 coordinators_training_year_2015_with_metrics <- coordinators_training_year_with_metrics
 
 # stop after target_year=2015
 
 # bind with previous years
-coordinators_training_year_2021_with_metrics <- coordinators_training_year_2021_with_metrics %>% select(Coach, College, Season, Role, Influence, Connections, Race, net_ppa, net_sr, net_stuff, net_pass_sr, BecameHC)
+
 coordinators_training_year_with_metrics_all <- rbind(coordinators_training_year_2021_with_metrics,
                                                      coordinators_training_year_2020_with_metrics,
                                                      coordinators_training_year_2019_with_metrics,
@@ -893,9 +922,82 @@ coordinators_training_year_with_metrics_all <- rbind(coordinators_training_year_
 
 # deal with Na's
 
-# for now, I will create a new DF with NAs removed; later we can see if we want to try and manually enter the info
-# the issue is for coaches with some punctuation in their name - the parser above can't handle that
-coordinator_training_year_with_metrics_nas_removed<- coordinators_training_year_with_metrics_all[complete.cases(coordinators_training_year_with_metrics_all),]
+# inserting missing values from centrality_df_scaled, didn't transfer properly for coaches with punctuation in their name
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Durkin", 5] <- -0.19565156
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Durkin", 6] <- -0.29642807
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Durkin", 7] <- 1
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Durkin", 8] <- -0.054605147
+
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "A.J. Milwee", 5] <- -0.19565156
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "A.J. Milwee", 6] <- -0.29642807
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "A.J. Milwee", 7] <- 1
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "A.J. Milwee", 8] <- -0.054605147
+
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Aazaar Abdul-Rahim", 5] <- -0.19565156
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Aazaar Abdul-Rahim", 6] <- -0.29642807
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Aazaar Abdul-Rahim", 7] <- 0
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Aazaar Abdul-Rahim", 8] <- -0.0503580954
+
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Brian Jean-Mary", 5] <- -0.19565156
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Brian Jean-Mary", 6] <- -0.29642807
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Brian Jean-Mary", 7] <- 0
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Brian Jean-Mary", 8] <- -0.0503580954
+
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Charlie Weis Jr.", 5] <- -0.19565156
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Charlie Weis Jr.", 6] <- -0.29642807
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Charlie Weis Jr.", 7] <- 0
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Charlie Weis Jr.", 8] <- -0.0503580954
+
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Eliot", 5] <- -0.19565156
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Eliot", 6] <- -0.29642807
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Eliot", 7] <- 1
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Eliot", 8] <- -0.054605147
+
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "J.C. Price", 5] <- -0.19565156
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "J.C. Price", 6] <- -0.29642807
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "J.C. Price", 7] <- 0
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "J.C. Price", 8] <- -0.050358095
+
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Joe Salave'a", 5] <- -0.19565156
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Joe Salave'a", 6] <- -0.29642807
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Joe Salave'a", 7] <- 0
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Joe Salave'a", 8] <- -0.050358095
+
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mark D'Onofrio", 5] <- -0.19565156
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mark D'Onofrio", 6] <- -0.29642807
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mark D'Onofrio", 7] <- 1
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mark D'Onofrio", 8] <- -0.027674484
+
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mike Sanford Jr.", 5] <- -0.19565156
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mike Sanford Jr.", 6] <- -0.29642807
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mike Sanford Jr.", 7] <- 1
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mike Sanford Jr.", 8] <- -0.05288769
+
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Steve Spurrier Jr.", 5] <- -0.19565156
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Steve Spurrier Jr.", 6] <- -0.29642807
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Steve Spurrier Jr.", 7] <- 1
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Steve Spurrier Jr.", 8] <- -0.05460515
+
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Weist", 5] <- -0.19565156
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Weist", 6] <- -0.29642807
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Weist", 7] <- 1
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Weist", 8] <- -0.05172009
+
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Woods", 5] <- -0.19565156
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Woods", 6] <- -0.29642807
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Woods", 7] <- 0
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Woods", 8] <- -0.0503581
+
+# NA issue is resolved. 
+
+# now want to change values in Role column to either be 0 or 1 (offense is 0, defense is 1)
+# you are going to need to use some str_detect here, i did multiple steps but pasted over
+# **sorry! I can show you what is needed, i was in a hurry to finish
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Role== 0, 4] <-0.0
+coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Role== 1, 4] <-1.0
+coordinators_training_year_with_metrics_all[,4] <-sapply(coordinators_training_year_with_metrics_all[,4], as.numeric)
+
+# Now we will use that DF for training/Test
 
 # split into training/test
 
@@ -903,13 +1005,30 @@ coordinator_training_year_with_metrics_nas_removed<- coordinators_training_year_
 set.seed(5)
 
 #create ID column
-coordinator_training_year_with_metrics_nas_removed$id <- 1:nrow(coordinator_training_year_with_metrics_nas_removed)
+coordinators_training_year_with_metrics_all$id <- 1:nrow(coordinators_training_year_with_metrics_all)
 
 #use 70% of dataset as training set and 30% as test set 
-train <- coordinator_training_year_with_metrics_nas_removed %>% dplyr::sample_frac(0.70)
-test  <- dplyr::anti_join(coordinator_training_year_with_metrics_nas_removed, train, by = 'id')
+train <- coordinators_training_year_with_metrics_all %>% dplyr::sample_frac(0.70)
+test  <- dplyr::anti_join(coordinators_training_year_with_metrics_all, train, by = 'id')
 
 # run classification algorithms on training
+
+# start with variable selection
+# experiement with elastic net
+pkgs <- list("glmnet", "doParallel", "foreach", "pROC")
+lapply(pkgs, require, character.only = T)
+# ELASTIC NET WITH 0 < ALPHA < 1
+a <- seq(0.1, 0.9, 0.05)
+mdlX <- coordinators_training_year_with_metrics_all %>% select(Role, Networking, Influence, Connections, InfluencePlus, net_ppa, net_sr, net_stuff, net_pass_sr)
+mdlY <- coordinators_training_year_with_metrics_all %>% select(BecameHC)
+search <- foreach(i = a, .combine = rbind) %dopar% {
+  cv <- cv.glmnet(mdlX, mdlY, family = "binomial", nfold = 10, type.measure = "deviance", paralle = TRUE, alpha = i)
+  data.frame(cvm = cv$cvm[cv$lambda == cv$lambda.1se], lambda.1se = cv$lambda.1se, alpha = i)
+}
+##*** getting an error here because of datatype stuff but cant figure out why**
+#cv3 <- search[search$cvm == min(search$cvm), ]
+elasticNetModel <- glmnet(mdlX, mdlY, family = "binomial", lambda = 0.1, alpha = 0.5)
+coef(md3)
 
 # start with basic Logistic Regression
 coach_predictions_log_model = glm(BecameHC ~ Influence+Connections+net_ppa+net_sr+net_stuff+net_pass_sr, data=train, family=binomial)
