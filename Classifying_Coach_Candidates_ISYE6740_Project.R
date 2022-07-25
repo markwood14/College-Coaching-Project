@@ -27,6 +27,8 @@ library(corrplot)
 library(Hmisc)
 library(ggraph)
 library(networkD3)
+
+
 #Start with target year t=2021
 target_year = 2021
 
@@ -865,23 +867,23 @@ centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "In
 # the coaches in this DF have no punctuation in their names...
 centrality_df_scaled <- centrality_df_scaled %>% 
   mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
-                          ifelse(Coach == "A J  Ricker", "A.J. Ricker",
-                                 ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
-                                        ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
-                                               ifelse(Coach == "D J  Durkin", "D.J. Durkin",
-                                                      ifelse(Coach == "A J  Milwee", "A.J. Milwee",
-                                                             ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
-                                                                    ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
-                                                                           ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
-                                                                                  ifelse(Coach == "D J  Eliot", "D.J. Eliot",
-                                                                                         ifelse(Coach == "J C  Price", "J.C. Price",
-                                                                                                ifelse(Coach == "Joe Salave a", "Joe Salave'a",
-                                                                                                       ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
-                                                                                                              ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
-                                                                                                                     ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
-                                                                                                                            ifelse(Coach == "T J  Weist", "T.J. Weist",
-                                                                                                                                   ifelse(Coach == "T J  Woods", "T.J. Woods", 
-                                                                                                                                          Coach))))))))))))))))))
+                        ifelse(Coach == "A J  Ricker", "A.J. Ricker",
+                               ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
+                                      ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
+                                             ifelse(Coach == "D J  Durkin", "D.J. Durkin",
+                                                    ifelse(Coach == "A J  Milwee", "A.J. Milwee",
+                                                           ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
+                                                                  ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
+                                                                         ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
+                                                                                ifelse(Coach == "D J  Eliot", "D.J. Eliot",
+                                                                                       ifelse(Coach == "J C  Price", "J.C. Price",
+                                                                                              ifelse(Coach == "Joe Salave a", "Joe Salave'a",
+                                                                                                     ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
+                                                                                                            ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
+                                                                                                                   ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
+                                                                                                                          ifelse(Coach == "T J  Weist", "T.J. Weist",
+                                                                                                                                 ifelse(Coach == "T J  Woods", "T.J. Woods", 
+                                                                                                                                        Coach))))))))))))))))))
 
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
@@ -1071,91 +1073,17 @@ coordinators_training_year_with_metrics_all <- rbind(coordinators_training_year_
 # deal with Na's
 which(is.na(coordinators_training_year_with_metrics_all), arr.ind=TRUE)
 
-# # inserting missing values from centrality_df_scaled, didn't transfer properly for coaches with punctuation in their name
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Durkin", 5] <- -0.19565156
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Durkin", 6] <- -0.29642807
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Durkin", 7] <- 1
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Durkin", 8] <- -0.054605147
-# 
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "A.J. Milwee", 5] <- -0.19565156
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "A.J. Milwee", 6] <- -0.29642807
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "A.J. Milwee", 7] <- 1
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "A.J. Milwee", 8] <- -0.054605147
-# 
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Aazaar Abdul-Rahim", 5] <- -0.19565156
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Aazaar Abdul-Rahim", 6] <- -0.29642807
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Aazaar Abdul-Rahim", 7] <- 0
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Aazaar Abdul-Rahim", 8] <- -0.0503580954
-# 
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Brian Jean-Mary", 5] <- -0.19565156
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Brian Jean-Mary", 6] <- -0.29642807
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Brian Jean-Mary", 7] <- 0
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Brian Jean-Mary", 8] <- -0.0503580954
-# 
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Charlie Weis Jr.", 5] <- -0.19565156
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Charlie Weis Jr.", 6] <- -0.29642807
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Charlie Weis Jr.", 7] <- 0
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Charlie Weis Jr.", 8] <- -0.0503580954
-# 
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Eliot", 5] <- -0.19565156
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Eliot", 6] <- -0.29642807
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Eliot", 7] <- 1
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Eliot", 8] <- -0.054605147
-# 
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "J.C. Price", 5] <- -0.19565156
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "J.C. Price", 6] <- -0.29642807
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "J.C. Price", 7] <- 0
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "J.C. Price", 8] <- -0.050358095
-# 
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Joe Salave'a", 5] <- -0.19565156
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Joe Salave'a", 6] <- -0.29642807
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Joe Salave'a", 7] <- 0
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Joe Salave'a", 8] <- -0.050358095
-# 
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mark D'Onofrio", 5] <- -0.19565156
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mark D'Onofrio", 6] <- -0.29642807
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mark D'Onofrio", 7] <- 1
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mark D'Onofrio", 8] <- -0.027674484
-# 
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mike Sanford Jr.", 5] <- -0.19565156
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mike Sanford Jr.", 6] <- -0.29642807
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mike Sanford Jr.", 7] <- 1
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mike Sanford Jr.", 8] <- -0.05288769
-# 
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Steve Spurrier Jr.", 5] <- -0.19565156
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Steve Spurrier Jr.", 6] <- -0.29642807
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Steve Spurrier Jr.", 7] <- 1
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Steve Spurrier Jr.", 8] <- -0.05460515
-# 
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Weist", 5] <- -0.19565156
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Weist", 6] <- -0.29642807
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Weist", 7] <- 1
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Weist", 8] <- -0.05172009
-# 
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Woods", 5] <- -0.19565156
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Woods", 6] <- -0.29642807
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Woods", 7] <- 0
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Woods", 8] <- -0.0503581
-
 # NA issue is resolved. 
 
 # now want to change values in Role column to either be 0 or 1 (offense is 0, defense is 1)
-# you are going to need to use some str_detect here, i did multiple steps but pasted over
 coordinators_training_year_with_metrics_all$role_DC1 <- ifelse(grepl("Defensive", coordinators_training_year_with_metrics_all$Role), 1, NA)
 coordinators_training_year_with_metrics_all$role_DC1 <- ifelse(grepl("Offensive", coordinators_training_year_with_metrics_all$Role), 0, coordinators_training_year_with_metrics_all$role_DC1)
-
-# **sorry! I can show you what is needed, i was in a hurry to finish
-# I did the Offense=0, Defense=1 above. Are these 3 rows needed?
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Role== 0, 4] <-0.0
-# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Role== 1, 4] <-1.0
-# coordinators_training_year_with_metrics_all[,4] <-sapply(coordinators_training_year_with_metrics_all[,4], as.numeric)
 
 # how many total coordinators became head coaches?
 sum(coordinators_training_year_with_metrics_all$BecameHC)
 # 61.
 
 # Now we will use that DF for training/Test
-
 # split into training/test
 
 #make this example reproducible
@@ -1218,8 +1146,6 @@ search <- foreach(i = a, .combine = rbind) %dopar% {
 }
 # the minimum cvm was obtained from alpha=0.75
 
-##*** getting an error here because of datatype stuff but cant figure out why***
-## This was probably because the inputs need to be in matrix form, not as dataframe columns. Also there were a few NAs still because of punctuation in names. This should be resolved now.
 #cv3 <- search[search$cvm == min(search$cvm), ]
 enet.cv <- cv.glmnet(mdlX, mdlY, alpha = 0.75, nfolds = 10)
 enet.cv$lambda.min
@@ -1228,13 +1154,7 @@ coef(enet.model, s = enet.cv$lambda.min)
 # still chooses the same 4 variables with optimal alpha=0.75.
 
 # start with basic Logistic Regression
-coach_predictions_log_model = glm(BecameHC ~ Influence+Connections+net_ppa+net_sr+net_stuff+net_pass_sr, data=train, family=binomial)
-summary(coach_predictions_log_model)
-
-# net_ppa is significant below 0.01
-#connections is close, .07
-#net_pass_sr is third, 0.11
-# running again with variables selected from Elastic Net
+# running with variables selected from Elastic Net
 
 coach_predictions_log_model_reduced = glm(BecameHC ~ Connections+net_ppa+net_pass_sr+role_DC1, data=train, family=binomial)
 summary(coach_predictions_log_model_reduced)
@@ -1250,32 +1170,32 @@ predicted_hire <- ifelse(coach_predictions_log_model_predict > 0.5, 1,0)
 mean(predicted_hire==test$BecameHC)
 # now let's look at this
 test$PredictedHC <-predicted_hire
-# We get 96% accuracy because this doesn't predict anyone to get hired! 
+# We get 97% accuracy because this doesn't predict anyone to get hired! 
 # need to try again at a different threshold
 
 print(coach_predictions_log_model_predict)
-# it looks look about 0.09 is the highest prediction anyone gets
-# so let's try with a threshold of 0.06?
+max(coach_predictions_log_model_predict)
+sort(coach_predictions_log_model_predict)
+# it looks look about 0.20 is the highest prediction anyone gets
+# so let's try with a threshold of 0.07
 
-predicted_hire <- ifelse(coach_predictions_log_model_predict > 0.06, 1,0)
-
-# assess accuracy, how many predictions correct?
-mean(predicted_hire==test$BecameHC)
-# now let's look at this
-test$PredictedHC <-predicted_hire
-# at this threshold, we predict 37 to become HCs. 22 do, and we get 2 right
-# overall accuracy is 0.90
-
-# try again at 0.07
 predicted_hire <- ifelse(coach_predictions_log_model_predict > 0.07, 1,0)
 
 # assess accuracy, how many predictions correct?
 mean(predicted_hire==test$BecameHC)
+#93.8% accuracy with 0.07 threshold
 # now let's look at this
 test$PredictedHC <-predicted_hire
-# 92.4% accuracy
-# now we predict 25 to become HCs (many are duplicates of each other, 
-# had good multi-year runs)
+# at this threshold, we predict 21 to become HCs, and we get 2 right/ 4 eventually become HCs
+
+# try again at 0.06
+predicted_hire <- ifelse(coach_predictions_log_model_predict > 0.06, 1,0)
+
+# assess accuracy, how many predictions correct?
+mean(predicted_hire==test$BecameHC)
+# 92% accuracy
+test$PredictedHC <-predicted_hire
+# now we predict 31 to become HCs and still only 2 are right
 
 # let's try to implement KNN
 
@@ -1285,33 +1205,36 @@ kmodel <- train.kknn(BecameHC~Connections+net_ppa+net_pass_sr+role_DC1, train, k
 kmodel_predictions <- predict(kmodel, test)
 
 print(kmodel_predictions)
-# let's try a threshold of 0.1 after looking at the predictions
-predicted_hire <- ifelse(kmodel_predictions > 0.1, 1,0)
+max(kmodel_predictions)
+sort(kmodel_predictions)
+# max is 0.5, 18 results >=0.25
+# let's try a threshold of 0.2 after looking at the predictions
+predicted_hire <- ifelse(kmodel_predictions > 0.2, 1,0)
 
 # assess accuracy, how many predictions correct?
 mean(predicted_hire==test$BecameHC)
-# this gives us 93.6% accuracy
+# this gives us 94% accuracy
 # now let's look at this
 test$PredictedHC <-predicted_hire
 sum(test$PredictedHC)
-# predicts 16 to become HCs, only one of those is correct
+# predicts 18 to become HCs, only 1 of those is correct. 5 eventually become HCs
 
 # AdaBoost
 # install.packages("JOUSBoost")
 library(JOUSBoost)
 set.seed(5)
 trainX <- cbind(train$Connections, 
-              train$net_ppa, 
-              train$net_pass_sr, 
-              train$role_DC1)
+                train$net_ppa, 
+                train$net_pass_sr, 
+                train$role_DC1)
 trainY <- train %>% 
   mutate(BecameHC = ifelse(BecameHC == 0, -1, 1)) %>%
   select(BecameHC)
 trainY <- trainY$BecameHC
 testX <- cbind(test$Connections, 
-              test$net_ppa, 
-              test$net_pass_sr, 
-              test$role_DC1)
+               test$net_ppa, 
+               test$net_pass_sr, 
+               test$role_DC1)
 testY <- test %>% 
   mutate(BecameHC = ifelse(BecameHC == 0, -1, 1)) %>%
   select(BecameHC)
@@ -1321,9 +1244,10 @@ boost <- adaboost(trainX, trainY, tree_depth = 2, n_rounds = 500)
 pred <- predict(boost, testX)
 # misclassification rate:
 mean(testY != pred)
-
+test$PredictedHC <-pred
 boost$confusion_matrix = table(testY, pred)
 boost
+# predicted 9 to become HC, none are correct. 2 eventually become HCs
 # How about training accuracy?
 pred <- predict(boost, trainX)
 boost$confusion_matrix = table(trainY, pred)
@@ -1341,7 +1265,111 @@ dtest <- xgb.DMatrix (data = testX, label = testY)
 watchlist <- list(train=dtrain, test=dtest)
 xboost <- xgb.train(data = dtrain, max.depth = 2, eta = 1, nthread = 2, nrounds = 2, eval.metric = "error", eval.metric = "logloss", watchlist=watchlist, objective = "binary:hinge") #objective = "binary:logistic" #objective = "multi:softmax", num_class = 2 <- neither of these did any better...
 pred <- predict(xboost, testX)
+print(pred)
+max(pred)
+sort(pred)
+# gives 6 values of 1, the rest 0
 predicted_hire <- ifelse(pred > 0.1, 1,0)
 mean(testY != predicted_hire)
 xboost$confusion_matrix = table(testY, predicted_hire)
 xboost$confusion_matrix
+# predicts 6 hires, none are correct
+
+# SVM
+library(kernlab)
+
+# with RBF kernel
+svm_model <-  ksvm(trainX,trainY,type="C-svc",kernel="rbfdot" ,C=50,scaled=TRUE)
+svm_pred <- predict(svm_model,testX)
+print(svm_pred)
+max(svm_pred)
+sort(svm_pred)
+# predicts 3 to be hired
+testaccuracy=mean(svm_pred == testY)
+#96.2% accuracy because almost all are predicted not to be hired
+test$PredictedHC <-svm_pred
+# of the three predicted, none were correct
+
+# try again with a different C value
+# with RBF kernel, C= 1000
+svm_model <-  ksvm(trainX,trainY,type="C-svc",kernel="rbfdot" ,C=1000,scaled=TRUE)
+svm_pred <- predict(svm_model,testX)
+print(svm_pred)
+max(svm_pred)
+sort(svm_pred)
+# predicts 10 to be hired
+testaccuracy=mean(svm_pred == testY)
+#95% accuracy
+test$PredictedHC <-svm_pred
+# of the ten predicted, none were correct in that year, but 6 were named head coaches
+# at one point. so there is something good happening here. i wonder how to best 
+#enfold that model knowledge
+
+# try again with a different C value
+# with RBF kernel, C= 10000
+svm_model <-  ksvm(trainX,trainY,type="C-svc",kernel="rbfdot" ,C=10000,scaled=TRUE)
+svm_pred <- predict(svm_model,testX)
+print(svm_pred)
+max(svm_pred)
+sort(svm_pred)
+# predicts 21 to be hired
+testaccuracy=mean(svm_pred == testY)
+#93.5% accuracy
+test$PredictedHC <-svm_pred
+# of the 21 predicted, 1 was correct in that year, but 9 were named head coaches
+# at one point. so there is something good happening here. i wonder how to best 
+#enfold that model knowledge 
+
+# try again with a different kernel
+# with polydot kernel, C=10000
+svm_model <-  ksvm(trainX,trainY,type="C-svc",kernel="polydot" ,C=10000,scaled=TRUE)
+svm_pred <- predict(svm_model,testX)
+print(svm_pred)
+max(svm_pred)
+sort(svm_pred)
+# predicts 0 to be hired
+testaccuracy=mean(svm_pred == testY)
+#96.2% accuracy because almost all are predicted not to be hired
+test$PredictedHC <-svm_pred
+
+# try again with a different kernel
+# with laplacedot kernel, C=10000
+svm_model <-  ksvm(trainX,trainY,type="C-svc",kernel="laplacedot" ,C=10000,scaled=TRUE)
+svm_pred <- predict(svm_model,testX)
+print(svm_pred)
+max(svm_pred)
+sort(svm_pred)
+# predicts 13 to be hired
+testaccuracy=mean(svm_pred == testY)
+#94.5% accuracy because almost all are predicted not to be hired
+test$PredictedHC <-svm_pred
+# # of the 13 predicted, 0 were correct in that year, but 6 were named head coaches
+# at one point. so there is something good happening here. i wonder how to best 
+#enfold that model knowledge 
+
+# trying neural network 
+
+install.packages('neuralnet')
+library(neuralnet)
+
+neuralnet_model <- neuralnet(BecameHC~Connections+net_ppa+net_pass_sr+role_DC1, data= train) 
+neural_pred <- predict(neuralnet_model,test)
+print(neural_pred)
+max(neural_pred)
+sort(neural_pred)
+# max is about 0.09, will first set threshold at 0.065
+predicted_hire <- ifelse(neural_pred > 0.065, 1,0)
+# assess accuracy, how many predictions correct?
+mean(predicted_hire==test$BecameHC)
+# this gives us 93.3% accuracy
+# now let's look at this
+test$PredictedHC <-predicted_hire
+testaccuracy=mean(svm_pred == testY)
+#94.5% accuracy because almost all are predicted not to be hired
+test$PredictedHC <-svm_pred
+# # of the 22 predicted, 1 was correct in that year, but 3 were named head coaches
+# at one point. # this is a much worse result than SVM and others
+
+# IMO, SVM with rbf kernel is the most impressive so far
+# With C=1000, 6/10 predictions were eventually named HCs
+# With C=10000, 9/21 predictions were eventually named HCs
