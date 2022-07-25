@@ -135,6 +135,27 @@ colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Conne
 centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
 # centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
 
+# the coaches in this DF have no punctuation in their names...
+centrality_df_scaled <- centrality_df_scaled %>% 
+  mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
+                        ifelse(Coach == "A J  Ricker", "A.J. Ricker",
+                               ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
+                                      ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
+                                             ifelse(Coach == "D J  Durkin", "D.J. Durkin",
+                                                    ifelse(Coach == "A J  Milwee", "A.J. Milwee",
+                                                           ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
+                                                                  ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
+                                                                         ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
+                                                                                ifelse(Coach == "D J  Eliot", "D.J. Eliot",
+                                                                                       ifelse(Coach == "J C  Price", "J.C. Price",
+                                                                                              ifelse(Coach == "Joe Salave a", "Joe Salave'a",
+                                                                                                     ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
+                                                                                                            ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
+                                                                                                                   ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
+                                                                                                                          ifelse(Coach == "T J  Weist", "T.J. Weist",
+                                                                                                                                 ifelse(Coach == "T J  Woods", "T.J. Woods", 
+                                                                                                                                        Coach))))))))))))))))))
+
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
 
 coordinators_training_year_with_louvain <- coordinators_training_year %>% left_join(centrality_df_scaled, by = "Coach")
@@ -262,6 +283,27 @@ colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Conne
 centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
 # centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
 
+# the coaches in this DF have no punctuation in their names...
+centrality_df_scaled <- centrality_df_scaled %>% 
+  mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
+                        ifelse(Coach == "A J  Ricker", "A.J. Ricker",
+                               ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
+                                      ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
+                                             ifelse(Coach == "D J  Durkin", "D.J. Durkin",
+                                                    ifelse(Coach == "A J  Milwee", "A.J. Milwee",
+                                                           ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
+                                                                  ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
+                                                                         ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
+                                                                                ifelse(Coach == "D J  Eliot", "D.J. Eliot",
+                                                                                       ifelse(Coach == "J C  Price", "J.C. Price",
+                                                                                              ifelse(Coach == "Joe Salave a", "Joe Salave'a",
+                                                                                                     ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
+                                                                                                            ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
+                                                                                                                   ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
+                                                                                                                          ifelse(Coach == "T J  Weist", "T.J. Weist",
+                                                                                                                                 ifelse(Coach == "T J  Woods", "T.J. Woods", 
+                                                                                                                                        Coach))))))))))))))))))
+
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
 
 coordinators_training_year_with_louvain <- coordinators_training_year %>% left_join(centrality_df_scaled, by = "Coach")
@@ -386,6 +428,27 @@ colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Conne
 centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
 # centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
 
+# the coaches in this DF have no punctuation in their names...
+centrality_df_scaled <- centrality_df_scaled %>% 
+  mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
+                        ifelse(Coach == "A J  Ricker", "A.J. Ricker",
+                               ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
+                                      ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
+                                             ifelse(Coach == "D J  Durkin", "D.J. Durkin",
+                                                    ifelse(Coach == "A J  Milwee", "A.J. Milwee",
+                                                           ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
+                                                                  ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
+                                                                         ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
+                                                                                ifelse(Coach == "D J  Eliot", "D.J. Eliot",
+                                                                                       ifelse(Coach == "J C  Price", "J.C. Price",
+                                                                                              ifelse(Coach == "Joe Salave a", "Joe Salave'a",
+                                                                                                     ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
+                                                                                                            ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
+                                                                                                                   ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
+                                                                                                                          ifelse(Coach == "T J  Weist", "T.J. Weist",
+                                                                                                                                 ifelse(Coach == "T J  Woods", "T.J. Woods", 
+                                                                                                                                        Coach))))))))))))))))))
+
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
 
 coordinators_training_year_with_louvain <- coordinators_training_year %>% left_join(centrality_df_scaled, by = "Coach")
@@ -508,6 +571,27 @@ centrality_df_modified <- centrality_df %>% select(variable, betweenness, closen
 colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
 centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
 # centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
+
+# the coaches in this DF have no punctuation in their names...
+centrality_df_scaled <- centrality_df_scaled %>% 
+  mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
+                        ifelse(Coach == "A J  Ricker", "A.J. Ricker",
+                               ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
+                                      ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
+                                             ifelse(Coach == "D J  Durkin", "D.J. Durkin",
+                                                    ifelse(Coach == "A J  Milwee", "A.J. Milwee",
+                                                           ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
+                                                                  ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
+                                                                         ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
+                                                                                ifelse(Coach == "D J  Eliot", "D.J. Eliot",
+                                                                                       ifelse(Coach == "J C  Price", "J.C. Price",
+                                                                                              ifelse(Coach == "Joe Salave a", "Joe Salave'a",
+                                                                                                     ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
+                                                                                                            ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
+                                                                                                                   ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
+                                                                                                                          ifelse(Coach == "T J  Weist", "T.J. Weist",
+                                                                                                                                 ifelse(Coach == "T J  Woods", "T.J. Woods", 
+                                                                                                                                        Coach))))))))))))))))))
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
 
@@ -633,6 +717,27 @@ colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Conne
 centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
 # centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
 
+# the coaches in this DF have no punctuation in their names...
+centrality_df_scaled <- centrality_df_scaled %>% 
+  mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
+                        ifelse(Coach == "A J  Ricker", "A.J. Ricker",
+                               ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
+                                      ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
+                                             ifelse(Coach == "D J  Durkin", "D.J. Durkin",
+                                                    ifelse(Coach == "A J  Milwee", "A.J. Milwee",
+                                                           ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
+                                                                  ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
+                                                                         ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
+                                                                                ifelse(Coach == "D J  Eliot", "D.J. Eliot",
+                                                                                       ifelse(Coach == "J C  Price", "J.C. Price",
+                                                                                              ifelse(Coach == "Joe Salave a", "Joe Salave'a",
+                                                                                                     ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
+                                                                                                            ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
+                                                                                                                   ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
+                                                                                                                          ifelse(Coach == "T J  Weist", "T.J. Weist",
+                                                                                                                                 ifelse(Coach == "T J  Woods", "T.J. Woods", 
+                                                                                                                                        Coach))))))))))))))))))
+
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
 
 coordinators_training_year_with_louvain <- coordinators_training_year %>% left_join(centrality_df_scaled, by = "Coach")
@@ -756,6 +861,28 @@ centrality_df_modified <- centrality_df %>% select(variable, betweenness, closen
 colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
 centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
 # centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
+
+# the coaches in this DF have no punctuation in their names...
+centrality_df_scaled <- centrality_df_scaled %>% 
+  mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
+                          ifelse(Coach == "A J  Ricker", "A.J. Ricker",
+                                 ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
+                                        ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
+                                               ifelse(Coach == "D J  Durkin", "D.J. Durkin",
+                                                      ifelse(Coach == "A J  Milwee", "A.J. Milwee",
+                                                             ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
+                                                                    ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
+                                                                           ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
+                                                                                  ifelse(Coach == "D J  Eliot", "D.J. Eliot",
+                                                                                         ifelse(Coach == "J C  Price", "J.C. Price",
+                                                                                                ifelse(Coach == "Joe Salave a", "Joe Salave'a",
+                                                                                                       ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
+                                                                                                              ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
+                                                                                                                     ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
+                                                                                                                            ifelse(Coach == "T J  Weist", "T.J. Weist",
+                                                                                                                                   ifelse(Coach == "T J  Woods", "T.J. Woods", 
+                                                                                                                                          Coach))))))))))))))))))
+
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
 
@@ -881,6 +1008,27 @@ colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Conne
 centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
 # centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
 
+# the coaches in this DF have no punctuation in their names...
+centrality_df_scaled <- centrality_df_scaled %>% 
+  mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
+                        ifelse(Coach == "A J  Ricker", "A.J. Ricker",
+                               ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
+                                      ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
+                                             ifelse(Coach == "D J  Durkin", "D.J. Durkin",
+                                                    ifelse(Coach == "A J  Milwee", "A.J. Milwee",
+                                                           ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
+                                                                  ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
+                                                                         ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
+                                                                                ifelse(Coach == "D J  Eliot", "D.J. Eliot",
+                                                                                       ifelse(Coach == "J C  Price", "J.C. Price",
+                                                                                              ifelse(Coach == "Joe Salave a", "Joe Salave'a",
+                                                                                                     ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
+                                                                                                            ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
+                                                                                                                   ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
+                                                                                                                          ifelse(Coach == "T J  Weist", "T.J. Weist",
+                                                                                                                                 ifelse(Coach == "T J  Woods", "T.J. Woods", 
+                                                                                                                                        Coach))))))))))))))))))
+
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
 
 coordinators_training_year_with_louvain <- coordinators_training_year %>% left_join(centrality_df_scaled, by = "Coach")
@@ -921,81 +1069,90 @@ coordinators_training_year_with_metrics_all <- rbind(coordinators_training_year_
                                                      coordinators_training_year_2015_with_metrics)
 
 # deal with Na's
+which(is.na(coordinators_training_year_with_metrics_all), arr.ind=TRUE)
 
-# inserting missing values from centrality_df_scaled, didn't transfer properly for coaches with punctuation in their name
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Durkin", 5] <- -0.19565156
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Durkin", 6] <- -0.29642807
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Durkin", 7] <- 1
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Durkin", 8] <- -0.054605147
-
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "A.J. Milwee", 5] <- -0.19565156
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "A.J. Milwee", 6] <- -0.29642807
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "A.J. Milwee", 7] <- 1
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "A.J. Milwee", 8] <- -0.054605147
-
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Aazaar Abdul-Rahim", 5] <- -0.19565156
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Aazaar Abdul-Rahim", 6] <- -0.29642807
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Aazaar Abdul-Rahim", 7] <- 0
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Aazaar Abdul-Rahim", 8] <- -0.0503580954
-
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Brian Jean-Mary", 5] <- -0.19565156
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Brian Jean-Mary", 6] <- -0.29642807
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Brian Jean-Mary", 7] <- 0
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Brian Jean-Mary", 8] <- -0.0503580954
-
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Charlie Weis Jr.", 5] <- -0.19565156
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Charlie Weis Jr.", 6] <- -0.29642807
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Charlie Weis Jr.", 7] <- 0
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Charlie Weis Jr.", 8] <- -0.0503580954
-
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Eliot", 5] <- -0.19565156
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Eliot", 6] <- -0.29642807
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Eliot", 7] <- 1
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Eliot", 8] <- -0.054605147
-
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "J.C. Price", 5] <- -0.19565156
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "J.C. Price", 6] <- -0.29642807
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "J.C. Price", 7] <- 0
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "J.C. Price", 8] <- -0.050358095
-
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Joe Salave'a", 5] <- -0.19565156
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Joe Salave'a", 6] <- -0.29642807
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Joe Salave'a", 7] <- 0
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Joe Salave'a", 8] <- -0.050358095
-
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mark D'Onofrio", 5] <- -0.19565156
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mark D'Onofrio", 6] <- -0.29642807
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mark D'Onofrio", 7] <- 1
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mark D'Onofrio", 8] <- -0.027674484
-
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mike Sanford Jr.", 5] <- -0.19565156
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mike Sanford Jr.", 6] <- -0.29642807
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mike Sanford Jr.", 7] <- 1
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mike Sanford Jr.", 8] <- -0.05288769
-
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Steve Spurrier Jr.", 5] <- -0.19565156
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Steve Spurrier Jr.", 6] <- -0.29642807
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Steve Spurrier Jr.", 7] <- 1
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Steve Spurrier Jr.", 8] <- -0.05460515
-
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Weist", 5] <- -0.19565156
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Weist", 6] <- -0.29642807
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Weist", 7] <- 1
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Weist", 8] <- -0.05172009
-
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Woods", 5] <- -0.19565156
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Woods", 6] <- -0.29642807
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Woods", 7] <- 0
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Woods", 8] <- -0.0503581
+# # inserting missing values from centrality_df_scaled, didn't transfer properly for coaches with punctuation in their name
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Durkin", 5] <- -0.19565156
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Durkin", 6] <- -0.29642807
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Durkin", 7] <- 1
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Durkin", 8] <- -0.054605147
+# 
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "A.J. Milwee", 5] <- -0.19565156
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "A.J. Milwee", 6] <- -0.29642807
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "A.J. Milwee", 7] <- 1
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "A.J. Milwee", 8] <- -0.054605147
+# 
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Aazaar Abdul-Rahim", 5] <- -0.19565156
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Aazaar Abdul-Rahim", 6] <- -0.29642807
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Aazaar Abdul-Rahim", 7] <- 0
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Aazaar Abdul-Rahim", 8] <- -0.0503580954
+# 
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Brian Jean-Mary", 5] <- -0.19565156
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Brian Jean-Mary", 6] <- -0.29642807
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Brian Jean-Mary", 7] <- 0
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Brian Jean-Mary", 8] <- -0.0503580954
+# 
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Charlie Weis Jr.", 5] <- -0.19565156
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Charlie Weis Jr.", 6] <- -0.29642807
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Charlie Weis Jr.", 7] <- 0
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Charlie Weis Jr.", 8] <- -0.0503580954
+# 
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Eliot", 5] <- -0.19565156
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Eliot", 6] <- -0.29642807
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Eliot", 7] <- 1
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "D.J. Eliot", 8] <- -0.054605147
+# 
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "J.C. Price", 5] <- -0.19565156
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "J.C. Price", 6] <- -0.29642807
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "J.C. Price", 7] <- 0
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "J.C. Price", 8] <- -0.050358095
+# 
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Joe Salave'a", 5] <- -0.19565156
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Joe Salave'a", 6] <- -0.29642807
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Joe Salave'a", 7] <- 0
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Joe Salave'a", 8] <- -0.050358095
+# 
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mark D'Onofrio", 5] <- -0.19565156
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mark D'Onofrio", 6] <- -0.29642807
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mark D'Onofrio", 7] <- 1
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mark D'Onofrio", 8] <- -0.027674484
+# 
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mike Sanford Jr.", 5] <- -0.19565156
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mike Sanford Jr.", 6] <- -0.29642807
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mike Sanford Jr.", 7] <- 1
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Mike Sanford Jr.", 8] <- -0.05288769
+# 
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Steve Spurrier Jr.", 5] <- -0.19565156
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Steve Spurrier Jr.", 6] <- -0.29642807
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Steve Spurrier Jr.", 7] <- 1
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "Steve Spurrier Jr.", 8] <- -0.05460515
+# 
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Weist", 5] <- -0.19565156
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Weist", 6] <- -0.29642807
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Weist", 7] <- 1
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Weist", 8] <- -0.05172009
+# 
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Woods", 5] <- -0.19565156
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Woods", 6] <- -0.29642807
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Woods", 7] <- 0
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Coach == "T.J. Woods", 8] <- -0.0503581
 
 # NA issue is resolved. 
 
 # now want to change values in Role column to either be 0 or 1 (offense is 0, defense is 1)
 # you are going to need to use some str_detect here, i did multiple steps but pasted over
+coordinators_training_year_with_metrics_all$role_DC1 <- ifelse(grepl("Defensive", coordinators_training_year_with_metrics_all$Role), 1, NA)
+coordinators_training_year_with_metrics_all$role_DC1 <- ifelse(grepl("Offensive", coordinators_training_year_with_metrics_all$Role), 0, coordinators_training_year_with_metrics_all$role_DC1)
+
 # **sorry! I can show you what is needed, i was in a hurry to finish
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Role== 0, 4] <-0.0
-coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Role== 1, 4] <-1.0
-coordinators_training_year_with_metrics_all[,4] <-sapply(coordinators_training_year_with_metrics_all[,4], as.numeric)
+# I did the Offense=0, Defense=1 above. Are these 3 rows needed?
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Role== 0, 4] <-0.0
+# coordinators_training_year_with_metrics_all[coordinators_training_year_with_metrics_all$Role== 1, 4] <-1.0
+# coordinators_training_year_with_metrics_all[,4] <-sapply(coordinators_training_year_with_metrics_all[,4], as.numeric)
+
+# how many total coordinators became head coaches?
+sum(coordinators_training_year_with_metrics_all$BecameHC)
+# 61.
 
 # Now we will use that DF for training/Test
 
@@ -1018,17 +1175,57 @@ test  <- dplyr::anti_join(coordinators_training_year_with_metrics_all, train, by
 pkgs <- list("glmnet", "doParallel", "foreach", "pROC")
 lapply(pkgs, require, character.only = T)
 # ELASTIC NET WITH 0 < ALPHA < 1
+set.seed(5)
 a <- seq(0.1, 0.9, 0.05)
-mdlX <- coordinators_training_year_with_metrics_all %>% select(Role, Networking, Influence, Connections, InfluencePlus, net_ppa, net_sr, net_stuff, net_pass_sr)
-mdlY <- coordinators_training_year_with_metrics_all %>% select(BecameHC)
+# mdlX <- coordinators_training_year_with_metrics_all %>% select(Networking, Influence, Connections, InfluencePlus, net_ppa, net_sr, net_stuff, net_pass_sr, role_DC1)
+# mdlY <- coordinators_training_year_with_metrics_all %>% select(BecameHC)
+
+# need Elastic Net inputs to be in matrix form
+mdlX <- cbind(coordinators_training_year_with_metrics_all$Networking, 
+              coordinators_training_year_with_metrics_all$Influence, 
+              coordinators_training_year_with_metrics_all$Connections, 
+              coordinators_training_year_with_metrics_all$InfluencePlus, 
+              coordinators_training_year_with_metrics_all$net_ppa, 
+              coordinators_training_year_with_metrics_all$net_sr, 
+              coordinators_training_year_with_metrics_all$net_stuff, 
+              coordinators_training_year_with_metrics_all$net_pass_sr, 
+              coordinators_training_year_with_metrics_all$role_DC1)
+mdlY <- coordinators_training_year_with_metrics_all$BecameHC
+
+# mat <- model.matrix(BecameHC ~ Networking + Influence + Connections + InfluencePlus + net_ppa + net_sr + net_stuff + net_pass_sr + role_DC1, data = coordinators_training_year_with_metrics_all)
+
+# Simple Elastic Net w/ alpha equal to 0.5:
+enet.cv <- cv.glmnet(mdlX, mdlY, alpha = 0.5, nfolds = 10)
+enet.cv$lambda.min
+enet.model <- glmnet(mdlX, mdlY, alpha = 0.5, nlambda=100)
+coef(enet.model, s = enet.cv$lambda.min)
+# s1
+# (Intercept)  0.026214954
+# V1           .          
+# V2           .          
+# V3           0.003253049
+# V4           .          
+# V5           0.075339848
+# V6           .          
+# V7           .          
+# V8           0.176198999
+# V9          -0.007091674
+# Elastic Net selected the following 4 variables: Connections, net_ppa, net_pass_sr, and role_DC1
+
 search <- foreach(i = a, .combine = rbind) %dopar% {
   cv <- cv.glmnet(mdlX, mdlY, family = "binomial", nfold = 10, type.measure = "deviance", paralle = TRUE, alpha = i)
   data.frame(cvm = cv$cvm[cv$lambda == cv$lambda.1se], lambda.1se = cv$lambda.1se, alpha = i)
 }
-##*** getting an error here because of datatype stuff but cant figure out why**
+# the minimum cvm was obtained from alpha=0.75
+
+##*** getting an error here because of datatype stuff but cant figure out why***
+## This was probably because the inputs need to be in matrix form, not as dataframe columns. Also there were a few NAs still because of punctuation in names. This should be resolved now.
 #cv3 <- search[search$cvm == min(search$cvm), ]
-elasticNetModel <- glmnet(mdlX, mdlY, family = "binomial", lambda = 0.1, alpha = 0.5)
-coef(md3)
+enet.cv <- cv.glmnet(mdlX, mdlY, alpha = 0.75, nfolds = 10)
+enet.cv$lambda.min
+enet.model <- glmnet(mdlX, mdlY, alpha = 0.75, nlambda=100)
+coef(enet.model, s = enet.cv$lambda.min)
+# still chooses the same 4 variables with optimal alpha=0.75.
 
 # start with basic Logistic Regression
 coach_predictions_log_model = glm(BecameHC ~ Influence+Connections+net_ppa+net_sr+net_stuff+net_pass_sr, data=train, family=binomial)
@@ -1037,9 +1234,9 @@ summary(coach_predictions_log_model)
 # net_ppa is significant below 0.01
 #connections is close, .07
 #net_pass_sr is third, 0.11
-# running again with those three
+# running again with variables selected from Elastic Net
 
-coach_predictions_log_model_reduced = glm(BecameHC ~ Connections+net_ppa, data=train, family=binomial)
+coach_predictions_log_model_reduced = glm(BecameHC ~ Connections+net_ppa+net_pass_sr+role_DC1, data=train, family=binomial)
 summary(coach_predictions_log_model_reduced)
 # with the further reduced model, net_ppa and Connections are both stronger predictors of who will get hired
 
@@ -1084,7 +1281,7 @@ test$PredictedHC <-predicted_hire
 
 library(kknn)
 
-kmodel <- train.kknn(BecameHC~Connections+net_ppa, train, kmax=10, kernel = "rectangular", scale = TRUE)
+kmodel <- train.kknn(BecameHC~Connections+net_ppa+net_pass_sr+role_DC1, train, kmax=10, kernel = "rectangular", scale = TRUE)
 kmodel_predictions <- predict(kmodel, test)
 
 print(kmodel_predictions)
@@ -1096,4 +1293,55 @@ mean(predicted_hire==test$BecameHC)
 # this gives us 93.6% accuracy
 # now let's look at this
 test$PredictedHC <-predicted_hire
+sum(test$PredictedHC)
 # predicts 16 to become HCs, only one of those is correct
+
+# AdaBoost
+# install.packages("JOUSBoost")
+library(JOUSBoost)
+set.seed(5)
+trainX <- cbind(train$Connections, 
+              train$net_ppa, 
+              train$net_pass_sr, 
+              train$role_DC1)
+trainY <- train %>% 
+  mutate(BecameHC = ifelse(BecameHC == 0, -1, 1)) %>%
+  select(BecameHC)
+trainY <- trainY$BecameHC
+testX <- cbind(test$Connections, 
+              test$net_ppa, 
+              test$net_pass_sr, 
+              test$role_DC1)
+testY <- test %>% 
+  mutate(BecameHC = ifelse(BecameHC == 0, -1, 1)) %>%
+  select(BecameHC)
+testY <- testY$BecameHC
+# obtained tree_depth and n_rounds just from some guessing & checking
+boost <- adaboost(trainX, trainY, tree_depth = 2, n_rounds = 500)
+pred <- predict(boost, testX)
+# misclassification rate:
+mean(testY != pred)
+
+boost$confusion_matrix = table(testY, pred)
+boost
+# How about training accuracy?
+pred <- predict(boost, trainX)
+boost$confusion_matrix = table(trainY, pred)
+boost
+mean(trainY != pred)
+# training accuracy is very good but not testing accuracy.
+
+# XGBoost
+# install.packages("xgboost")
+library(xgboost)
+trainY <- train$BecameHC
+testY <- test$BecameHC
+dtrain <- xgb.DMatrix(data = trainX, label = trainY)
+dtest <- xgb.DMatrix (data = testX, label = testY)
+watchlist <- list(train=dtrain, test=dtest)
+xboost <- xgb.train(data = dtrain, max.depth = 2, eta = 1, nthread = 2, nrounds = 2, eval.metric = "error", eval.metric = "logloss", watchlist=watchlist, objective = "binary:hinge") #objective = "binary:logistic" #objective = "multi:softmax", num_class = 2 <- neither of these did any better...
+pred <- predict(xboost, testX)
+predicted_hire <- ifelse(pred > 0.1, 1,0)
+mean(testY != predicted_hire)
+xboost$confusion_matrix = table(testY, predicted_hire)
+xboost$confusion_matrix
