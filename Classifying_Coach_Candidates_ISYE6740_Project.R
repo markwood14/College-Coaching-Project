@@ -28,6 +28,16 @@ library(Hmisc)
 library(ggraph)
 library(networkD3)
 
+# Dataframes used from Minority_Coach_Analysis.R:
+load("defensive_coordinators1.Rda")
+load("offensive_coordinators1.Rda")
+load("coaching_tree.Rda")
+load("head_coaches1.Rda")
+load("dc_impact_results.Rda")
+load("oc_impact_results.Rda")
+
+
+
 
 #Start with target year t=2021
 target_year = 2021
@@ -1083,6 +1093,15 @@ coordinators_training_year_with_metrics_all$role_DC1 <- ifelse(grepl("Offensive"
 sum(coordinators_training_year_with_metrics_all$BecameHC)
 # 61.
 
+tenure_df <- defensive_coordinators1 %>%
+  rbind(offensive_coordinators1) %>%
+  group_by(Coach) %>% 
+  summarise(tenure_length = n())
+coordinators_training_year_with_metrics_all <- coordinators_training_year_with_metrics_all %>%
+  left_join(tenure_df)
+coordinators_training_year_with_metrics_all <- coordinators_training_year_with_metrics_all %>%
+  mutate(Race = ifelse(Race=="Black", 1, 0))
+
 # Now we will use that DF for training/Test
 # split into training/test
 
@@ -1117,7 +1136,9 @@ mdlX <- cbind(coordinators_training_year_with_metrics_all$Networking,
               coordinators_training_year_with_metrics_all$net_sr, 
               coordinators_training_year_with_metrics_all$net_stuff, 
               coordinators_training_year_with_metrics_all$net_pass_sr, 
-              coordinators_training_year_with_metrics_all$role_DC1)
+              coordinators_training_year_with_metrics_all$role_DC1,
+              coordinators_training_year_with_metrics_all$Race,
+              coordinators_training_year_with_metrics_all$tenure_length)
 mdlY <- coordinators_training_year_with_metrics_all$BecameHC
 
 # mat <- model.matrix(BecameHC ~ Networking + Influence + Connections + InfluencePlus + net_ppa + net_sr + net_stuff + net_pass_sr + role_DC1, data = coordinators_training_year_with_metrics_all)
@@ -1128,35 +1149,37 @@ enet.cv$lambda.min
 enet.model <- glmnet(mdlX, mdlY, alpha = 0.5, nlambda=100)
 coef(enet.model, s = enet.cv$lambda.min)
 # s1
-# (Intercept)  0.026214954
+# (Intercept)  0.040502719
 # V1           .          
 # V2           .          
-# V3           0.003253049
+# V3           0.006788291
 # V4           .          
-# V5           0.075339848
+# V5           0.057978094
 # V6           .          
 # V7           .          
-# V8           0.176198999
-# V9          -0.007091674
-# Elastic Net selected the following 4 variables: Connections, net_ppa, net_pass_sr, and role_DC1
+# V8           0.215003488
+# V9          -0.008334123
+# V10         -0.011392621
+# V11         -0.002905420
+# Elastic Net selected the following 4 variables: Connections, net_ppa, net_pass_sr, and role_DC1, Race, and tenure_length
 
 search <- foreach(i = a, .combine = rbind) %dopar% {
   cv <- cv.glmnet(mdlX, mdlY, family = "binomial", nfold = 10, type.measure = "deviance", paralle = TRUE, alpha = i)
   data.frame(cvm = cv$cvm[cv$lambda == cv$lambda.1se], lambda.1se = cv$lambda.1se, alpha = i)
 }
-# the minimum cvm was obtained from alpha=0.75
+# the minimum cvm was obtained from alpha=0.1
 
-#cv3 <- search[search$cvm == min(search$cvm), ]
-enet.cv <- cv.glmnet(mdlX, mdlY, alpha = 0.75, nfolds = 10)
+# cv3 <- search[search$cvm == min(search$cvm), ]
+enet.cv <- cv.glmnet(mdlX, mdlY, alpha = 0.1, nfolds = 10)
 enet.cv$lambda.min
-enet.model <- glmnet(mdlX, mdlY, alpha = 0.75, nlambda=100)
+enet.model <- glmnet(mdlX, mdlY, alpha = 0.1, nlambda=100)
 coef(enet.model, s = enet.cv$lambda.min)
-# still chooses the same 4 variables with optimal alpha=0.75.
+# still chooses the same 6 variables with optimal alpha=0.1.
 
 # start with basic Logistic Regression
 # running with variables selected from Elastic Net
 
-coach_predictions_log_model_reduced = glm(BecameHC ~ Connections+net_ppa+net_pass_sr+role_DC1, data=train, family=binomial)
+coach_predictions_log_model_reduced = glm(BecameHC ~ Connections+net_ppa+net_pass_sr+role_DC1+Race+tenure_length, data=train, family=binomial)
 summary(coach_predictions_log_model_reduced)
 # with the further reduced model, net_ppa and Connections are both stronger predictors of who will get hired
 
@@ -1201,7 +1224,7 @@ test$PredictedHC <-predicted_hire
 
 library(kknn)
 
-kmodel <- train.kknn(BecameHC~Connections+net_ppa+net_pass_sr+role_DC1, train, kmax=10, kernel = "rectangular", scale = TRUE)
+kmodel <- train.kknn(BecameHC~Connections+net_ppa+net_pass_sr+role_DC1+Race+tenure_length, train, kmax=10, kernel = "rectangular", scale = TRUE)
 kmodel_predictions <- predict(kmodel, test)
 
 print(kmodel_predictions)
@@ -1213,11 +1236,11 @@ predicted_hire <- ifelse(kmodel_predictions > 0.2, 1,0)
 
 # assess accuracy, how many predictions correct?
 mean(predicted_hire==test$BecameHC)
-# this gives us 94% accuracy
+# this gives us 94.2% accuracy
 # now let's look at this
 test$PredictedHC <-predicted_hire
 sum(test$PredictedHC)
-# predicts 18 to become HCs, only 1 of those is correct. 5 eventually become HCs
+# predicts 19 to become HCs, only 1 of those is correct. 5 eventually become HCs
 
 # AdaBoost
 # install.packages("JOUSBoost")
@@ -1226,7 +1249,9 @@ set.seed(5)
 trainX <- cbind(train$Connections, 
                 train$net_ppa, 
                 train$net_pass_sr, 
-                train$role_DC1)
+                train$role_DC1,
+                train$Race,
+                train$tenure_length)
 trainY <- train %>% 
   mutate(BecameHC = ifelse(BecameHC == 0, -1, 1)) %>%
   select(BecameHC)
@@ -1234,7 +1259,9 @@ trainY <- trainY$BecameHC
 testX <- cbind(test$Connections, 
                test$net_ppa, 
                test$net_pass_sr, 
-               test$role_DC1)
+               test$role_DC1,
+               test$Race,
+               test$tenure_length)
 testY <- test %>% 
   mutate(BecameHC = ifelse(BecameHC == 0, -1, 1)) %>%
   select(BecameHC)
@@ -1286,7 +1313,7 @@ max(svm_pred)
 sort(svm_pred)
 # predicts 3 to be hired
 testaccuracy=mean(svm_pred == testY)
-#96.2% accuracy because almost all are predicted not to be hired
+#96.5% accuracy because almost all are predicted not to be hired
 test$PredictedHC <-svm_pred
 # of the three predicted, none were correct
 
@@ -1299,7 +1326,7 @@ max(svm_pred)
 sort(svm_pred)
 # predicts 10 to be hired
 testaccuracy=mean(svm_pred == testY)
-#95% accuracy
+#94.5% accuracy
 test$PredictedHC <-svm_pred
 # of the ten predicted, none were correct in that year, but 6 were named head coaches
 # at one point. so there is something good happening here. i wonder how to best 
@@ -1314,7 +1341,7 @@ max(svm_pred)
 sort(svm_pred)
 # predicts 21 to be hired
 testaccuracy=mean(svm_pred == testY)
-#93.5% accuracy
+#94% accuracy
 test$PredictedHC <-svm_pred
 # of the 21 predicted, 1 was correct in that year, but 9 were named head coaches
 # at one point. so there is something good happening here. i wonder how to best 
@@ -1329,7 +1356,7 @@ max(svm_pred)
 sort(svm_pred)
 # predicts 0 to be hired
 testaccuracy=mean(svm_pred == testY)
-#96.2% accuracy because almost all are predicted not to be hired
+#96.7% accuracy because almost all are predicted not to be hired
 test$PredictedHC <-svm_pred
 
 # try again with a different kernel
@@ -1341,7 +1368,7 @@ max(svm_pred)
 sort(svm_pred)
 # predicts 13 to be hired
 testaccuracy=mean(svm_pred == testY)
-#94.5% accuracy because almost all are predicted not to be hired
+#94.8% accuracy because almost all are predicted not to be hired
 test$PredictedHC <-svm_pred
 # # of the 13 predicted, 0 were correct in that year, but 6 were named head coaches
 # at one point. so there is something good happening here. i wonder how to best 
@@ -1352,7 +1379,7 @@ test$PredictedHC <-svm_pred
 install.packages('neuralnet')
 library(neuralnet)
 
-neuralnet_model <- neuralnet(BecameHC~Connections+net_ppa+net_pass_sr+role_DC1, data= train) 
+neuralnet_model <- neuralnet(BecameHC~Connections+net_ppa+net_pass_sr+role_DC1+Race+tenure_length, data= train) 
 neural_pred <- predict(neuralnet_model,test)
 print(neural_pred)
 max(neural_pred)
@@ -1365,7 +1392,7 @@ mean(predicted_hire==test$BecameHC)
 # now let's look at this
 test$PredictedHC <-predicted_hire
 testaccuracy=mean(svm_pred == testY)
-#94.5% accuracy because almost all are predicted not to be hired
+#94.8% accuracy because almost all are predicted not to be hired
 test$PredictedHC <-svm_pred
 # # of the 22 predicted, 1 was correct in that year, but 3 were named head coaches
 # at one point. # this is a much worse result than SVM and others
@@ -1373,3 +1400,35 @@ test$PredictedHC <-svm_pred
 # IMO, SVM with rbf kernel is the most impressive so far
 # With C=1000, 6/10 predictions were eventually named HCs
 # With C=10000, 9/21 predictions were eventually named HCs
+
+
+
+# Principal Component Analysis to reduce to 2 variables or Principal Components:
+library(stats)
+pca <- prcomp(coordinators_training_year_with_metrics_all[,c("Connections", 
+                                                                      "net_ppa", 
+                                                                      "net_pass_sr", 
+                                                                      "role_DC1",
+                                                                      "Race",
+                                                                      "tenure_length")], center = TRUE, scale. = TRUE)
+summary(pca)
+# So the 1st two Principal Components basically contains 57.71% of the useful information in the total dataset (explains 57.7% of the variance)
+install_github("vqv/ggbiplot")
+library(ggbiplot)
+ggbiplot(pca)
+# Connections and tenure link are closely related. So are net_ppa and net_pass_sr. This obviously makes sense.
+reduced_data <- pca$x[,c(1,2)]
+reduced_data[,'PC1']
+reduced_data <- cbind.data.frame(coordinators_training_year_with_metrics_all$Coach, 
+                                 coordinators_training_year_with_metrics_all$Race,
+                                 coordinators_training_year_with_metrics_all$BecameHC,
+                                 reduced_data[,'PC1'],
+                                 reduced_data[,'PC2']) 
+names(reduced_data) <- c('Coach', 'Race', 'BecameHC', 'PC1', 'PC2')
+
+
+set.seed(5)
+# now run Logistic Regression on the PC1 & PC2
+pca_logistic = glm(BecameHC ~ PC1+PC2, data=reduced_data[,c(4,5,3)], family=binomial(link='logit'))
+summary(pca_logistic)
+# since logistic regression couldn't form a great decision boundary on the whole dataset, and the 1st 2 Principal Components only explain 58% of the data, this just isn't going to be useful.
