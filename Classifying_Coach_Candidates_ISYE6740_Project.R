@@ -1102,6 +1102,13 @@ coordinators_training_year_with_metrics_all <- coordinators_training_year_with_m
 coordinators_training_year_with_metrics_all <- coordinators_training_year_with_metrics_all %>%
   mutate(Race = ifelse(Race=="Black", 1, 0))
 
+# Correlation Plot
+png(height=600, width=600, file="coach_corr_plot.png", type = "cairo")
+corrplot(cor(coordinators_training_year_with_metrics_all[,c("Networking", "Influence", "Connections", "InfluencePlus", "net_ppa",
+                                                            "net_sr","net_stuff","net_pass_sr","role_DC1","Race","tenure_length")]),
+         method="circle")
+dev.off()
+
 # Now we will use that DF for training/Test
 # split into training/test
 
@@ -1175,7 +1182,13 @@ enet.cv$lambda.min
 enet.model <- glmnet(mdlX, mdlY, alpha = 0.1, nlambda=100)
 coef(enet.model, s = enet.cv$lambda.min)
 # still chooses the same 6 variables with optimal alpha=0.1.
-
+# Elastic Net plot:
+png(file="coach_elastic_net.png")
+plot(enet.model)
+legend("bottomleft",legend=c("Networking", "Influence", "Connections", "InfluencePlus", "net_ppa",
+                     "net_sr","net_stuff","net_pass_sr","role_DC1","Race","tenure_length"), 
+       fill=c(2,3,4,5,6,7,8,9,10,11,12), cex=0.75)
+dev.off()
 # start with basic Logistic Regression
 # running with variables selected from Elastic Net
 
