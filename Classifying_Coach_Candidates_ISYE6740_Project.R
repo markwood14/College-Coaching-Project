@@ -1186,9 +1186,10 @@ coef(enet.model, s = enet.cv$lambda.min)
 png(file="coach_elastic_net.png")
 plot(enet.model)
 legend("bottomleft",legend=c("Networking", "Influence", "Connections", "InfluencePlus", "net_ppa",
-                     "net_sr","net_stuff","net_pass_sr","role_DC1","Race","tenure_length"), 
+                             "net_sr","net_stuff","net_pass_sr","role_DC1","Race","tenure_length"), 
        fill=c(2,3,4,5,6,7,8,9,10,11,12), cex=0.75)
 dev.off()
+
 # start with basic Logistic Regression
 # running with variables selected from Elastic Net
 
@@ -1212,14 +1213,14 @@ test$PredictedHC <-predicted_hire
 print(coach_predictions_log_model_predict)
 max(coach_predictions_log_model_predict)
 sort(coach_predictions_log_model_predict)
-# it looks look about 0.20 is the highest prediction anyone gets
-# so let's try with a threshold of 0.07
+# it looks look about 0.29 is the highest prediction anyone gets
+# so let's try with a threshold of 0.09
 
-predicted_hire <- ifelse(coach_predictions_log_model_predict > 0.07, 1,0)
+predicted_hire <- ifelse(coach_predictions_log_model_predict > 0.09, 1,0)
 
 # assess accuracy, how many predictions correct?
 mean(predicted_hire==test$BecameHC)
-#93.8% accuracy with 0.07 threshold
+#92.7% accuracy with 0.09 threshold
 # now let's look at this
 test$PredictedHC <-predicted_hire
 # at this threshold, we predict 21 to become HCs, and we get 2 right/ 4 eventually become HCs
@@ -1243,13 +1244,13 @@ kmodel_predictions <- predict(kmodel, test)
 print(kmodel_predictions)
 max(kmodel_predictions)
 sort(kmodel_predictions)
-# max is 0.5, 18 results >=0.25
+# max is 0.375, 19 results >=0.25
 # let's try a threshold of 0.2 after looking at the predictions
 predicted_hire <- ifelse(kmodel_predictions > 0.2, 1,0)
 
 # assess accuracy, how many predictions correct?
 mean(predicted_hire==test$BecameHC)
-# this gives us 94.2% accuracy
+# this gives us 93.8% accuracy
 # now let's look at this
 test$PredictedHC <-predicted_hire
 sum(test$PredictedHC)
@@ -1280,14 +1281,14 @@ testY <- test %>%
   select(BecameHC)
 testY <- testY$BecameHC
 # obtained tree_depth and n_rounds just from some guessing & checking
-boost <- adaboost(trainX, trainY, tree_depth = 2, n_rounds = 500)
+boost <- adaboost(trainX, trainY, tree_depth = 3, n_rounds = 5000)
 pred <- predict(boost, testX)
 # misclassification rate:
 mean(testY != pred)
 test$PredictedHC <-pred
 boost$confusion_matrix = table(testY, pred)
 boost
-# predicted 9 to become HC, none are correct. 2 eventually become HCs
+# predicted 4 to become HC, none are correct. 1 eventually become HC
 # How about training accuracy?
 pred <- predict(boost, trainX)
 boost$confusion_matrix = table(trainY, pred)
@@ -1303,17 +1304,18 @@ testY <- test$BecameHC
 dtrain <- xgb.DMatrix(data = trainX, label = trainY)
 dtest <- xgb.DMatrix (data = testX, label = testY)
 watchlist <- list(train=dtrain, test=dtest)
-xboost <- xgb.train(data = dtrain, max.depth = 2, eta = 1, nthread = 2, nrounds = 2, eval.metric = "error", eval.metric = "logloss", watchlist=watchlist, objective = "binary:hinge") #objective = "binary:logistic" #objective = "multi:softmax", num_class = 2 <- neither of these did any better...
+xboost <- xgb.train(data = dtrain, max.depth = 5, eta = 1, nthread = 2, nrounds = 1500, eval.metric = "error", eval.metric = "logloss", watchlist=watchlist, objective = "binary:hinge") #objective = "binary:logistic" #objective = "multi:softmax", num_class = 2 <- neither of these did any better...
 pred <- predict(xboost, testX)
 print(pred)
 max(pred)
 sort(pred)
 # gives 6 values of 1, the rest 0
 predicted_hire <- ifelse(pred > 0.1, 1,0)
+test$PredictedHC <-predicted_hire
 mean(testY != predicted_hire)
 xboost$confusion_matrix = table(testY, predicted_hire)
 xboost$confusion_matrix
-# predicts 6 hires, none are correct
+# predicts 6 hires, 1 is correct
 
 # SVM
 library(kernlab)
@@ -1337,13 +1339,10 @@ svm_pred <- predict(svm_model,testX)
 print(svm_pred)
 max(svm_pred)
 sort(svm_pred)
-# predicts 10 to be hired
+# predicts only 3 to be hired
 testaccuracy=mean(svm_pred == testY)
-#94.5% accuracy
+#95.5% accuracy
 test$PredictedHC <-svm_pred
-# of the ten predicted, none were correct in that year, but 6 were named head coaches
-# at one point. so there is something good happening here. i wonder how to best 
-#enfold that model knowledge
 
 # try again with a different C value
 # with RBF kernel, C= 10000
@@ -1352,44 +1351,82 @@ svm_pred <- predict(svm_model,testX)
 print(svm_pred)
 max(svm_pred)
 sort(svm_pred)
-# predicts 21 to be hired
+# predicts 8 to be hired
+testaccuracy=mean(svm_pred == testY)
+#95% accuracy
+test$PredictedHC <-svm_pred
+
+# keep going higher with C value
+# try again with a different C value
+# with RBF kernel, C= 100000
+svm_model <-  ksvm(trainX,trainY,type="C-svc",kernel="rbfdot" ,C=100000,scaled=TRUE)
+svm_pred <- predict(svm_model,testX)
+print(svm_pred)
+max(svm_pred)
+sort(svm_pred)
+# predicts 9 to be hired
+testaccuracy=mean(svm_pred == testY)
+#94.8% accuracy
+test$PredictedHC <-svm_pred
+
+
+# keep going higher with C value
+# try again with a different C value
+# with RBF kernel, C= 1000000
+svm_model <-  ksvm(trainX,trainY,type="C-svc",kernel="rbfdot" ,C=1000000,scaled=TRUE)
+svm_pred <- predict(svm_model,testX)
+print(svm_pred)
+max(svm_pred)
+sort(svm_pred)
+# predicts 12 to be hired
+testaccuracy=mean(svm_pred == testY)
+#94.5% accuracy
+test$PredictedHC <-svm_pred
+# 12 ends up bing the most using this kernel
+# 2 end up becoming head coaches, none in target year
+
+# keep going higher with C value
+# try again with a different C value
+# with RBF kernel, C= 10000000
+svm_model <-  ksvm(trainX,trainY,type="C-svc",kernel="rbfdot" ,C=10000000,scaled=TRUE)
+svm_pred <- predict(svm_model,testX)
+print(svm_pred)
+max(svm_pred)
+sort(svm_pred)
+# predicts 10 to be hired
 testaccuracy=mean(svm_pred == testY)
 #94% accuracy
 test$PredictedHC <-svm_pred
-# of the 21 predicted, 1 was correct in that year, but 9 were named head coaches
-# at one point. so there is something good happening here. i wonder how to best 
-#enfold that model knowledge 
 
 # try again with a different kernel
-# with polydot kernel, C=10000
-svm_model <-  ksvm(trainX,trainY,type="C-svc",kernel="polydot" ,C=10000,scaled=TRUE)
+# with polydot kernel, C=100000
+svm_model <-  ksvm(trainX,trainY,type="C-svc",kernel="polydot" ,C=100000,scaled=TRUE)
 svm_pred <- predict(svm_model,testX)
 print(svm_pred)
 max(svm_pred)
 sort(svm_pred)
 # predicts 0 to be hired
 testaccuracy=mean(svm_pred == testY)
-#96.7% accuracy because almost all are predicted not to be hired
+#96% accuracy because all are predicted not to be hired
 test$PredictedHC <-svm_pred
 
 # try again with a different kernel
-# with laplacedot kernel, C=10000
-svm_model <-  ksvm(trainX,trainY,type="C-svc",kernel="laplacedot" ,C=10000,scaled=TRUE)
+# with laplacedot kernel, C=1000
+svm_model <-  ksvm(trainX,trainY,type="C-svc",kernel="laplacedot" ,C=10^8,scaled=TRUE)
 svm_pred <- predict(svm_model,testX)
 print(svm_pred)
 max(svm_pred)
 sort(svm_pred)
-# predicts 13 to be hired
+# predicts 11 to be hired
 testaccuracy=mean(svm_pred == testY)
 #94.8% accuracy because almost all are predicted not to be hired
 test$PredictedHC <-svm_pred
-# # of the 13 predicted, 0 were correct in that year, but 6 were named head coaches
+# # of the 11 predicted, 0 were correct in that year, but 9 were named head coaches
 # at one point. so there is something good happening here. i wonder how to best 
 #enfold that model knowledge 
 
 # trying neural network 
 
-install.packages('neuralnet')
 library(neuralnet)
 
 neuralnet_model <- neuralnet(BecameHC~Connections+net_ppa+net_pass_sr+role_DC1+Race+tenure_length, data= train) 
@@ -1397,17 +1434,14 @@ neural_pred <- predict(neuralnet_model,test)
 print(neural_pred)
 max(neural_pred)
 sort(neural_pred)
-# max is about 0.09, will first set threshold at 0.065
-predicted_hire <- ifelse(neural_pred > 0.065, 1,0)
+# max is about 0.11, will first set threshold at 0.03
+predicted_hire <- ifelse(neural_pred > 0.03, 1,0)
 # assess accuracy, how many predictions correct?
 mean(predicted_hire==test$BecameHC)
 # this gives us 93.3% accuracy
 # now let's look at this
 test$PredictedHC <-predicted_hire
-testaccuracy=mean(svm_pred == testY)
-#94.8% accuracy because almost all are predicted not to be hired
-test$PredictedHC <-svm_pred
-# # of the 22 predicted, 1 was correct in that year, but 3 were named head coaches
+# # of the 21 predicted, 1 was correct in that year, but 3 were named head coaches
 # at one point. # this is a much worse result than SVM and others
 
 # IMO, SVM with rbf kernel is the most impressive so far
@@ -1419,11 +1453,11 @@ test$PredictedHC <-svm_pred
 # Principal Component Analysis to reduce to 2 variables or Principal Components:
 library(stats)
 pca <- prcomp(coordinators_training_year_with_metrics_all[,c("Connections", 
-                                                                      "net_ppa", 
-                                                                      "net_pass_sr", 
-                                                                      "role_DC1",
-                                                                      "Race",
-                                                                      "tenure_length")], center = TRUE, scale. = TRUE)
+                                                             "net_ppa", 
+                                                             "net_pass_sr", 
+                                                             "role_DC1",
+                                                             "Race",
+                                                             "tenure_length")], center = TRUE, scale. = TRUE)
 summary(pca)
 # So the 1st two Principal Components basically contains 57.71% of the useful information in the total dataset (explains 57.7% of the variance)
 install_github("vqv/ggbiplot")
@@ -1444,4 +1478,192 @@ set.seed(5)
 # now run Logistic Regression on the PC1 & PC2
 pca_logistic = glm(BecameHC ~ PC1+PC2, data=reduced_data[,c(4,5,3)], family=binomial(link='logit'))
 summary(pca_logistic)
-# since logistic regression couldn't form a great decision boundary on the whole dataset, and the 1st 2 Principal Components only explain 58% of the data, this just isn't going to be useful.
+# since logistic regression couldn't form a great decision boundary on the whole dataset, 
+#and the 1st 2 Principal Components only explain 58% of the data, this just isn't going to be 
+# useful.
+
+# using our best model to make predictions for 2022
+
+target_year = 2022
+
+d_coordinators_training_year <- defensive_coordinators1 %>% filter(Season ==target_year-1)
+o_coordinators_training_year <- offensive_coordinators1 %>% filter(Season == target_year-1)
+coordinators_training_year <- rbind(o_coordinators_training_year,d_coordinators_training_year)
+coordinators_training_year <- coordinators_training_year %>% select(College, Season, Coach, Role, Race)
+#Include race of each coach in this df.
+
+# Run Louvain on entire coaching data set from previous 15 years (2006-2020, or t-15 to t-1)
+# (not just training set, not just coordinators)
+coaching_tree_training_years <- coaching_tree %>% filter(Season >=target_year-15 & Season <=target_year-1)
+coaching_tree_sums_training_years <- coaching_tree_training_years %>% 
+  group_by(Coach, Coordinator) %>%
+  summarise(years_together = n())
+edges_df <- coaching_tree_sums_training_years %>%
+  rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
+
+head_coaches_training_years <- head_coaches1 %>% filter(Season >=target_year-15)
+d_coordinators_training_period <- defensive_coordinators1 %>% filter(Season>=target_year-15)
+o_coordinators_training_period <- offensive_coordinators1 %>% filter(Season>=target_year-15)
+vertex_df <- head_coaches_training_years %>%
+  rbind(d_coordinators_training_period) %>%
+  rbind(o_coordinators_training_period) %>%
+  select(Coach, Race) %>%
+  distinct()
+graph <- igraph::graph_from_data_frame(d = edges_df, directed = TRUE, vertices = vertex_df)
+v_name <- c()
+n_neighbors <- c()
+for(v in V(graph)$name) {
+  v_name <- append(v_name, v)
+  n_neighbors <- append(n_neighbors, 
+                        length(neighbors(graph, v)))
+}
+v_name[which.max(n_neighbors)]
+n_neighbors[which.max(n_neighbors)]
+dt <- distance_table(graph, directed = TRUE)
+# calculate Degree Centrality for all vertices. Degree Centrality is the # of edges connected to the vertex, a measure of immediate connection.
+degree_centrality <- reshape2::melt(data.frame(as.list(degree(graph))))
+# Closeness Centrality
+closeness_centrality <- reshape2::melt(data.frame(as.list(closeness(graph))))
+# Betweenness Centrality: a measure of how important a given vertex is in connecting other pairs of vertices in the graph. People with high Betweenness Centrality are known as Superconnectors (or networkers)
+betweenness_centrality <- reshape2::melt(data.frame(as.list(betweenness(graph))))
+# Eigenvector Centrality: A measure of overall influence (if you're equally interested in lots of direct connections as well as few connections to other highly connected people)
+eigenvector_centrality <- reshape2::melt(data.frame(as.list(eigen_centrality(graph)$vector)))
+# Now reformat the coach's names, add back race, and check mean or median degree centrality by race. Can do this for 1st-degree, 2nd-degree, etc. if we want.
+eigenvector_centrality$metric <- "eigen"
+betweenness_centrality$metric <- "betweenness"
+closeness_centrality$metric <- "closeness"
+degree_centrality$metric <- "degree"
+
+melted_vertex <- eigenvector_centrality %>%
+  rbind(betweenness_centrality) %>%
+  rbind(closeness_centrality) %>%
+  rbind(degree_centrality)
+centrality_df <- melted_vertex %>% reshape2::dcast(variable ~ metric)
+centrality_df$variable <- gsub("\\."," ", centrality_df$variable)
+centrality_df <- centrality_df %>%
+  left_join(vertex_df, by = c("variable" = "Coach"))
+
+centrality_df <- centrality_df %>%
+  mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
+                        ifelse(variable == "Joe Salave a", "Other",
+                               ifelse(variable == "O Neill Gilbert", "Black",
+                                      ifelse(variable == "Brian Jean Mary", "Black",
+                                             ifelse(variable == "Re quan Boyette", "Black",
+                                                    ifelse(variable == "J D Williams", "Black",
+                                                           ifelse(variable == "Maurice Crum Jr ", "Black",
+                                                                  ifelse(variable == "Time Harris Jr ", "Black",
+                                                                         Race)))))))))
+
+centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
+centrality_mean <- centrality_df %>% 
+  group_by(Race) %>%
+  summarise(eigen = mean(eigen),
+            betweenness = mean(betweenness),
+            closeness = mean(closeness),
+            degree = mean(degree))
+# So white coaches are 1.43 times more connected than Black coaches (degree) on average.
+centrality_median <- centrality_df %>% 
+  group_by(Race) %>%
+  summarise(eigen = median(eigen),
+            betweenness = median(betweenness),
+            closeness = median(closeness),
+            degree = median(degree))
+# To add centralities as vertex properties in graphs:
+V(graph)$degree <- degree(graph)
+V(graph)$betweenness <- betweenness(graph)
+V(graph)$closeness <- closeness(graph)
+V(graph)$eigen <- eigen_centrality(graph)$vector
+
+centrality_df_modified <- centrality_df %>% select(variable, betweenness, closeness, degree, eigen, Race)
+colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
+centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
+# centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
+
+# the coaches in this DF have no punctuation in their names...
+centrality_df_scaled <- centrality_df_scaled %>% 
+  mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
+                        ifelse(Coach == "A J  Ricker", "A.J. Ricker",
+                               ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
+                                      ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
+                                             ifelse(Coach == "D J  Durkin", "D.J. Durkin",
+                                                    ifelse(Coach == "A J  Milwee", "A.J. Milwee",
+                                                           ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
+                                                                  ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
+                                                                         ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
+                                                                                ifelse(Coach == "D J  Eliot", "D.J. Eliot",
+                                                                                       ifelse(Coach == "J C  Price", "J.C. Price",
+                                                                                              ifelse(Coach == "Joe Salave a", "Joe Salave'a",
+                                                                                                     ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
+                                                                                                            ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
+                                                                                                                   ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
+                                                                                                                          ifelse(Coach == "T J  Weist", "T.J. Weist",
+                                                                                                                                 ifelse(Coach == "T J  Woods", "T.J. Woods",
+                                                                                                                                        ifelse(Coach == 'Jim O Neil', "Jim O'Neil",
+                                                                                                                                               ifelse(Coach == 'Bill O Brien', "Bill O'Brien",
+                                                                                                                                                      ifelse(Coach == 'Re quan Boyette', "Re'quan Boyette",
+                                                                                                                                                             ifelse(Coach == 'Tim Harris Jr ', "Tim Harris Jr.",
+                                                                                                                                    
+                                                                                                                                        Coach))))))))))))))))))))))
+
+# Assign scores for each Louvain metric to each coach in the filtered data set for training year
+
+coordinators_training_year_with_louvain <- coordinators_training_year %>% left_join(centrality_df_scaled, by = "Coach")
+# Obtain performance metrics (averages) for each coach from 2005 to 2020 (t-1).
+# Join to the data frame.
+# merge(df1, df2, by.x=c('col1', 'col2'), by.y=c('col1', 'col2'))
+coordinators_training_year_with_dcmetrics <-merge(coordinators_training_year_with_louvain, dc_impact_results, by.x = c("Coach", "College"), by.y = c("Coach", "team"))
+coordinators_training_year_with_ocmetrics <-merge(coordinators_training_year_with_louvain, oc_impact_results, by.x = c("Coach", "College"), by.y = c("Coach", "team"))
+coordinators_training_year_with_metrics <- rbind(coordinators_training_year_with_dcmetrics, coordinators_training_year_with_ocmetrics) %>% select(Coach, College, Season, Role, Networking, Influence, Connections, InfluencePlus, Race, net_ppa, net_sr, net_stuff, net_pass_sr)
+
+# save current year
+coordinators_training_year_2022_with_metrics <- coordinators_training_year_with_metrics
+
+# now want to change values in Role column to either be 0 or 1 (offense is 0, defense is 1)
+coordinators_training_year_2022_with_metrics$role_DC1 <- ifelse(grepl("Defensive", coordinators_training_year_2022_with_metrics$Role), 1, NA)
+coordinators_training_year_2022_with_metrics$role_DC1 <- ifelse(grepl("Offensive", coordinators_training_year_2022_with_metrics$Role), 0, coordinators_training_year_with_metrics_all$role_DC1)
+
+
+
+tenure_df <- defensive_coordinators1 %>%
+  rbind(offensive_coordinators1) %>%
+  group_by(Coach) %>% 
+  summarise(tenure_length = n())
+coordinators_training_year_2022_with_metrics <- coordinators_training_year_2022_with_metrics %>%
+  left_join(tenure_df)
+coordinators_training_year_2022_with_metrics <- coordinators_training_year_2022_with_metrics %>%
+  mutate(Race = ifelse(Race=="Black", 1, 0))
+
+testX <- cbind(coordinators_training_year_2022_with_metrics$Connections, 
+                coordinators_training_year_2022_with_metrics$net_ppa, 
+                coordinators_training_year_2022_with_metrics$net_pass_sr, 
+                coordinators_training_year_2022_with_metrics$role_DC1,
+                coordinators_training_year_2022_with_metrics$Race,
+                coordinators_training_year_2022_with_metrics$tenure_length)
+
+# using model of SVM with laplacedot kernel, C=10000
+svm_pred <- predict(svm_model,testX)
+print(svm_pred)
+max(svm_pred)
+sort(svm_pred)
+# predicts 2 to be hired
+coordinators_training_year_2022_with_metrics$PredictedHC <-svm_pred
+# Bill O'Brien and Jeff Grimes - good candidates to keep an eye on for future
+
+testX2022 <- as.data.frame(cbind(coordinators_training_year_2022_with_metrics$Connections, 
+                                 coordinators_training_year_2022_with_metrics$net_ppa, 
+                                 coordinators_training_year_2022_with_metrics$net_pass_sr, 
+                                 coordinators_training_year_2022_with_metrics$role_DC1,
+                                 coordinators_training_year_2022_with_metrics$Race,
+                                 coordinators_training_year_2022_with_metrics$tenure_length))
+colnames(testX2022) <- c("Connections", "net_ppa", "net_pass_sr", "role_DC1", "Race", "tenure_length")
+#using kknn model to predict
+kmodel_predictions <- predict(kmodel, testX2022)
+print(kmodel_predictions)
+max(kmodel_predictions)
+sort(kmodel_predictions)
+# max is 0.375, 10 results >=0.25
+# let's try a threshold of 0.2 after looking at the predictions
+predicted_hire <- ifelse(kmodel_predictions > 0.2, 1,0)
+
+# predicts 10 to be hired, all white
+coordinators_training_year_2022_with_metrics$PredictedHC <-kmodel_predictions
