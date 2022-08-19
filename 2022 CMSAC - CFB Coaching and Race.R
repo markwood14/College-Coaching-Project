@@ -9,6 +9,8 @@ if (any(installed_packages == FALSE)) {
 
 # Packages loading
 invisible(lapply(packages, library, character.only = TRUE))
+# installation for ggbiplot
+install_github("vqv/ggbiplot")
 
 # Packages for Louvain network analysis: igraph, qgraph, corrplot, Hmisc, ggraph, networkD3
 # packages for classification/prediction: kknn, JOUSBoost, xgboost, kernlab, neuralnet, stats, ggbiplot
@@ -17,14 +19,18 @@ invisible(lapply(packages, library, character.only = TRUE))
 # Set up the primary dataframes:
 
 # Read and clean the coaches csv
-coach_df1 <- read.csv("https://raw.githubusercontent.com/rebinion/College-Coaching-Project/main/coaches_by_race.csv?token=GHSAT0AAAAAABX2FEXI6CEG7CMDYRU3IKDYYX7SK5A")
+library(RCurl)
+x <- getURL("https://raw.githubusercontent.com/rebinion/College-Coaching-Project/main/coaches_by_race.csv")
+
+coach_df1 <- read.csv(text=x)
+
 coach_df1 <- coach_df1 %>% 
   mutate(College = ifelse(College == "FAU", "Florida Atlantic",
                           ifelse(College == "FIU", "Florida International",
                                  ifelse(College == "Hawaii", "Hawai'i",
                                         ifelse(College == "Massachusetts", "UMass", 
                                                ifelse(College == "Miami (FL)", "Miami",
-                                                      ifelse(College == "San Jose State", "San José State",
+                                                      ifelse(College == "San Jose State", "San JosÃ© State",
                                                              ifelse(College == "Southern Miss", "Southern Mississippi",
                                                                     ifelse(College == "UConn", "Connecticut",
                                                                            ifelse(College == "UL Monroe", "Louisiana Monroe",
@@ -249,8 +255,9 @@ head_coach_impact <- data.frame()
 # Charlotte did not exist before 2015, so it errored out. starting the loop again from row 66, Will Healy taking over Charlotte
 # Same error for Coastal Carolina, need to re-run loop starting at row 73 with Chadwell
 # Same error for UT San Antonio, need to re-run loop starting at row 342 with Wilson
-
-for(i in 342:nrow(head_coaches_recent)){
+# removing the three coach tenures at Charlotte, Coastal, and UTSA where there is no before for comparison
+head_coaches_recent <- head_coaches_recent[!(head_coaches_recent$Coach=="Brad Lambert" | head_coaches_recent$Coach=="Joe Moglia" |head_coaches_recent$Coach=="Larry Coker" ),]
+for(i in 1:nrow(head_coaches_recent)){
   # create a vector of years from start to end - done
   
   start_year <- as.integer(head_coaches_recent[i, "year_start"])
@@ -347,7 +354,7 @@ for(i in 342:nrow(head_coaches_recent)){
 
 head_coach_impact_weighted <- head_coach_impact %>% filter(BeforeAfter == "after") %>% group_by(Coach, team) %>%
   summarise(tenure_length = n())
-# use code from Coaching Analysis to summarise before/after, net change, etc
+
 head_coach_impact_summary <- head_coach_impact %>% select(c("Coach", "team", "off_ppa", "off_success_rate", "off_stuff_rate", "off_passing_plays_success_rate",
                                                             "def_ppa", "def_success_rate", "def_stuff_rate", "def_passing_plays_success_rate", "FPI_Rating", "Race", "BeforeAfter"))
 
@@ -362,9 +369,6 @@ head_coach_impact_summary <- head_coach_impact_summary %>% group_by(Coach, team,
   mean_defpasssr = mean(def_passing_plays_success_rate),
   mean_fpi = mean(FPI_Rating)
 )
-
-# fixing to account for the three instances with no "before"
-head_coach_impact_summary <- head_coach_impact_summary[-c(51,340,403),]
 
 # Calculating the net (offense-defense after-before) impact on PPA, SR, Stuff, Pass SR, FPI
 
@@ -386,9 +390,6 @@ colnames(head_coach_impact_results) <- c(toString("Coach"), "Team", "Race", "Net
 
 # save(head_coach_impact_results, file="head_coach_impact_results.Rda")
 # load("head_coach_impact_results.Rda")
-
-# need to remove the three coaches we removed in the other df - Lambert, Moglia, Coker UTSA
-head_coach_impact_weighted <- head_coach_impact_weighted[-c(26, 171, 203),]
 
 # add tenure length to this Df so we can weight
 head_coach_tenures <- data.frame(head_coach_impact_weighted$tenure_length)
@@ -495,6 +496,9 @@ oc_impact <- data.frame()
 
 # Charlotte did not exist before 2015, so it errored out. starting the loop again from row 135, Shane Montgomery taking over Charlotte
 # Same error for UT San Antonio, need to re-run loop starting at row 771
+# editing the initial df to remove the problematic rows
+# removing the three coach tenures at Charlotte, Coastal, and UTSA where there is no before for comparison
+oc_recent <- oc_recent[!(oc_recent$Coach=="Jeff Mullen" | oc_recent$Coach=="Greg Adkins" |oc_recent$Coach=="Kevin Brown" ),]
 
 for(i in 1:nrow(oc_recent)){
   # create a vector of years from start to end - done
@@ -574,7 +578,6 @@ for(i in 1:nrow(oc_recent)){
 # save(oc_impact, file="oc_impact.Rda")
 # load("oc_impact.Rda")
 
-# use code from Coaching Analysis to summarise before/after, net change, etc
 oc_impact_summary <-oc_impact %>% select(c("Coach", "team", "off_ppa", "off_success_rate", "off_stuff_rate", "off_passing_plays_success_rate", "Race", "BeforeAfter"))
 
 oc_impact_summary <- oc_impact_summary %>% 
@@ -585,8 +588,6 @@ oc_impact_summary <- oc_impact_summary %>%
             mean_pass_sr = mean(off_passing_plays_success_rate)
   )
 
-# fixing to account for the three instances with no "before"
-oc_impact_summary <- oc_impact_summary[-c(737, 920),]
 
 # Calculating the net (offense-defense after-before) impact on PPA, SR, Stuff, Pass SR, FPI
 
@@ -611,10 +612,6 @@ while (i < nrow(oc_impact_summary)){
 oc_impact_results_test <- lapply(oc_impact_results, unlist)
 oc_impact_results_test <- data.frame(lapply(oc_impact_results_test, `length<-`, max(lengths(oc_impact_results_test))))
 oc_impact_results <- oc_impact_results_test
-
-# updating a few of the Race entries (this is now done at the beginning, but if you're starting from just loading the previously saved "oc_impact_results.Rda", you'll need to do this again)
-oc_impact_results["Race"][oc_impact_results["Coach"] == "Billy Gonzales"] <- "Other"
-oc_impact_results["Race"][oc_impact_results["Coach"] == "Ron Prince"] <- "Black"
 
 # doing some preliminary analysis
 oc_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_ppa))
@@ -662,7 +659,8 @@ dc_impact <- data.frame()
 # Charlotte did not exist before 2015, so it errored out. Starting the loop again from row 115.
 # Same error for Coastal Carolina, need to re-run loop starting at row 134
 # Same error for UT San Antonio, need to re-run loop starting at row 764
-
+# removing the three coach tenures at Charlotte, Coastal, and UTSA where there is no before for comparison
+dc_recent <- dc_recent[!(dc_recent$Coach=="Matt Wallerstedt" | dc_recent$Coach=="Mickey Matthews" |dc_recent$Coach=="Neal Neathery" ),]
 for(i in 1:nrow(dc_recent)){
   # create a vector of years from start to end - done
   
@@ -741,7 +739,6 @@ for(i in 1:nrow(dc_recent)){
 # save(dc_impact, file="dc_impact.Rda")
 # load("dc_impact.Rda")
 
-# use code from Coaching Analysis to summarise before/after, net change, etc
 dc_impact_summary <-dc_impact %>% select(c("Coach", "team", "def_ppa", "def_success_rate", "def_stuff_rate", "def_passing_plays_success_rate",
                                            "Race", "BeforeAfter"))
 
@@ -751,9 +748,6 @@ dc_impact_summary <- dc_impact_summary %>% group_by(Coach, team, Race, BeforeAft
   mean_stuff = mean(def_stuff_rate),
   mean_pass_sr = mean(def_passing_plays_success_rate),
 )
-
-# fixing to account for the three instances with no "before"
-dc_impact_summary <- dc_impact_summary[-c(1105, 1114, 1189),]
 
 # Calculating the net (offense-defense after-before) impact on PPA, SR, Stuff, Pass SR, FPI
 
@@ -919,7 +913,7 @@ former_dc_head_impact %>% group_by(Race) %>% filter(!is.na(Net_FPI)) %>% summari
 #   1 Black           -6.80  
 # 2 Other           -1.96  
 # 3 White            0.0311
-# This definitely does not support hypothesis
+
 # Then propose some black defensive coordinators as good head coach options?
 # Brian Norwood
 
