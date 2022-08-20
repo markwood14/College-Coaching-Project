@@ -1,5 +1,5 @@
 # Install & load packages
-packages <- c("remotes", "Rcpp", "dplyr", "readr", "tidyverse", "devtools", "cfbfastR", "gt", "ggimage", "ggeasy", "reshape2", "purrr", "parallel", "future", "data.table", "stringr", "ggpubr", "RColorBrewer", "igraph", "qgraph", "corrplot", "Hmisc", "ggraph", "networkD3", "kknn", "JOUSBoost", "xgboost", "kernlab", "neuralnet", "stats", "ggbiplot")
+packages <- c("remotes", "Rcpp", "dplyr", "readr", "tidyverse", "devtools", "cfbfastR", "gt", "ggimage", "ggeasy", "reshape2", "purrr", "parallel", "future", "data.table", "stringr", "ggpubr", "RColorBrewer", "igraph", "qgraph", "corrplot", "Hmisc", "ggraph", "networkD3", "kknn", "JOUSBoost", "xgboost", "kernlab", "neuralnet", "stats", "ggbiplot", "RCurl")
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -9,8 +9,6 @@ if (any(installed_packages == FALSE)) {
 
 # Packages loading
 invisible(lapply(packages, library, character.only = TRUE))
-# installation for ggbiplot
-install_github("vqv/ggbiplot")
 
 # Packages for Louvain network analysis: igraph, qgraph, corrplot, Hmisc, ggraph, networkD3
 # packages for classification/prediction: kknn, JOUSBoost, xgboost, kernlab, neuralnet, stats, ggbiplot
@@ -19,13 +17,13 @@ install_github("vqv/ggbiplot")
 # Set up the primary dataframes:
 
 # Read and clean the coaches csv
-library(RCurl)
+
 x <- getURL("https://raw.githubusercontent.com/rebinion/College-Coaching-Project/main/coaches_by_race.csv")
 
 coach_df1 <- read.csv(text=x)
 
 coach_df1 <- coach_df1 %>% 
-  mutate(College = ifelse(College == "FAU", "Florida Atlantic",
+  dplyr::mutate(College = ifelse(College == "FAU", "Florida Atlantic",
                           ifelse(College == "FIU", "Florida International",
                                  ifelse(College == "Hawaii", "Hawai'i",
                                         ifelse(College == "Massachusetts", "UMass", 
@@ -40,7 +38,7 @@ coach_df1 <- coach_df1 %>%
 coach_df <- coach_df1 %>%
   filter(Race != "#N/A") %>%
   group_by(Coach, College, Role) %>%
-  mutate(year_start = min(Season),
+  dplyr::dplyr::mutate(year_start = min(Season),
          year_end = max(Season)) %>%
   select(c(College, Coach, Role, Race, year_start, year_end)) %>%
   distinct()
@@ -76,26 +74,26 @@ defensive_coordinators <- coordinators %>%
 # Currently each DF has separate rows (splits up tenures) when a coach, for example, goes from "Head Coach/Offensive Coordinator" to just Head Coach or "Offensive Coordinator/WR Coach" to just Offensive Coordinator. The following combines those tenures into 1 row..
 head_coaches <- head_coaches %>% 
   group_by(College, Coach) %>%
-  mutate(year_start = min(year_start), 
+  dplyr::mutate(year_start = min(year_start), 
          year_end = max(year_end)) %>%
   distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
 defensive_coordinators <- defensive_coordinators %>%
   group_by(College, Coach) %>%
-  mutate(year_start = min(year_start),
+  dplyr::mutate(year_start = min(year_start),
          year_end = max(year_end)) %>%
   distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
 offensive_coordinators <- offensive_coordinators %>%
   group_by(College, Coach) %>%
-  mutate(year_start = min(year_start),
+  dplyr::mutate(year_start = min(year_start),
          year_end = max(year_end)) %>%
   distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
 # updating a few of the Race entries
 offensive_coordinators <- offensive_coordinators %>%
-  mutate(Race = ifelse(Coach == "Billy Gonzales", "Other",
+  dplyr::mutate(Race = ifelse(Coach == "Billy Gonzales", "Other",
                        ifelse(Coach == "Ron Prince", "Black",
                               Race)))
 defensive_coordinators <- defensive_coordinators %>%
-  mutate(Race = ifelse(Coach == "Phil Elmassian", "White",
+  dplyr::mutate(Race = ifelse(Coach == "Phil Elmassian", "White",
                        ifelse(Coach == "Chris Simpson", "Black",
                               ifelse(Coach == "John Chavis", "White",
                                      ifelse(Coach == "John Papuchis", "White",
@@ -121,7 +119,7 @@ oc_recent <- offensive_coordinators %>% filter(year_start >= 2006)
 dc_recent <- defensive_coordinators %>% filter(year_start >= 2006)
 
 # just to get a basic idea of sample size:
-head_coaches_recent %>% group_by(Race) %>% summarise(num_race = n())
+head_coaches_recent %>% group_by(Race) %>% dplyr::summarise(num_race = dplyr::n())
 
 ### The following dataframes have 1 row per year rather than 1 row per tenure.
 
@@ -152,54 +150,54 @@ defensive_coordinators1 <- coordinators1 %>%
   filter(!str_detect(Role, "Head Coach"))
 
 head_coaches1 <- head_coaches1 %>%
-  mutate(Race = ifelse(Coach == "Ron Prince", "Black", Race))
+  dplyr::mutate(Race = ifelse(Coach == "Ron Prince", "Black", Race))
 offensive_coordinators1 <- offensive_coordinators1 %>%
-  mutate(Race = ifelse(Coach == "Billy Gonzales", "Other",
+  dplyr::mutate(Race = ifelse(Coach == "Billy Gonzales", "Other",
                        ifelse(Coach == "Ron Prince", "Black",
                               Race)))
 defensive_coordinators1 <- defensive_coordinators1 %>%
-  mutate(Race = ifelse(Coach == "Phil Elmassian", "White",
+  dplyr::mutate(Race = ifelse(Coach == "Phil Elmassian", "White",
                        ifelse(Coach == "Chris Simpson", "Black",
                               ifelse(Coach == "John Chavis", "White",
                                      ifelse(Coach == "John Papuchis", "White",
                                             ifelse(Coach == "Justin Ena", "White",
                                                    ifelse(Coach == "Justin Hamilton", "White",
                                                           Race)))))))
-head_coaches %>% group_by(Race) %>% summarise(num_race = n())
-head_coaches1 %>% group_by(Race) %>% summarise(num_race = n())
+head_coaches %>% group_by(Race) %>% dplyr::summarise(num_race = n())
+head_coaches1 %>% group_by(Race) %>% dplyr::summarise(num_race = n())
 
 
 ##########################################################################################
 # High Level Analysis using the '1 row per year' dfs
-coach_df1 %>% group_by(Race) %>% summarise(num_race = n())
+coach_df1 %>% group_by(Race) %>% dplyr::summarise(num_race = n())
 
-head_coaches1 %>% group_by(Race) %>% summarise(num_race = n())
+head_coaches1 %>% group_by(Race) %>% dplyr::summarise(num_race = n())
 #   Race  num_race
-#2 Black       69
-#3 Other        8
-#4 White      557
-defensive_coordinators1 %>% group_by(Race) %>% summarise(num_race = n())
+#2 Black       219
+#3 Other        44
+#4 White      2423
+defensive_coordinators1 %>% group_by(Race) %>% dplyr::summarise(num_race = n())
 #  Race  num_race
-#2 Black      230
-#3 Other       23
-#4 White     1094
-offensive_coordinators1 %>% group_by(Race) %>% summarise(num_race = n())
+#2 Black      414
+#3 Other       43
+#4 White     2415
+offensive_coordinators1 %>% group_by(Race) %>% dplyr::summarise(num_race = n())
 #Race  num_race
-#2 Black      121
-#3 Other       14
-#4 White     1108
+#2 Black      244
+#3 Other       31
+#4 White     2484
 
 ##########################################################################################
 # How long do coaches stay in their roles?
 
 tenure <- head_coaches %>%
-  mutate(Role = "Head Coach") %>%
+  dplyr::mutate(Role = "Head Coach") %>%
   rbind(offensive_coordinators %>%
-          mutate(Role = "Offensive Coordinator")) %>%
+          dplyr::mutate(Role = "Offensive Coordinator")) %>%
   rbind(defensive_coordinators %>%
-          mutate(Role = "Defensive Coordinator")) %>%
-  mutate(Race = ifelse(Race == "?", "Other", Race)) %>%
-  mutate(duration = year_end - year_start+1)
+          dplyr::mutate(Role = "Defensive Coordinator")) %>%
+  dplyr::mutate(Race = ifelse(Race == "?", "Other", Race)) %>%
+  dplyr::mutate(duration = year_end - year_start+1)
 tenure$Race <- factor(as.factor(tenure$Race), levels = c('White', 'Black', 'Other'))
 tenure$Role <- factor(as.factor(tenure$Role), levels = c('Head Coach', 'Offensive Coordinator', 'Defensive Coordinator'))
 # Ken Niumatalolo and his OC, Ivin Jasper, are the 2 Other/Black coaches w/ 14 years. Followed by David Shaw, Stanford HC, 11 years; Brian Stewart, Maryland DC, 10 years; John Chavis, Tennessee DC, 9 years; James Franklin, Penn State HC, 8 years.
@@ -228,17 +226,17 @@ tenure_jitter
 tenure$Role <- as.character(tenure$Role)
 tenure$Race <- as.character(tenure$Race)
 tenure %>%
-  mutate(Role = ifelse(Role=="Offensive Coordinator","Coordinator",
+  dplyr::mutate(Role = ifelse(Role=="Offensive Coordinator","Coordinator",
                        ifelse(Role=="Defensive Coordinator","Coordinator",Role))) %>%
   group_by(Race, Role) %>% 
-  summarise(duration = mean(duration))
+  dplyr::summarise(duration = mean(duration))
 # Race  Role        duration
-# 1 Black Coordinator     2.26
-# 2 Black Head Coach      3.36
-# 3 Other Coordinator     2.31
+# 1 Black Coordinator     2.25
+# 2 Black Head Coach      3.41
+# 3 Other Coordinator     2.23
 # 4 Other Head Coach      4.9 
-# 5 White Coordinator     2.72
-# 6 White Head Coach      4.94
+# 5 White Coordinator     2.73
+# 6 White Head Coach      4.97
 
 # Black coaches have shorter tenures than their white counterparts at every level. Why?
 
@@ -257,6 +255,9 @@ head_coach_impact <- data.frame()
 # Same error for UT San Antonio, need to re-run loop starting at row 342 with Wilson
 # removing the three coach tenures at Charlotte, Coastal, and UTSA where there is no before for comparison
 head_coaches_recent <- head_coaches_recent[!(head_coaches_recent$Coach=="Brad Lambert" | head_coaches_recent$Coach=="Joe Moglia" |head_coaches_recent$Coach=="Larry Coker" ),]
+# This for loop can take several hours to run; the resulting dataframe can be loaded from github
+# using the code right below the for loop
+
 for(i in 1:nrow(head_coaches_recent)){
   # create a vector of years from start to end - done
   
@@ -351,14 +352,16 @@ for(i in 1:nrow(head_coaches_recent)){
 
 # save(head_coach_impact, file="head_coach_impact.Rda")
 # load("head_coach_impact.Rda")
+temp <- "https://github.com/rebinion/College-Coaching-Project/blob/main/head_coach_impact.Rda?raw=true"
+load(url(temp))
 
 head_coach_impact_weighted <- head_coach_impact %>% filter(BeforeAfter == "after") %>% group_by(Coach, team) %>%
-  summarise(tenure_length = n())
-
+  dplyr::summarise(tenure_length = n())
+head_coach_impact_weighted <- head_coach_impact_weighted[!(head_coach_impact_weighted$Coach=="Brad Lambert" | head_coach_impact_weighted$Coach=="Joe Moglia" |head_coach_impact_weighted$Coach=="Larry Coker" ),]
 head_coach_impact_summary <- head_coach_impact %>% select(c("Coach", "team", "off_ppa", "off_success_rate", "off_stuff_rate", "off_passing_plays_success_rate",
                                                             "def_ppa", "def_success_rate", "def_stuff_rate", "def_passing_plays_success_rate", "FPI_Rating", "Race", "BeforeAfter"))
 
-head_coach_impact_summary <- head_coach_impact_summary %>% group_by(Coach, team, Race, BeforeAfter) %>% summarise(
+head_coach_impact_summary <- head_coach_impact_summary %>% group_by(Coach, team, Race, BeforeAfter) %>% dplyr::summarise(
   mean_ppa = mean(off_ppa), 
   mean_sr = mean(off_success_rate),
   mean_stuff = mean(off_stuff_rate),
@@ -374,11 +377,12 @@ head_coach_impact_summary <- head_coach_impact_summary %>% group_by(Coach, team,
 
 head_coach_impact_results <- data.frame()
 i <- 1
+# this while loop takes about a minute to run
 while (i < nrow(head_coach_impact_summary)){
   head_coach_results <- data.frame()
   row_to_add <- data.frame()
   head_coach_results <- head_coach_impact_summary[i,] %>% group_by(Coach, team, Race) %>% 
-    summarise(net_ppa = head_coach_impact_summary[i,"mean_ppa"]-head_coach_impact_summary[i+1, "mean_ppa"] - head_coach_impact_summary[i,"mean_defppa"]+head_coach_impact_summary[i+1, "mean_defppa"],
+    dplyr::summarise(net_ppa = head_coach_impact_summary[i,"mean_ppa"]-head_coach_impact_summary[i+1, "mean_ppa"] - head_coach_impact_summary[i,"mean_defppa"]+head_coach_impact_summary[i+1, "mean_defppa"],
               net_sr = head_coach_impact_summary[i,"mean_sr"]-head_coach_impact_summary[i+1, "mean_sr"] - head_coach_impact_summary[i,"mean_defsr"]+head_coach_impact_summary[i+1, "mean_defsr"],
               net_stuff = head_coach_impact_summary[i,"mean_stuff"]-head_coach_impact_summary[i+1, "mean_stuff"] - head_coach_impact_summary[i,"mean_defstuff"]+head_coach_impact_summary[i+1, "mean_defstuff"],
               net_pass_sr = head_coach_impact_summary[i,"mean_pass_sr"]-head_coach_impact_summary[i+1, "mean_pass_sr"] - head_coach_impact_summary[i,"mean_defpasssr"]+head_coach_impact_summary[i+1, "mean_defpasssr"],
@@ -386,12 +390,15 @@ while (i < nrow(head_coach_impact_summary)){
   head_coach_impact_results <- head_coach_impact_results %>% bind_rows(head_coach_results)
   i=i+2
 }
+
 colnames(head_coach_impact_results) <- c(toString("Coach"), "Team", "Race", "Net_PPA", "Net_SR", "Net_Stuff_Rate", "Net_Pass_SR", "Net_FPI")
 
 # save(head_coach_impact_results, file="head_coach_impact_results.Rda")
 # load("head_coach_impact_results.Rda")
-
+temp <- "https://github.com/rebinion/College-Coaching-Project/blob/main/head_coach_impact_results.Rda?raw=true"
+load(url(temp))
 # add tenure length to this Df so we can weight
+
 head_coach_tenures <- data.frame(head_coach_impact_weighted$tenure_length)
 head_coach_impact_results <- head_coach_impact_results %>% bind_cols(head_coach_tenures)
 
@@ -401,10 +408,10 @@ head_coach_impact_results_test <- data.frame(lapply(head_coach_impact_results_te
 head_coach_impact_results <- head_coach_impact_results_test
 colnames(head_coach_impact_results) <- c(toString("Coach"), "Team", "Race", "Net_PPA", "Net_SR", "Net_Stuff_Rate", "Net_Pass_SR", "Net_FPI", "Tenure")
 # adding in cols that multiple tenure by pp metrics
-head_coach_impact_results <- head_coach_impact_results %>% mutate(total_sr = Net_SR*Tenure, total_stuffs = Net_Stuff_Rate*Tenure, total_pass_sr = Net_Pass_SR*Tenure)
-
+head_coach_impact_results <- head_coach_impact_results %>% dplyr::mutate(total_sr = Net_SR*Tenure, total_stuffs = Net_Stuff_Rate*Tenure, total_pass_sr = Net_Pass_SR*Tenure)
+head_coach_impact_results <- head_coach_impact_results %>% dplyr::mutate(total_ppa = Net_PPA*Tenure)
 # doing some preliminary analysis
-head_coach_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
+head_coach_impact_results %>% group_by(Race) %>% dplyr::summarise(mean_net_ppa_race = mean(Net_PPA))
 #   Race  mean_net_ppa_race
 #  1 ?              -0.0222 
 #2 Black          -0.0292 
@@ -430,8 +437,8 @@ out_inds <- which(head_coach_impact_results$Net_PPA %in% c(out_vals))
 out_inds
 head_coach_impact_results <- head_coach_impact_results[-c(out_inds),]
 ggqqplot(head_coach_impact_results$Net_PPA)
-head_coach_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
-head_coach_impact_results %>% group_by(Race) %>% summarise(count = n())
+head_coach_impact_results %>% group_by(Race) %>% dplyr::summarise(mean_net_ppa_race = mean(Net_PPA))
+head_coach_impact_results %>% group_by(Race) %>% dplyr::summarise(count = n())
 # analyze via simple linear regression
 lm1 <- lm(Net_PPA ~ Race, head_coach_impact_results)
 summary(lm1)
@@ -451,7 +458,7 @@ out_inds <- which(head_coach_impact_results$total_ppa %in% c(out_vals))
 out_inds
 head_coach_impact_results_weighted <- head_coach_impact_results[-c(out_inds),]
 ggqqplot(head_coach_impact_results_weighted$total_ppa)
-head_coach_impact_results_weighted %>% group_by(Race) %>% summarise(total_net_ppa_race = mean(total_ppa))
+head_coach_impact_results_weighted %>% group_by(Race) %>% dplyr::summarise(total_net_ppa_race = mean(total_ppa))
 # Race  total_net_ppa_race
 # <chr>              <dbl>
 #   1 ?                -0.0203
@@ -478,7 +485,7 @@ head_coach_impact_plot <- head_coach_impact_results %>% ggplot(aes(x = Net_SR, y
 head_coach_impact_plot
 # ggsave("head_coach_impact_plot.png", height = 7, width = 10, dpi = 300)
 
-head_coach_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
+head_coach_impact_results %>% group_by(Race) %>% dplyr::summarise(mean_net_ppa_race = mean(Net_PPA))
 # Race  mean_total_ppa_race
 # 2 Black             -0.0189
 # 3 Other             -0.00311
@@ -500,6 +507,8 @@ oc_impact <- data.frame()
 # removing the three coach tenures at Charlotte, Coastal, and UTSA where there is no before for comparison
 oc_recent <- oc_recent[!(oc_recent$Coach=="Jeff Mullen" | oc_recent$Coach=="Greg Adkins" |oc_recent$Coach=="Kevin Brown" ),]
 
+# This For loop can take several hours to run; the resulting dataframe can be loaded from github using the code
+#immediately below the loop
 for(i in 1:nrow(oc_recent)){
   # create a vector of years from start to end - done
   
@@ -577,12 +586,13 @@ for(i in 1:nrow(oc_recent)){
 
 # save(oc_impact, file="oc_impact.Rda")
 # load("oc_impact.Rda")
-
+temp <- "https://github.com/rebinion/College-Coaching-Project/blob/main/oc_impact.Rda?raw=true"
+load(url(temp))
 oc_impact_summary <-oc_impact %>% select(c("Coach", "team", "off_ppa", "off_success_rate", "off_stuff_rate", "off_passing_plays_success_rate", "Race", "BeforeAfter"))
 
 oc_impact_summary <- oc_impact_summary %>% 
   group_by(Coach, team, Race, BeforeAfter) %>% 
-  summarise(mean_ppa = mean(off_ppa), 
+  dplyr::summarise(mean_ppa = mean(off_ppa), 
             mean_sr = mean(off_success_rate),
             mean_stuff = mean(off_stuff_rate),
             mean_pass_sr = mean(off_passing_plays_success_rate)
@@ -597,7 +607,7 @@ while (i < nrow(oc_impact_summary)){
   oc_results <- data.frame()
   row_to_add <- data.frame()
   oc_results <- oc_impact_summary[i,] %>% group_by(Coach, team, Race) %>% 
-    summarise(net_ppa = oc_impact_summary[i,"mean_ppa"]-oc_impact_summary[i+1, "mean_ppa"],
+    dplyr::summarise(net_ppa = oc_impact_summary[i,"mean_ppa"]-oc_impact_summary[i+1, "mean_ppa"],
               net_sr = oc_impact_summary[i,"mean_sr"]-oc_impact_summary[i+1, "mean_sr"],
               net_stuff = oc_impact_summary[i,"mean_stuff"]-oc_impact_summary[i+1, "mean_stuff"],
               net_pass_sr = oc_impact_summary[i,"mean_pass_sr"]-oc_impact_summary[i+1, "mean_pass_sr"])
@@ -614,7 +624,7 @@ oc_impact_results_test <- data.frame(lapply(oc_impact_results_test, `length<-`, 
 oc_impact_results <- oc_impact_results_test
 
 # doing some preliminary analysis
-oc_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_ppa))
+oc_impact_results %>% group_by(Race) %>% dplyr::summarise(mean_net_ppa_race = mean(net_ppa))
 #Race  mean_net_ppa_race
 #  1 ?              0.0380
 #2 Black            0.0114
@@ -636,15 +646,15 @@ out_inds
 # 8 outliers to remove
 oc_impact_results <- oc_impact_results[-c(out_inds),]
 ggqqplot(oc_impact_results$net_ppa)
-oc_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_ppa))
+oc_impact_results %>% group_by(Race) %>% dplyr::summarise(mean_net_ppa_race = mean(net_ppa))
 
 # analyze via simple linear regression
 lm1 <- lm(net_ppa ~ Race, oc_impact_results)
 summary(lm1)
 # NO SIGNIFICANT VARIABLES - in other words, Race is not a valid predictor of on-field performance.
 
-oc_impact_results %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(net_sr))
-oc_impact_results %>% group_by(Race) %>% summarise(mean_net_passsr_race = mean(net_pass_sr))
+oc_impact_results %>% group_by(Race) %>% dplyr::summarise(mean_net_sr_race = mean(net_sr))
+oc_impact_results %>% group_by(Race) %>% dplyr::summarise(mean_net_passsr_race = mean(net_pass_sr))
 
 ##########################################################################################
 # DEFENSIVE COORDINATORS
@@ -661,6 +671,8 @@ dc_impact <- data.frame()
 # Same error for UT San Antonio, need to re-run loop starting at row 764
 # removing the three coach tenures at Charlotte, Coastal, and UTSA where there is no before for comparison
 dc_recent <- dc_recent[!(dc_recent$Coach=="Matt Wallerstedt" | dc_recent$Coach=="Mickey Matthews" |dc_recent$Coach=="Neal Neathery" ),]
+# this for loop can take several hours to run; the resulting dataframe can be loaded using 
+# the code immediately below the for loop
 for(i in 1:nrow(dc_recent)){
   # create a vector of years from start to end - done
   
@@ -738,11 +750,13 @@ for(i in 1:nrow(dc_recent)){
 
 # save(dc_impact, file="dc_impact.Rda")
 # load("dc_impact.Rda")
+temp <- "https://github.com/rebinion/College-Coaching-Project/blob/main/dc_impact.Rda?raw=true"
+load(url(temp))
 
 dc_impact_summary <-dc_impact %>% select(c("Coach", "team", "def_ppa", "def_success_rate", "def_stuff_rate", "def_passing_plays_success_rate",
                                            "Race", "BeforeAfter"))
 
-dc_impact_summary <- dc_impact_summary %>% group_by(Coach, team, Race, BeforeAfter) %>% summarise(
+dc_impact_summary <- dc_impact_summary %>% group_by(Coach, team, Race, BeforeAfter) %>% dplyr::summarise(
   mean_ppa = mean(def_ppa), 
   mean_sr = mean(def_success_rate),
   mean_stuff = mean(def_stuff_rate),
@@ -758,7 +772,7 @@ while (i < nrow(dc_impact_summary)){
   dc_results <- data.frame()
   row_to_add <- data.frame()
   dc_results <- dc_impact_summary[i,] %>% group_by(Coach, team, Race) %>% 
-    summarise(net_ppa = -dc_impact_summary[i,"mean_ppa"]+dc_impact_summary[i+1, "mean_ppa"],
+    dplyr::summarise(net_ppa = -dc_impact_summary[i,"mean_ppa"]+dc_impact_summary[i+1, "mean_ppa"],
               net_sr = -dc_impact_summary[i,"mean_sr"]+dc_impact_summary[i+1, "mean_sr"],
               net_stuff = -dc_impact_summary[i,"mean_stuff"]+dc_impact_summary[i+1, "mean_stuff"],
               net_pass_sr = -dc_impact_summary[i,"mean_pass_sr"]+dc_impact_summary[i+1, "mean_pass_sr"])
@@ -775,19 +789,14 @@ dc_impact_results <- dc_impact_results_test
 # load("dc_impact_results.Rda")
 
 # doing some preliminary analysis
-dc_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_ppa))
+dc_impact_results %>% group_by(Race) %>% dplyr::summarise(mean_net_ppa_race = mean(net_ppa))
 #Race  mean_net_ppa_race
 # 1 Black           -0.0298
 # 2 Other           -0.0135
 # 3 White           -0.0243
 
-dc_impact_results %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(net_sr))
-dc_impact_results %>% group_by(Race) %>% summarise(mean_net_passsr_race = mean(net_pass_sr))
-
-# Could try grouping minorities together to see how they compare:
-# dc_impact_results$Race <- ifelse(dc_impact_results$Race == "?", "Non-white",
-#                                  ifelse(dc_impact_results$Race == "Other", "Non-white",
-#                                         ifelse(dc_impact_results$Race == "Black", "Non-white", "White")))
+dc_impact_results %>% group_by(Race) %>% dplyr::summarise(mean_net_sr_race = mean(net_sr))
+dc_impact_results %>% group_by(Race) %>% dplyr::summarise(mean_net_passsr_race = mean(net_pass_sr))
 
 # CHECK FOR NORMALITY AND OUTLIERS
 hist(dc_impact_results$net_ppa,
@@ -805,7 +814,7 @@ out_inds
 dc_impact_results1 <- dc_impact_results
 dc_impact_results <- dc_impact_results[-c(out_inds),]
 ggqqplot(dc_impact_results$net_ppa)
-dc_impact_results %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(net_ppa))
+dc_impact_results %>% group_by(Race) %>% dplyr::summarise(mean_net_ppa_race = mean(net_ppa))
 
 # analyze via simple linear regression
 lm1 <- lm(net_ppa ~ Race, dc_impact_results)
@@ -821,11 +830,11 @@ dc_to_head_impact <- defensive_to_head %>%
 colnames(dc_to_head_impact) <- c("Coach", "Race", "Head_Coach_School", "Coordinator School", "Net_PPA",
                                  "Net_SR", "Net_Stuff", "Net_Pass_SR")
 
-dc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
+dc_to_head_impact %>% group_by(Race) %>% dplyr::summarise(mean_net_ppa_race = mean(Net_PPA))
 #Race  mean_net_ppa_race
-#  1 Black           0.0176 
+#  1 Black           0.0358 
 #2 Other          -0.0133 
-#3 White          -0.00471
+#3 White          -0.00339
 ## - We have something!
 
 dc_to_head_impact_plot <- dc_to_head_impact %>% ggplot(aes(x = Net_SR, y = Net_PPA, colour = Race)) +
@@ -844,19 +853,19 @@ dc_to_head_impact_plot
 # ggsave("dc_to_head_impact_plot.png", height = 7, width = 10, dpi = 300)
 
 sd(dc_to_head_impact$Net_PPA)
-# SD is 0.067, so black DCs about 0.5 sd's better
+# SD is 0.077, so black DCs about 0.5 sd's better
 
 # checking the significance level here:
 dc_to_head_model <- lm(Net_PPA~Race, data = dc_to_head_impact)
 summary(dc_to_head_model)
 summary(aov(Net_PPA~Race, data = dc_to_head_impact))
-# p value of .3612 for this as a whole. So no significance here
+# p value of .109 for this as a whole. So no real significance here
 
-dc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(Net_SR))
+dc_to_head_impact %>% group_by(Race) %>% dplyr::summarise(mean_net_sr_race = mean(Net_SR))
 #Race  mean_net_sr_race
-#  1 Black          0.0125 
+#  1 Black          0.0164 
 #2 Other          0.00652
-#3 White         -0.00154
+#3 White         -0.00138
 
 # doing the same for offense
 
@@ -867,29 +876,29 @@ oc_to_head_impact <- offensive_to_head %>% inner_join(oc_impact_results, by = "C
 colnames(oc_to_head_impact) <- c("Coach", "Race", "Head_Coach_School", "Coordinator School", "Net_PPA",
                                  "Net_SR", "Net_Stuff", "Net_Pass_SR")
 
-oc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
+oc_to_head_impact %>% group_by(Race) %>% dplyr::summarise(mean_net_ppa_race = mean(Net_PPA))
 # Race  mean_net_ppa_race
-#  1 ?                0.0633
-#2 Black            0.0116
+#  1 ?                0.0591
+#2 Black            0.00820
 #3 Other           -0.0743
-#4 White            0.0358
+#4 White            0.0280
 
 # dc_to_head_impact and oc_to_head_impact had a total of 19 unique Black coaches included. 
-# I don't think there's a great reason to keep these 2 separate, so combine datasets and minority races to increase sample size
+# combine datasets and minority races to increase sample size
 coord_to_head_impact <- dc_to_head_impact %>%
   rbind(oc_to_head_impact)
 coord_to_head_impact$Race <- ifelse(coord_to_head_impact$Race == "?", "Non-white",
                                     ifelse(coord_to_head_impact$Race == "Other", "Non-white",
                                            ifelse(coord_to_head_impact$Race == "Black", "Non-white", "White")))
-coord_to_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
+coord_to_head_impact %>% group_by(Race) %>% dplyr::summarise(mean_net_ppa_race = mean(Net_PPA))
 # Race      mean_net_ppa_race
-# 1 Non-white           0.00546
-# 2 White               0.0191 
+# 1 Non-white           0.00942
+# 2 White               0.0152 
 
 # No signal here.
 
-oc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_sr_race = mean(Net_SR))
-oc_to_head_impact %>% group_by(Race) %>% summarise(mean_net_stuff_race = mean(Net_Stuff))
+oc_to_head_impact %>% group_by(Race) %>% dplyr::summarise(mean_net_sr_race = mean(Net_SR))
+oc_to_head_impact %>% group_by(Race) %>% dplyr::summarise(mean_net_stuff_race = mean(Net_Stuff))
 
 ## need to run again with the numbers for their impact as head coaches
 
@@ -900,14 +909,14 @@ former_dc_head_impact <- defensive_to_head %>% inner_join(head_coach_impact_resu
 colnames(former_dc_head_impact) <- c("Coach", "Race", "Head_Coach_School", "Coordinator School", "Net_PPA",
                                      "Net_SR", "Net_Stuff", "Net_Pass_SR", "Net_FPI")
 
-former_dc_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
+former_dc_head_impact %>% group_by(Race) %>% dplyr::summarise(mean_net_ppa_race = mean(Net_PPA))
 # Race  mean_net_ppa_race
 # <chr>             <dbl>
 #   1 Black         -0.0437  
 # 2 Other         -0.0344  
-# 3 White         -0.000818
+# 3 White         0.00308
 
-former_dc_head_impact %>% group_by(Race) %>% filter(!is.na(Net_FPI)) %>% summarise(mean_net_fpi_race = mean(Net_FPI))
+former_dc_head_impact %>% group_by(Race) %>% filter(!is.na(Net_FPI)) %>% dplyr::summarise(mean_net_fpi_race = mean(Net_FPI))
 # Race  mean_net_fpi_race
 # <chr>             <dbl>
 #   1 Black           -6.80  
@@ -925,18 +934,18 @@ former_oc_head_impact <- offensive_to_head %>% inner_join(head_coach_impact_resu
 colnames(former_oc_head_impact) <- c("Coach", "Race", "Head_Coach_School", "Coordinator School", "Net_PPA",
                                      "Net_SR", "Net_Stuff", "Net_Pass_SR", "Net_FPI")
 
-former_oc_head_impact %>% group_by(Race) %>% summarise(mean_net_ppa_race = mean(Net_PPA))
+former_oc_head_impact %>% group_by(Race) %>% dplyr::summarise(mean_net_ppa_race = mean(Net_PPA))
 # Race  mean_net_ppa_race
 # <chr>             <dbl>
-#   1 ?              -0.0222 
-# 2 Black          -0.00891
+#   1 ?              -0.0928 
+# 2 Black          -0.00573
 # 3 Other           0.0377 
-# 4 White           0.0170 
+# 4 White           0.00955 
 
 former_oc_head_impact$Race <- ifelse(former_oc_head_impact$Race == "?", "Non-white",
                                      ifelse(former_oc_head_impact$Race == "Other", "Non-white",
                                             ifelse(former_oc_head_impact$Race == "Black", "Non-white", "White")))
-former_oc_head_impact %>% group_by(Race) %>% filter(!is.na(Net_FPI)) %>% summarise(mean_net_fpi_race = mean(Net_FPI))
+former_oc_head_impact %>% group_by(Race) %>% filter(!is.na(Net_FPI)) %>% dplyr::summarise(mean_net_fpi_race = mean(Net_FPI))
 # Race  mean_net_fpi_race
 # <chr>             <dbl>
 #   1 ?                4     
@@ -947,8 +956,7 @@ former_oc_head_impact %>% group_by(Race) %>% filter(!is.na(Net_FPI)) %>% summari
 # Race      mean_net_fpi_race
 # <chr>                 <dbl>
 #   1 Non-white           -0.384 
-# 2 White               -0.0952
-#This  does not support hypothesis
+# 2 White               -0.234
 # Then propose some black offensive coordinators as good head coach options?
 # Maurice Harris
 # Alex Atkins 
@@ -963,18 +971,17 @@ coaching_tree <- head_coaches1 %>%
   select(Coach, Season, College, Race) %>%
   left_join((defensive_coordinators1 %>% 
                select(Coach, Season, College, Race) %>% 
-               rename(Coordinator = Coach)), 
+               dplyr::rename(Coordinator = Coach)), 
             by = c("Season", "College"))
 coaching_tree1 <- head_coaches1 %>%
   select(Coach, Season, College, Race) %>%
   left_join((offensive_coordinators1 %>%
                select(Coach, Season, College, Race) %>%
-               rename(Coordinator = Coach)),
+               dplyr::rename(Coordinator = Coach)),
             by = c("Season", "College"))
 coaching_tree <- coaching_tree %>%
   rbind(coaching_tree1) %>%
   filter(!is.na(Coordinator))
-
 
 # Remove this next line if you want to see white vs. black instead of white vs minority
 coaching_tree$Race.y <- ifelse(coaching_tree$Race.y == "?", "Non-white",
@@ -983,24 +990,24 @@ coaching_tree$Race.y <- ifelse(coaching_tree$Race.y == "?", "Non-white",
 # The following counts each year separately, so for example Andrew Thacker would count as 3 years of a White DC.
 hires_by_years <- coaching_tree %>% 
   group_by(Coach, Race.x) %>%
-  count(Race.y, name = "years") %>%
-  mutate(total_years = sum(years)) %>%
+  dplyr::count(Race.y, name = "years") %>%
+  dplyr::mutate(total_years = sum(years)) %>%
   ungroup() %>%
-  mutate(percent_of_years_POC = years/total_years) %>%
+  dplyr::mutate(percent_of_years_POC = years/total_years) %>%
   filter(Race.y == "Non-white")
 # Now count each coordinator's tenure as 1 (not weighted for how long they held the position)
 hires_by_coord <- coaching_tree %>%
   select(Coach, Race.x, College, Coordinator, Race.y) %>%
   distinct() %>%
   group_by(Coach, Race.x) %>%
-  count(Race.y, name = "coordinators") %>%
-  mutate(total_coordinators = sum(coordinators)) %>%
+  dplyr::count(Race.y, name = "coordinators") %>%
+  dplyr::mutate(total_coordinators = sum(coordinators)) %>%
   ungroup() %>%
-  mutate(percent_of_coords_POC = coordinators/total_coordinators) %>%
+  dplyr::mutate(percent_of_coords_POC = coordinators/total_coordinators) %>%
   filter(Race.y == "Non-white")
 minority_hires <- hires_by_years %>%
   left_join(hires_by_coord) %>%
-  mutate(years_rank = rank(desc(percent_of_years_POC)),
+  dplyr::mutate(years_rank = rank(desc(percent_of_years_POC)),
          coords_rank = rank(desc(percent_of_coords_POC)),
          rank = rank(years_rank + coords_rank))
 
@@ -1011,7 +1018,7 @@ colnames(minority_hires) <- c("Coach", "Coach_Race", "Alternate_Race", "Non-Whit
                               "Non-White_Coordinator_Seasons_Rank", "Non-White_Coordinators_Rank", "Combined_Rank")
 
 minority_hires_for_table <- minority_hires %>% select(Coach, `Available_Seasons_with_Non-White_Coordinator_Percentage`, `Non-White_Coordinators_Percentage`, Combined_Rank)
-minority_hires_for_table <- minority_hires_for_table %>% mutate_if(is.numeric, round, digits = 2)
+minority_hires_for_table <- minority_hires_for_table %>% dplyr::mutate_if(is.numeric, round, digits = 2)
 minority_hires_for_table <- minority_hires_for_table %>% arrange(Combined_Rank)
 
 gt_theme_538 <- function(data,...) {
@@ -1055,16 +1062,15 @@ gt_theme_538 <- function(data,...) {
 
 minority_hires_for_table$Combined_Rank <- floor(minority_hires_for_table$Combined_Rank)
 minority_hires_top20 <- minority_hires_for_table[1:20,]
-minority_hires_bottom20 <-minority_hires_for_table[188:207,]
+minority_hires_bottom20 <-minority_hires_for_table[183:202,]
 colnames(minority_hires_top20) <- c('Coach', 'Non-White Coordinator Seasons', 'Non-White Coordinators', "Combined Rank")
 colnames(minority_hires_bottom20) <- c('Coach', 'Non-White Coordinator Seasons', 'Non-White Coordinators', "Combined Rank")
 
 minority_hiring_table_top20 <- minority_hires_top20 %>% gt() %>%  tab_spanner(
   label = "Who Hires Non-White Coordinators?\nTop 20",
-  columns = c("% of Seasons with Non-White Coordinators", 
-              "% of Non-White Coordinators Hired")) %>% 
+  columns = c('Non-White Coordinator Seasons', 'Non-White Coordinators')) %>% 
   data_color(
-    columns = c("% of Seasons with Non-White Coordinators", "% of Non-White Coordinators Hired"),
+    columns = c('Non-White Coordinator Seasons', 'Non-White Coordinators'),
     colors = scales::col_numeric(
       # use a 3-color scale with the 1st 2 colors from RColorBrewer Set2
       palette = c(brewer.pal(n=5,"Set2")[[2]], "white", brewer.pal(n=5,"Set2")[[1]]),
@@ -1084,10 +1090,9 @@ minority_hiring_table_top20
 
 minority_hiring_table_bottom20 <- minority_hires_bottom20 %>% gt() %>%  tab_spanner(
   label = "Who Hires Non-White Coordinators?\nBottom 20",
-  columns = c("% of Seasons with Non-White Coordinators", 
-              "% of Non-White Coordinators Hired")) %>% 
+  columns = c('Non-White Coordinator Seasons', 'Non-White Coordinators')) %>% 
   data_color(
-    columns = c("% of Seasons with Non-White Coordinators", "% of Non-White Coordinators Hired"),
+    columns = c('Non-White Coordinator Seasons', 'Non-White Coordinators'),
     colors = scales::col_numeric(
       palette = c(brewer.pal(n=5,"Set2")[[2]], "white", brewer.pal(n=5,"Set2")[[1]]),
       domain = c(0:1)
@@ -1110,13 +1115,13 @@ minority_hires$Coach_Race <- ifelse(minority_hires$Coach_Race == "?", "Non-white
                                            ifelse(minority_hires$Coach_Race == "Black", "Non-white", "White")))
 minority_hires %>%
   group_by(Coach_Race) %>%
-  summarise(percent_of_years_POC = mean(`Available_Seasons_with_Non-White_Coordinator_Percentage`),
+  dplyr::summarise(percent_of_years_POC = mean(`Available_Seasons_with_Non-White_Coordinator_Percentage`),
             percent_of_coords_POC = mean(`Non-White_Coordinators_Percentage`))
 
 # Coach_Race percent_of_years_POC percent_of_coords_POC
 # <chr>                     <dbl>                 <dbl>
-#   1 Non-white                 0.345                 0.343
-# 2 White                     0.265                 0.281
+#   1 Non-white                 0.339                 0.341
+# 2 White                     0.263                 0.280
 # Coach_Race percent_of_years_POC percent_of_coords_POC
 # <chr>                     <dbl>                 <dbl>
 #   1 ?                         0.5                   0.417
@@ -1136,13 +1141,13 @@ minority_hires %>%
 
 coaching_tree1 <- coaching_tree %>% 
   group_by(Coach, Coordinator) %>%
-  summarise(years_together = n())
+  dplyr::summarise(years_together = n())
 
 ###
 # # To create a  graph from an edgelist:
 # edgelist <- coaching_tree %>%
 #   select(Coach, Coordinator) %>%
-#   rename(c("from" = "Coach", "to" = "Coordinator"))
+#   dplyr::rename(c("from" = "Coach", "to" = "Coordinator"))
 # edgelist_matrix <- as.matrix(edgelist)
 # graph1 <- igraph::graph_from_edgelist(el = edgelist_matrix, directed = TRUE)
 # graph1
@@ -1150,7 +1155,7 @@ coaching_tree1 <- coaching_tree %>%
 # # ^ denotes 'D'irected graph with 'N'amed vertices containing 1,431 vertices and 5,643 edges
 # To create a weighted graph from a dataframe:
 edges_df <- coaching_tree1 %>%
-  rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
+  dplyr::rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
 vertex_df <- head_coaches1 %>%
   rbind(defensive_coordinators1) %>%
   rbind(offensive_coordinators1) %>%
@@ -1310,7 +1315,7 @@ centrality_df <- centrality_df %>%
   left_join(vertex_df, by = c("variable" = "Coach"))
 
 centrality_df <- centrality_df %>%
-  mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
+  dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
                         ifelse(variable == "Joe Salave a", "Other",
                                ifelse(variable == "O Neill Gilbert", "Black",
                                       ifelse(variable == "Brian Jean Mary", "Black",
@@ -1323,14 +1328,23 @@ centrality_df <- centrality_df %>%
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = mean(eigen),
+  dplyr::summarise(eigen = mean(eigen),
             betweenness = mean(betweenness),
             closeness = mean(closeness),
             degree = mean(degree))
-# So white coaches are 1.43 times more connected than Black coaches (degree) on average.
+view(centrality_mean)
+# Comparing connection between white and black coaches
+centrality_mean[4,5]/centrality_mean[2,5]
+# So white coaches are 1.39 times more connected than Black coaches (degree) on average.
+# Comparing eigen influence between white and black coaches
+centrality_mean[4,2]/centrality_mean[2,2]
+# So white coaches are 7 times more influential than Black coaches (degree) on average.
+# Comparing betweenness between white and black coaches
+centrality_mean[4,3]/centrality_mean[2,3]
+# So white coaches are 2.9 times more super connectors than Black coaches (degree) on average.
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = median(eigen),
+  dplyr::summarise(eigen = median(eigen),
             betweenness = median(betweenness),
             closeness = median(closeness),
             degree = median(degree))
@@ -1347,12 +1361,12 @@ V(graph)$eigen <- eigen_centrality(graph)$vector
 
 centrality_df_modified <- centrality_df %>% select(variable, closeness, degree, Race)
 colnames(centrality_df_modified) <- c("Coach", "Influence", "Connections",  "Race")
-centrality_df_scaled <- centrality_df_modified %>% mutate_at("Influence", ~(scale(., center = FALSE) %>% as.vector))
-centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
+centrality_df_scaled <- centrality_df_modified %>% dplyr::mutate_at("Influence", ~(scale(., center = FALSE) %>% as.vector))
+centrality_df_scaled <- centrality_df_scaled%>% dplyr::mutate_if(is.numeric, round, digits = 2)
 
 minority_hires_influence <- minority_hires %>% left_join(centrality_df_scaled, by = "Coach")
 minority_hires_influence <- minority_hires_influence %>% select(Coach, Coach_Race, `Available_Seasons_with_Non-White_Coordinator_Percentage`, `Non-White_Coordinators_Percentage`, Combined_Rank, Connections, Influence)
-minority_hires_influence <- minority_hires_influence %>% mutate_if(is.numeric, round, digits = 2)
+minority_hires_influence <- minority_hires_influence %>% dplyr::mutate_if(is.numeric, round, digits = 2)
 minority_hires_influence$Combined_Rank <- floor(minority_hires_influence$Combined_Rank)
 
 # sort based on the Connections
@@ -1382,8 +1396,7 @@ minority_hires_top20_influential <- minority_hires_connection_for_table[1:20,]
 
 minority_hiring_table_connected20 <- minority_hires_top20_connections %>% gt() %>%  tab_spanner(
   label = "Most Connected Coaches' Coordinator Hiring",
-  columns = c("% of Seasons with Non-White Coordinators", 
-              "% of Non-White Coordinators Hired", "Non-White Coordinator Hiring Rank")) %>% 
+  columns = c('Non-White Coordinator Seasons', 'Non-White Coordinators', "Non-White Coordinator Hiring Rank")) %>% 
   data_color(
     columns = c("Non-White Coordinator Hiring Rank"),
     colors = scales::col_numeric(
@@ -1404,8 +1417,7 @@ minority_hiring_table_connected20
 
 minority_hiring_table_influential20 <- minority_hires_top20_influential %>% gt() %>%  tab_spanner(
   label = "Most Influential Coaches' Coordinator Hiring",
-  columns = c("% of Seasons with Non-White Coordinators", 
-              "% of Non-White Coordinators Hired", "Non-White Coordinator Hiring Rank")) %>% 
+  columns = c('Non-White Coordinator Seasons', 'Non-White Coordinators', "Non-White Coordinator Hiring Rank")) %>% 
   data_color(
     columns = c("Non-White Coordinator Hiring Rank"),
     colors = scales::col_numeric(
@@ -1556,7 +1568,7 @@ athletes$Race.Ethnicity <- ifelse(athletes$Race.Ethnicity == "White", "White",
                                   ifelse(athletes$Race.Ethnicity == "Black", "Black", "Other"))
 athletes <- athletes %>%
   group_by(Division, Race.Ethnicity) %>%
-  summarise(Percent = sum(Percent))
+  dplyr::summarise(Percent = sum(Percent))
 athletes$Race.Ethnicity <- relevel(as.factor(athletes$Race.Ethnicity), 'White')
 athletes_plot <- athletes %>%
   ggplot(aes(fill = Race.Ethnicity, y = Percent, x = forcats::fct_rev(Division), label = Percent)) +
@@ -1586,28 +1598,28 @@ athletes_plot
 #                        ifelse(coaches$Race == "Black", "Black", "Other"))
 # coaches <- coaches %>%
 #   group_by(Position, Race) %>%
-#   summarise(Percent = sum(Percent))
+#   dplyr::summarise(Percent = sum(Percent))
 
 hc <- head_coaches1 %>%
   filter(Season > 2010) %>%
-  mutate(Race = ifelse(Race=="?","Other",Race)) %>%
+  dplyr::mutate(Race = ifelse(Race=="?","Other",Race)) %>%
   group_by(Race) %>%
-  summarise(num_race = n()) %>%
-  mutate(Percent = num_race / sum(num_race),
+  dplyr::summarise(num_race = n()) %>%
+  dplyr::mutate(Percent = num_race / sum(num_race),
          Position = "Head")
 oc <- offensive_coordinators1 %>%
   filter(Season > 2010) %>%
-  mutate(Race = ifelse(Race=="?","Other",Race)) %>%
+  dplyr::mutate(Race = ifelse(Race=="?","Other",Race)) %>%
   group_by(Race) %>%
-  summarise(num_race = n()) %>%
-  mutate(Percent = num_race / sum(num_race),
+  dplyr::summarise(num_race = n()) %>%
+  dplyr::mutate(Percent = num_race / sum(num_race),
          Position = "OC")
 dc <- defensive_coordinators1 %>%
   filter(Season > 2010) %>%
-  mutate(Race = ifelse(Race=="?","Other",Race)) %>%
+  dplyr::mutate(Race = ifelse(Race=="?","Other",Race)) %>%
   group_by(Race) %>%
-  summarise(num_race = n()) %>%
-  mutate(Percent = num_race / sum(num_race),
+  dplyr::summarise(num_race = n()) %>%
+  dplyr::mutate(Percent = num_race / sum(num_race),
          Position = "DC")
 Race <- c("White", "Black", "Other")
 Percent <- c(0.514, 0.370, 0.116)
@@ -1650,34 +1662,34 @@ ideal_demog <- data.frame(Race = c("White", "Black", "Other"),
                           united_states = c(0.601, 0.122, 0.277),
                           cfb = c(0.5065, 0.3900, 0.1035))
 ideal_demog <- ideal_demog %>%
-  mutate(ideal_percent = 0.927*cfb + 0.073*united_states) %>%
+  dplyr::mutate(ideal_percent = 0.927*cfb + 0.073*united_states) %>%
   select(Race, ideal_percent)
 hc_2021 = head_coaches1 %>%
   filter(Season == 2021) %>% 
-  mutate(Race = ifelse(Race=="?","Other",Race)) %>%
+  dplyr::mutate(Race = ifelse(Race=="?","Other",Race)) %>%
   group_by(Race) %>% 
-  summarise(num_race = n()) %>%
-  mutate(actual_2021 = num_race / sum(num_race)) %>%
+  dplyr::summarise(num_race = n()) %>%
+  dplyr::mutate(actual_2021 = num_race / sum(num_race)) %>%
   left_join(ideal_demog) %>%
-  mutate(num_ideal = round(sum(num_race)*ideal_percent, 0),
+  dplyr::mutate(num_ideal = round(sum(num_race)*ideal_percent, 0),
          difference = num_ideal - num_race)
 oc_2021 = offensive_coordinators1 %>%
   filter(Season == 2021) %>% 
-  mutate(Race = ifelse(Race=="?","Other",Race)) %>%
+  dplyr::mutate(Race = ifelse(Race=="?","Other",Race)) %>%
   group_by(Race) %>% 
-  summarise(num_race = n()) %>%
-  mutate(actual_2021 = num_race / sum(num_race)) %>%
+  dplyr::summarise(num_race = n()) %>%
+  dplyr::mutate(actual_2021 = num_race / sum(num_race)) %>%
   left_join(ideal_demog) %>%
-  mutate(num_ideal = round(sum(num_race)*ideal_percent, 0),
+  dplyr::mutate(num_ideal = round(sum(num_race)*ideal_percent, 0),
          difference = num_ideal - num_race)
 dc_2021 = defensive_coordinators1 %>%
   filter(Season == 2021) %>% 
-  mutate(Race = ifelse(Race=="?","Other",Race)) %>%
+  dplyr::mutate(Race = ifelse(Race=="?","Other",Race)) %>%
   group_by(Race) %>% 
-  summarise(num_race = n()) %>%
-  mutate(actual_2021 = num_race / sum(num_race)) %>%
+  dplyr::summarise(num_race = n()) %>%
+  dplyr::mutate(actual_2021 = num_race / sum(num_race)) %>%
   left_join(ideal_demog) %>%
-  mutate(num_ideal = round(sum(num_race)*ideal_percent, 0),
+  dplyr::mutate(num_ideal = round(sum(num_race)*ideal_percent, 0),
          difference = num_ideal - num_race)
 ideal_change <- data.frame(role = c("Head Coach", 
                                     "Offensive Coordinator", 
@@ -1721,14 +1733,14 @@ ideal_plot
 
 head_coach_time_series <- head_coaches1 %>% 
   group_by(Season) %>% 
-  mutate(num_coaches = n()) %>%
+  dplyr::mutate(num_coaches = n()) %>%
   ungroup() %>% 
   group_by(Season, Race) %>% 
   filter(Race == "Black") %>% 
-  mutate(percent_black = n()/num_coaches) %>% 
+  dplyr::mutate(percent_black = n()/num_coaches) %>% 
   distinct(Season, .keep_all = TRUE) %>% 
   select(Season, percent_black) %>% 
-  mutate_if(is.numeric, round, digits = 2)
+  dplyr::mutate_if(is.numeric, round, digits = 2)
 head_coach_race_time_plot <- head_coach_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
   geom_bar(stat="identity")+
   geom_text(aes(label=percent_black), vjust=1.6, color="white", size=3)+
@@ -1741,14 +1753,14 @@ head_coach_race_time_plot
 
 oc_time_series <- offensive_coordinators1 %>% 
   group_by(Season) %>% 
-  mutate(num_coaches = n()) %>%
+  dplyr::mutate(num_coaches = n()) %>%
   ungroup() %>% 
   group_by(Season, Race) %>% 
   filter(Race == "Black") %>% 
-  mutate(percent_black = n()/num_coaches) %>% 
+  dplyr::mutate(percent_black = n()/num_coaches) %>% 
   distinct(Season, .keep_all = TRUE) %>% 
   select(Season, percent_black) %>% 
-  mutate_if(is.numeric, round, digits = 2)
+  dplyr::mutate_if(is.numeric, round, digits = 2)
 oc_race_time_plot <- oc_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
   geom_bar(stat="identity")+
   geom_text(aes(label=percent_black), vjust=1.6, color="white", size=3)+
@@ -1761,14 +1773,14 @@ oc_race_time_plot
 
 dc_time_series <- defensive_coordinators1 %>% 
   group_by(Season) %>% 
-  mutate(num_coaches = n()) %>%
+  dplyr::mutate(num_coaches = n()) %>%
   ungroup() %>% 
   group_by(Season, Race) %>% 
   filter(Race == "Black") %>% 
-  mutate(percent_black = n()/num_coaches) %>% 
+  dplyr::mutate(percent_black = n()/num_coaches) %>% 
   distinct(Season, .keep_all = TRUE) %>% 
   select(Season, percent_black) %>% 
-  mutate_if(is.numeric, round, digits = 2)
+  dplyr::mutate_if(is.numeric, round, digits = 2)
 dc_race_time_plot <- dc_time_series %>% ggplot(aes(x=Season, y=percent_black)) +
   geom_bar(stat="identity")+
   geom_text(aes(label=percent_black), vjust=1.6, color="white", size=3)+
@@ -1798,21 +1810,21 @@ plot(fitted(es1))
 player_ts1 <- player_ts1 %>%
   reshape2::melt(variable.name = "Season",
                  value.name = "percent_black") %>%
-  mutate(Role = "Player")
+  dplyr::mutate(Role = "Player")
 player_ts1$Season <- as.numeric(as.character(player_ts1$Season))
 
 coach_time_series <- head_coaches1 %>% 
-  mutate(Role = "Head Coach") %>%
+  dplyr::mutate(Role = "Head Coach") %>%
   rbind(offensive_coordinators1 %>%
-          mutate(Role = "Offensive Coordinator")) %>%
+          dplyr::mutate(Role = "Offensive Coordinator")) %>%
   rbind(defensive_coordinators1 %>%
-          mutate(Role = "Defensive Coordinator")) %>%
+          dplyr::mutate(Role = "Defensive Coordinator")) %>%
   group_by(Season, Role) %>% 
-  mutate(num_coaches = n()) %>%
+  dplyr::mutate(num_coaches = n()) %>%
   ungroup() %>% 
   filter(Race == "Black") %>% 
   group_by(Season, Role) %>% 
-  mutate(percent_black = n()/num_coaches) %>% 
+  dplyr::mutate(percent_black = n()/num_coaches) %>% 
   select(Season, Role, percent_black) %>%
   distinct(Season, Role, percent_black) %>%
   rbind(player_ts1)
@@ -1835,13 +1847,13 @@ coach_race_time_plot1
 coach_time_series1 <- head_coaches1 %>%
   rbind(offensive_coordinators1) %>%
   rbind(defensive_coordinators1) %>%
-  mutate(Role = "Coach") %>%
+  dplyr::mutate(Role = "Coach") %>%
   group_by(Season) %>% 
-  mutate(num_coaches = n()) %>%
+  dplyr::mutate(num_coaches = n()) %>%
   ungroup() %>% 
   filter(Race == "Black") %>% 
   group_by(Season) %>% 
-  mutate(percent_black = n()/num_coaches) %>% 
+  dplyr::mutate(percent_black = n()/num_coaches) %>% 
   select(Season, Role, percent_black) %>%
   distinct(Season, Role, percent_black) %>%
   rbind(player_ts1)
@@ -1854,7 +1866,7 @@ df<- data.frame(x1 = 2000, x2 = 2000, x3 = 2020, x4 = 2020,
                 y3 = df1[df1$Role == "Player" & df1$Season == 2020, "percent_black"][[1]],
                 y4 = df1[df1$Role == "Coach" & df1$Season == 2020, "percent_black"][[1]])
 hc_2021[hc_2021$Race == "White", "difference"][[1]]
-coach_time_series <- coach_time_series %>% mutate_if(is.numeric, round, digits = 2)
+coach_time_series <- coach_time_series %>% dplyr::mutate_if(is.numeric, round, digits = 2)
 
 # Plot of percentage of black players vs black coaches over time (HC, OC, and DC combined)
 coach_race_time_plot <- coach_time_series1 %>% 
@@ -1891,7 +1903,7 @@ best_candidates_df <- data.frame()
 coach_1 <- dc_impact_results1 %>%
   filter(str_detect(Coach, "Brian Norwood")) %>% 
   group_by(Coach) %>% 
-  summarise(net_ppa = 0.010282,
+  dplyr::summarise(net_ppa = 0.010282,
             net_sr = -0.00156, 
             net_stuff = mean(net_stuff), 
             net_pass_sr = mean(net_pass_sr))
@@ -1900,7 +1912,7 @@ coach_2 <- oc_impact_results%>%
 coach_3 <- oc_impact_results %>% 
   filter(str_detect(Coach, "Josh Gattis")) %>% 
   group_by(Coach) %>% 
-  summarise(net_ppa = 0.080055,
+  dplyr::summarise(net_ppa = 0.080055,
             net_sr = 0.020677, 
             net_stuff = mean(net_stuff), 
             net_pass_sr = mean(net_pass_sr))
@@ -1913,9 +1925,9 @@ best_candidates_df <- bind_rows(coach_1, coach_2, coach_3, coach_4, coach_5)
 # add a column with headshots
 best_candidates_df$headshot <- c("https://d3kmx57qvxfvw9.cloudfront.net/images/2021/8/23/Norwood_Brian_0125Cropped.jpg?width=300",
                                  "https://seminoles.com/wp-content/uploads/2020/01/Atkins-Alex-scaled.jpg",
-                                 "https://broylesaward.com/wp-content/uploads/sites/5/ninja-forms/8/Josh-Gattis-Headshot-scaled.jpg",
+                                 "https://d1a8hwz3c6qyrc.cloudfront.net/images/2018/3/24/Gattis_Josh.JPG?width=300",
                                  "https://www.liberty.edu/flames/wp-content/uploads/staff/Harris,%20Maurice%20(2019).jpg",
-                                 "https://broylesaward.com/wp-content/uploads/sites/5/ninja-forms/8/Newland-Isaac-Headshot-scaled.jpg")
+                                 "https://asugoldenrams.com/images/2017/5/5/Isaac_Newland.jpg?width=1884&quality=80&format=jpg")
 
 best_candidates_plot <- best_candidates_df %>% ggplot(aes(x=net_ppa, y=net_sr, label=Coach)) + 
   #geom_smooth(method=lm, se=FALSE, col='red', size=0.5) +
@@ -1984,9 +1996,9 @@ coordinators_training_year <- coordinators_training_year %>% select(College, Sea
 coaching_tree_training_years <- coaching_tree %>% filter(Season >=target_year-15 & Season <=target_year-1)
 coaching_tree_sums_training_years <- coaching_tree_training_years %>% 
   group_by(Coach, Coordinator) %>%
-  summarise(years_together = n())
+  dplyr::summarise(years_together = n())
 edges_df <- coaching_tree_sums_training_years %>%
-  rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
+  dplyr::rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
 
 head_coaches_training_years <- head_coaches1 %>% filter(Season >=target_year-15)
 d_coordinators_training_period <- defensive_coordinators1 %>% filter(Season>=target_year-15)
@@ -2031,7 +2043,7 @@ centrality_df <- centrality_df %>%
   left_join(vertex_df, by = c("variable" = "Coach"))
 
 centrality_df <- centrality_df %>%
-  mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
+  dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
                         ifelse(variable == "Joe Salave a", "Other",
                                ifelse(variable == "O Neill Gilbert", "Black",
                                       ifelse(variable == "Brian Jean Mary", "Black",
@@ -2044,14 +2056,14 @@ centrality_df <- centrality_df %>%
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = mean(eigen),
+  dplyr::summarise(eigen = mean(eigen),
             betweenness = mean(betweenness),
             closeness = mean(closeness),
             degree = mean(degree))
 
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = median(eigen),
+  dplyr::summarise(eigen = median(eigen),
             betweenness = median(betweenness),
             closeness = median(closeness),
             degree = median(degree))
@@ -2063,12 +2075,12 @@ V(graph)$eigen <- eigen_centrality(graph)$vector
 
 centrality_df_modified <- centrality_df %>% select(variable, betweenness, closeness, degree, eigen, Race)
 colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
-centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
-# centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
+centrality_df_scaled <- centrality_df_modified %>% dplyr::mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
+# centrality_df_scaled <- centrality_df_scaled%>% dplyr::mutate_if(is.numeric, round, digits = 2)
 
 # the coaches in this DF have no punctuation in their names...
 centrality_df_scaled <- centrality_df_scaled %>% 
-  mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
+  dplyr::mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
                         ifelse(Coach == "A J  Ricker", "A.J. Ricker",
                                ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
                                       ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
@@ -2107,7 +2119,7 @@ coordinators_became_hc_target_year <- coordinators_training_year %>% inner_join(
 #A[A$C %in% B$C,  ]
 # data$num1[data$num1 == 1] <- 99  
 
-coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% mutate("BecameHC"=0)
+coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% dplyr::mutate("BecameHC"=0)
 coordinators_training_year_with_metrics$BecameHC[coordinators_training_year_with_metrics$Coach %in% coordinators_became_hc_target_year$Coach] <- 1
 
 # save current year
@@ -2132,9 +2144,9 @@ coordinators_training_year <- coordinators_training_year %>% select(College, Sea
 coaching_tree_training_years <- coaching_tree %>% filter(Season >=target_year-15 & Season <=target_year-1)
 coaching_tree_sums_training_years <- coaching_tree_training_years %>% 
   group_by(Coach, Coordinator) %>%
-  summarise(years_together = n())
+  dplyr::summarise(years_together = n())
 edges_df <- coaching_tree_sums_training_years %>%
-  rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
+  dplyr::rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
 
 head_coaches_training_years <- head_coaches1 %>% filter(Season >=target_year-15)
 d_coordinators_training_period <- defensive_coordinators1 %>% filter(Season>=target_year-15)
@@ -2179,7 +2191,7 @@ centrality_df <- centrality_df %>%
   left_join(vertex_df, by = c("variable" = "Coach"))
 
 centrality_df <- centrality_df %>%
-  mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
+  dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
                         ifelse(variable == "Joe Salave a", "Other",
                                ifelse(variable == "O Neill Gilbert", "Black",
                                       ifelse(variable == "Brian Jean Mary", "Black",
@@ -2192,14 +2204,14 @@ centrality_df <- centrality_df %>%
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = mean(eigen),
+  dplyr::summarise(eigen = mean(eigen),
             betweenness = mean(betweenness),
             closeness = mean(closeness),
             degree = mean(degree))
 
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = median(eigen),
+  dplyr::summarise(eigen = median(eigen),
             betweenness = median(betweenness),
             closeness = median(closeness),
             degree = median(degree))
@@ -2211,12 +2223,12 @@ V(graph)$eigen <- eigen_centrality(graph)$vector
 
 centrality_df_modified <- centrality_df %>% select(variable, betweenness, closeness, degree, eigen, Race)
 colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
-centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
-# centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
+centrality_df_scaled <- centrality_df_modified %>% dplyr::mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
+# centrality_df_scaled <- centrality_df_scaled%>% dplyr::mutate_if(is.numeric, round, digits = 2)
 
 # the coaches in this DF have no punctuation in their names...
 centrality_df_scaled <- centrality_df_scaled %>% 
-  mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
+  dplyr::mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
                         ifelse(Coach == "A J  Ricker", "A.J. Ricker",
                                ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
                                       ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
@@ -2255,7 +2267,7 @@ coordinators_became_hc_target_year <- coordinators_training_year %>% inner_join(
 #A[A$C %in% B$C,  ]
 # data$num1[data$num1 == 1] <- 99  
 
-coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% mutate("BecameHC"=0)
+coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% dplyr::mutate("BecameHC"=0)
 coordinators_training_year_with_metrics$BecameHC[coordinators_training_year_with_metrics$Coach %in% coordinators_became_hc_target_year$Coach] <- 1
 
 # save current year
@@ -2277,9 +2289,9 @@ coordinators_training_year <- coordinators_training_year %>% select(College, Sea
 coaching_tree_training_years <- coaching_tree %>% filter(Season >=target_year-15 & Season <=target_year-1)
 coaching_tree_sums_training_years <- coaching_tree_training_years %>% 
   group_by(Coach, Coordinator) %>%
-  summarise(years_together = n())
+  dplyr::summarise(years_together = n())
 edges_df <- coaching_tree_sums_training_years %>%
-  rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
+  dplyr::rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
 
 head_coaches_training_years <- head_coaches1 %>% filter(Season >=target_year-15)
 d_coordinators_training_period <- defensive_coordinators1 %>% filter(Season>=target_year-15)
@@ -2324,7 +2336,7 @@ centrality_df <- centrality_df %>%
   left_join(vertex_df, by = c("variable" = "Coach"))
 
 centrality_df <- centrality_df %>%
-  mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
+  dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
                         ifelse(variable == "Joe Salave a", "Other",
                                ifelse(variable == "O Neill Gilbert", "Black",
                                       ifelse(variable == "Brian Jean Mary", "Black",
@@ -2337,14 +2349,14 @@ centrality_df <- centrality_df %>%
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = mean(eigen),
+  dplyr::summarise(eigen = mean(eigen),
             betweenness = mean(betweenness),
             closeness = mean(closeness),
             degree = mean(degree))
 
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = median(eigen),
+  dplyr::summarise(eigen = median(eigen),
             betweenness = median(betweenness),
             closeness = median(closeness),
             degree = median(degree))
@@ -2356,12 +2368,12 @@ V(graph)$eigen <- eigen_centrality(graph)$vector
 
 centrality_df_modified <- centrality_df %>% select(variable, betweenness, closeness, degree, eigen, Race)
 colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
-centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
-# centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
+centrality_df_scaled <- centrality_df_modified %>% dplyr::mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
+# centrality_df_scaled <- centrality_df_scaled%>% dplyr::mutate_if(is.numeric, round, digits = 2)
 
 # the coaches in this DF have no punctuation in their names...
 centrality_df_scaled <- centrality_df_scaled %>% 
-  mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
+  dplyr::mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
                         ifelse(Coach == "A J  Ricker", "A.J. Ricker",
                                ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
                                       ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
@@ -2400,7 +2412,7 @@ coordinators_became_hc_target_year <- coordinators_training_year %>% inner_join(
 #A[A$C %in% B$C,  ]
 # data$num1[data$num1 == 1] <- 99  
 
-coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% mutate("BecameHC"=0)
+coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% dplyr::mutate("BecameHC"=0)
 coordinators_training_year_with_metrics$BecameHC[coordinators_training_year_with_metrics$Coach %in% coordinators_became_hc_target_year$Coach] <- 1
 
 # save current year
@@ -2421,9 +2433,9 @@ coordinators_training_year <- coordinators_training_year %>% select(College, Sea
 coaching_tree_training_years <- coaching_tree %>% filter(Season >=target_year-15 & Season <=target_year-1)
 coaching_tree_sums_training_years <- coaching_tree_training_years %>% 
   group_by(Coach, Coordinator) %>%
-  summarise(years_together = n())
+  dplyr::summarise(years_together = n())
 edges_df <- coaching_tree_sums_training_years %>%
-  rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
+  dplyr::rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
 
 head_coaches_training_years <- head_coaches1 %>% filter(Season >=target_year-15)
 d_coordinators_training_period <- defensive_coordinators1 %>% filter(Season>=target_year-15)
@@ -2468,7 +2480,7 @@ centrality_df <- centrality_df %>%
   left_join(vertex_df, by = c("variable" = "Coach"))
 
 centrality_df <- centrality_df %>%
-  mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
+  dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
                         ifelse(variable == "Joe Salave a", "Other",
                                ifelse(variable == "O Neill Gilbert", "Black",
                                       ifelse(variable == "Brian Jean Mary", "Black",
@@ -2481,14 +2493,14 @@ centrality_df <- centrality_df %>%
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = mean(eigen),
+  dplyr::summarise(eigen = mean(eigen),
             betweenness = mean(betweenness),
             closeness = mean(closeness),
             degree = mean(degree))
 
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = median(eigen),
+  dplyr::summarise(eigen = median(eigen),
             betweenness = median(betweenness),
             closeness = median(closeness),
             degree = median(degree))
@@ -2500,12 +2512,12 @@ V(graph)$eigen <- eigen_centrality(graph)$vector
 
 centrality_df_modified <- centrality_df %>% select(variable, betweenness, closeness, degree, eigen, Race)
 colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
-centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
-# centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
+centrality_df_scaled <- centrality_df_modified %>% dplyr::mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
+# centrality_df_scaled <- centrality_df_scaled%>% dplyr::mutate_if(is.numeric, round, digits = 2)
 
 # the coaches in this DF have no punctuation in their names...
 centrality_df_scaled <- centrality_df_scaled %>% 
-  mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
+  dplyr::mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
                         ifelse(Coach == "A J  Ricker", "A.J. Ricker",
                                ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
                                       ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
@@ -2544,7 +2556,7 @@ coordinators_became_hc_target_year <- coordinators_training_year %>% inner_join(
 #A[A$C %in% B$C,  ]
 # data$num1[data$num1 == 1] <- 99  
 
-coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% mutate("BecameHC"=0)
+coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% dplyr::mutate("BecameHC"=0)
 coordinators_training_year_with_metrics$BecameHC[coordinators_training_year_with_metrics$Coach %in% coordinators_became_hc_target_year$Coach] <- 1
 
 # save current year
@@ -2566,9 +2578,9 @@ coordinators_training_year <- coordinators_training_year %>% select(College, Sea
 coaching_tree_training_years <- coaching_tree %>% filter(Season >=target_year-15 & Season <=target_year-1)
 coaching_tree_sums_training_years <- coaching_tree_training_years %>% 
   group_by(Coach, Coordinator) %>%
-  summarise(years_together = n())
+  dplyr::summarise(years_together = n())
 edges_df <- coaching_tree_sums_training_years %>%
-  rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
+  dplyr::rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
 
 head_coaches_training_years <- head_coaches1 %>% filter(Season >=target_year-15)
 d_coordinators_training_period <- defensive_coordinators1 %>% filter(Season>=target_year-15)
@@ -2613,7 +2625,7 @@ centrality_df <- centrality_df %>%
   left_join(vertex_df, by = c("variable" = "Coach"))
 
 centrality_df <- centrality_df %>%
-  mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
+  dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
                         ifelse(variable == "Joe Salave a", "Other",
                                ifelse(variable == "O Neill Gilbert", "Black",
                                       ifelse(variable == "Brian Jean Mary", "Black",
@@ -2626,14 +2638,14 @@ centrality_df <- centrality_df %>%
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = mean(eigen),
+  dplyr::summarise(eigen = mean(eigen),
             betweenness = mean(betweenness),
             closeness = mean(closeness),
             degree = mean(degree))
 
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = median(eigen),
+  dplyr::summarise(eigen = median(eigen),
             betweenness = median(betweenness),
             closeness = median(closeness),
             degree = median(degree))
@@ -2645,12 +2657,12 @@ V(graph)$eigen <- eigen_centrality(graph)$vector
 
 centrality_df_modified <- centrality_df %>% select(variable, betweenness, closeness, degree, eigen, Race)
 colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
-centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
-# centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
+centrality_df_scaled <- centrality_df_modified %>% dplyr::mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
+# centrality_df_scaled <- centrality_df_scaled%>% dplyr::mutate_if(is.numeric, round, digits = 2)
 
 # the coaches in this DF have no punctuation in their names...
 centrality_df_scaled <- centrality_df_scaled %>% 
-  mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
+  dplyr::mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
                         ifelse(Coach == "A J  Ricker", "A.J. Ricker",
                                ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
                                       ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
@@ -2689,7 +2701,7 @@ coordinators_became_hc_target_year <- coordinators_training_year %>% inner_join(
 #A[A$C %in% B$C,  ]
 # data$num1[data$num1 == 1] <- 99  
 
-coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% mutate("BecameHC"=0)
+coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% dplyr::mutate("BecameHC"=0)
 coordinators_training_year_with_metrics$BecameHC[coordinators_training_year_with_metrics$Coach %in% coordinators_became_hc_target_year$Coach] <- 1
 
 # save current year
@@ -2711,9 +2723,9 @@ coordinators_training_year <- coordinators_training_year %>% select(College, Sea
 coaching_tree_training_years <- coaching_tree %>% filter(Season >=target_year-15 & Season <=target_year-1)
 coaching_tree_sums_training_years <- coaching_tree_training_years %>% 
   group_by(Coach, Coordinator) %>%
-  summarise(years_together = n())
+  dplyr::summarise(years_together = n())
 edges_df <- coaching_tree_sums_training_years %>%
-  rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
+  dplyr::rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
 
 head_coaches_training_years <- head_coaches1 %>% filter(Season >=target_year-15)
 d_coordinators_training_period <- defensive_coordinators1 %>% filter(Season>=target_year-15)
@@ -2758,7 +2770,7 @@ centrality_df <- centrality_df %>%
   left_join(vertex_df, by = c("variable" = "Coach"))
 
 centrality_df <- centrality_df %>%
-  mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
+  dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
                         ifelse(variable == "Joe Salave a", "Other",
                                ifelse(variable == "O Neill Gilbert", "Black",
                                       ifelse(variable == "Brian Jean Mary", "Black",
@@ -2771,14 +2783,14 @@ centrality_df <- centrality_df %>%
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = mean(eigen),
+  dplyr::summarise(eigen = mean(eigen),
             betweenness = mean(betweenness),
             closeness = mean(closeness),
             degree = mean(degree))
 
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = median(eigen),
+  dplyr::summarise(eigen = median(eigen),
             betweenness = median(betweenness),
             closeness = median(closeness),
             degree = median(degree))
@@ -2790,12 +2802,12 @@ V(graph)$eigen <- eigen_centrality(graph)$vector
 
 centrality_df_modified <- centrality_df %>% select(variable, betweenness, closeness, degree, eigen, Race)
 colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
-centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
-# centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
+centrality_df_scaled <- centrality_df_modified %>% dplyr::mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
+# centrality_df_scaled <- centrality_df_scaled%>% dplyr::mutate_if(is.numeric, round, digits = 2)
 
 # the coaches in this DF have no punctuation in their names...
 centrality_df_scaled <- centrality_df_scaled %>% 
-  mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
+  dplyr::mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
                         ifelse(Coach == "A J  Ricker", "A.J. Ricker",
                                ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
                                       ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
@@ -2835,7 +2847,7 @@ coordinators_became_hc_target_year <- coordinators_training_year %>% inner_join(
 #A[A$C %in% B$C,  ]
 # data$num1[data$num1 == 1] <- 99  
 
-coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% mutate("BecameHC"=0)
+coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% dplyr::mutate("BecameHC"=0)
 coordinators_training_year_with_metrics$BecameHC[coordinators_training_year_with_metrics$Coach %in% coordinators_became_hc_target_year$Coach] <- 1
 
 # save current year
@@ -2857,9 +2869,9 @@ coordinators_training_year <- coordinators_training_year %>% select(College, Sea
 coaching_tree_training_years <- coaching_tree %>% filter(Season >=target_year-15 & Season <=target_year-1)
 coaching_tree_sums_training_years <- coaching_tree_training_years %>% 
   group_by(Coach, Coordinator) %>%
-  summarise(years_together = n())
+  dplyr::summarise(years_together = n())
 edges_df <- coaching_tree_sums_training_years %>%
-  rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
+  dplyr::rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
 
 head_coaches_training_years <- head_coaches1 %>% filter(Season >=target_year-15)
 d_coordinators_training_period <- defensive_coordinators1 %>% filter(Season>=target_year-15)
@@ -2904,7 +2916,7 @@ centrality_df <- centrality_df %>%
   left_join(vertex_df, by = c("variable" = "Coach"))
 
 centrality_df <- centrality_df %>%
-  mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
+  dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
                         ifelse(variable == "Joe Salave a", "Other",
                                ifelse(variable == "O Neill Gilbert", "Black",
                                       ifelse(variable == "Brian Jean Mary", "Black",
@@ -2917,14 +2929,14 @@ centrality_df <- centrality_df %>%
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = mean(eigen),
+  dplyr::summarise(eigen = mean(eigen),
             betweenness = mean(betweenness),
             closeness = mean(closeness),
             degree = mean(degree))
 
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = median(eigen),
+  dplyr::summarise(eigen = median(eigen),
             betweenness = median(betweenness),
             closeness = median(closeness),
             degree = median(degree))
@@ -2936,12 +2948,12 @@ V(graph)$eigen <- eigen_centrality(graph)$vector
 
 centrality_df_modified <- centrality_df %>% select(variable, betweenness, closeness, degree, eigen, Race)
 colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
-centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
-# centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
+centrality_df_scaled <- centrality_df_modified %>% dplyr::mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
+# centrality_df_scaled <- centrality_df_scaled%>% dplyr::mutate_if(is.numeric, round, digits = 2)
 
 # the coaches in this DF have no punctuation in their names...
 centrality_df_scaled <- centrality_df_scaled %>% 
-  mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
+  dplyr::mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
                         ifelse(Coach == "A J  Ricker", "A.J. Ricker",
                                ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
                                       ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
@@ -2980,7 +2992,7 @@ coordinators_became_hc_target_year <- coordinators_training_year %>% inner_join(
 #A[A$C %in% B$C,  ]
 # data$num1[data$num1 == 1] <- 99  
 
-coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% mutate("BecameHC"=0)
+coordinators_training_year_with_metrics <- coordinators_training_year_with_metrics%>% dplyr::mutate("BecameHC"=0)
 coordinators_training_year_with_metrics$BecameHC[coordinators_training_year_with_metrics$Coach %in% coordinators_became_hc_target_year$Coach] <- 1
 
 # save current year
@@ -3014,11 +3026,11 @@ sum(coordinators_training_year_with_metrics_all$BecameHC)
 tenure_df <- defensive_coordinators1 %>%
   rbind(offensive_coordinators1) %>%
   group_by(Coach) %>% 
-  summarise(tenure_length = n())
+  dplyr::summarise(tenure_length = n())
 coordinators_training_year_with_metrics_all <- coordinators_training_year_with_metrics_all %>%
   left_join(tenure_df)
 coordinators_training_year_with_metrics_all <- coordinators_training_year_with_metrics_all %>%
-  mutate(Race = ifelse(Race=="Black", 1, 0))
+  dplyr::mutate(Race = ifelse(Race=="Black", 1, 0))
 
 # Correlation Plot
 png(height=600, width=600, file="coach_corr_plot.png", type = "cairo")
@@ -3185,7 +3197,7 @@ trainX <- cbind(train$Connections,
                 train$Race,
                 train$tenure_length)
 trainY <- train %>% 
-  mutate(BecameHC = ifelse(BecameHC == 0, -1, 1)) %>%
+  dplyr::mutate(BecameHC = ifelse(BecameHC == 0, -1, 1)) %>%
   select(BecameHC)
 trainY <- trainY$BecameHC
 testX <- cbind(test$Connections, 
@@ -3195,7 +3207,7 @@ testX <- cbind(test$Connections,
                test$Race,
                test$tenure_length)
 testY <- test %>% 
-  mutate(BecameHC = ifelse(BecameHC == 0, -1, 1)) %>%
+  dplyr::mutate(BecameHC = ifelse(BecameHC == 0, -1, 1)) %>%
   select(BecameHC)
 testY <- testY$BecameHC
 # obtained tree_depth and n_rounds just from some guessing & checking
@@ -3416,9 +3428,9 @@ coordinators_training_year <- coordinators_training_year %>% select(College, Sea
 coaching_tree_training_years <- coaching_tree %>% filter(Season >=target_year-15 & Season <=target_year-1)
 coaching_tree_sums_training_years <- coaching_tree_training_years %>% 
   group_by(Coach, Coordinator) %>%
-  summarise(years_together = n())
+  dplyr::summarise(years_together = n())
 edges_df <- coaching_tree_sums_training_years %>%
-  rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
+  dplyr::rename(c("from" = "Coach", "to" = "Coordinator", "weight" = "years_together"))
 
 head_coaches_training_years <- head_coaches1 %>% filter(Season >=target_year-15)
 d_coordinators_training_period <- defensive_coordinators1 %>% filter(Season>=target_year-15)
@@ -3463,7 +3475,7 @@ centrality_df <- centrality_df %>%
   left_join(vertex_df, by = c("variable" = "Coach"))
 
 centrality_df <- centrality_df %>%
-  mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
+  dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
                         ifelse(variable == "Joe Salave a", "Other",
                                ifelse(variable == "O Neill Gilbert", "Black",
                                       ifelse(variable == "Brian Jean Mary", "Black",
@@ -3476,14 +3488,14 @@ centrality_df <- centrality_df %>%
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = mean(eigen),
+  dplyr::summarise(eigen = mean(eigen),
             betweenness = mean(betweenness),
             closeness = mean(closeness),
             degree = mean(degree))
 # So white coaches are 1.43 times more connected than Black coaches (degree) on average.
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
-  summarise(eigen = median(eigen),
+  dplyr::summarise(eigen = median(eigen),
             betweenness = median(betweenness),
             closeness = median(closeness),
             degree = median(degree))
@@ -3495,12 +3507,12 @@ V(graph)$eigen <- eigen_centrality(graph)$vector
 
 centrality_df_modified <- centrality_df %>% select(variable, betweenness, closeness, degree, eigen, Race)
 colnames(centrality_df_modified) <- c("Coach", "Networking", "Influence", "Connections",  "InfluencePlus", "Race")
-centrality_df_scaled <- centrality_df_modified %>% mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
-# centrality_df_scaled <- centrality_df_scaled%>% mutate_if(is.numeric, round, digits = 2)
+centrality_df_scaled <- centrality_df_modified %>% dplyr::mutate_at(c("Networking", "Influence", "InfluencePlus"), ~(scale(.) %>% as.vector))
+# centrality_df_scaled <- centrality_df_scaled%>% dplyr::mutate_if(is.numeric, round, digits = 2)
 
 # the coaches in this DF have no punctuation in their names...
 centrality_df_scaled <- centrality_df_scaled %>% 
-  mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
+  dplyr::mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
                         ifelse(Coach == "A J  Ricker", "A.J. Ricker",
                                ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
                                       ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
@@ -3546,11 +3558,11 @@ coordinators_training_year_2022_with_metrics$role_DC1 <- ifelse(grepl("Offensive
 tenure_df <- defensive_coordinators1 %>%
   rbind(offensive_coordinators1) %>%
   group_by(Coach) %>% 
-  summarise(tenure_length = n())
+  dplyr::summarise(tenure_length = n())
 coordinators_training_year_2022_with_metrics <- coordinators_training_year_2022_with_metrics %>%
   left_join(tenure_df)
 coordinators_training_year_2022_with_metrics <- coordinators_training_year_2022_with_metrics %>%
-  mutate(Race = ifelse(Race=="Black", 1, 0))
+  dplyr::mutate(Race = ifelse(Race=="Black", 1, 0))
 
 testX <- cbind(coordinators_training_year_2022_with_metrics$Connections, 
                coordinators_training_year_2022_with_metrics$net_ppa, 
