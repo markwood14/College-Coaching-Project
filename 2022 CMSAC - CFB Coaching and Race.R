@@ -38,7 +38,7 @@ coach_df1 <- coach_df1 %>%
 coach_df <- coach_df1 %>%
   filter(Race != "#N/A") %>%
   group_by(Coach, College, Role) %>%
-  dplyr::dplyr::mutate(year_start = min(Season),
+  dplyr::mutate(year_start = min(Season),
          year_end = max(Season)) %>%
   select(c(College, Coach, Role, Race, year_start, year_end)) %>%
   distinct()
