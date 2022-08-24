@@ -18,7 +18,7 @@ invisible(lapply(packages, library, character.only = TRUE))
 
 # Read and clean the coaches csv
 
-file_url <- "https://github.com/markwood14/CFB-Coaching-Project/blob/main/coach_df1.Rda?raw=true"
+file_url <- "https://github.com/rebinion/College-Coaching-Project/blob/main/coach_df1.Rda?raw=true"
 load(url(file_url))
 
 coach_df1 <- coach_df1 %>% 
