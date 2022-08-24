@@ -16,29 +16,29 @@ invisible(lapply(packages, library, character.only = TRUE))
 ##########################################################################################
 # Set up the primary dataframes:
 
-# Read and clean the coaches csv
+# Read and clean the coaches dataset
 
 file_url <- "https://github.com/rebinion/College-Coaching-Project/blob/main/coach_df1.Rda?raw=true"
 load(url(file_url))
 
 coach_df1 <- coach_df1 %>% 
   dplyr::mutate(College = ifelse(College == "FAU", "Florida Atlantic",
-                          ifelse(College == "FIU", "Florida International",
-                                 ifelse(College == "Hawaii", "Hawai'i",
-                                        ifelse(College == "Massachusetts", "UMass", 
-                                               ifelse(College == "Miami (FL)", "Miami",
-                                                      ifelse(College == "San Jose State", "San José State",
-                                                             ifelse(College == "Southern Miss", "Southern Mississippi",
-                                                                    ifelse(College == "UConn", "Connecticut",
-                                                                           ifelse(College == "UL Monroe", "Louisiana Monroe",
-                                                                                  ifelse(College == "USF", "South Florida",
-                                                                                         ifelse(College == "UTSA", "UT San Antonio",
-                                                                                                College))))))))))))
+                                 ifelse(College == "FIU", "Florida International",
+                                        ifelse(College == "Hawaii", "Hawai'i",
+                                               ifelse(College == "Massachusetts", "UMass", 
+                                                      ifelse(College == "Miami (FL)", "Miami",
+                                                             ifelse(College == "San Jose State", "San José State",
+                                                                    ifelse(College == "Southern Miss", "Southern Mississippi",
+                                                                           ifelse(College == "UConn", "Connecticut",
+                                                                                  ifelse(College == "UL Monroe", "Louisiana Monroe",
+                                                                                         ifelse(College == "USF", "South Florida",
+                                                                                                ifelse(College == "UTSA", "UT San Antonio",
+                                                                                                       College))))))))))))
 coach_df <- coach_df1 %>%
   filter(Race != "#N/A") %>%
   group_by(Coach, College, Role) %>%
   dplyr::mutate(year_start = min(Season),
-         year_end = max(Season)) %>%
+                       year_end = max(Season)) %>%
   select(c(College, Coach, Role, Race, year_start, year_end)) %>%
   distinct()
 # save(coach_df,file="coach_df.Rda")
@@ -74,31 +74,31 @@ defensive_coordinators <- coordinators %>%
 head_coaches <- head_coaches %>% 
   group_by(College, Coach) %>%
   dplyr::mutate(year_start = min(year_start), 
-         year_end = max(year_end)) %>%
+                year_end = max(year_end)) %>%
   distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
 defensive_coordinators <- defensive_coordinators %>%
   group_by(College, Coach) %>%
   dplyr::mutate(year_start = min(year_start),
-         year_end = max(year_end)) %>%
+                year_end = max(year_end)) %>%
   distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
 offensive_coordinators <- offensive_coordinators %>%
   group_by(College, Coach) %>%
   dplyr::mutate(year_start = min(year_start),
-         year_end = max(year_end)) %>%
+                year_end = max(year_end)) %>%
   distinct(College, Coach, Race, year_start, year_end, .keep_all = TRUE)
 # updating a few of the Race entries
 offensive_coordinators <- offensive_coordinators %>%
   dplyr::mutate(Race = ifelse(Coach == "Billy Gonzales", "Other",
-                       ifelse(Coach == "Ron Prince", "Black",
-                              Race)))
+                              ifelse(Coach == "Ron Prince", "Black",
+                                     Race)))
 defensive_coordinators <- defensive_coordinators %>%
   dplyr::mutate(Race = ifelse(Coach == "Phil Elmassian", "White",
-                       ifelse(Coach == "Chris Simpson", "Black",
-                              ifelse(Coach == "John Chavis", "White",
-                                     ifelse(Coach == "John Papuchis", "White",
-                                            ifelse(Coach == "Justin Ena", "White",
-                                                   ifelse(Coach == "Justin Hamilton", "White",
-                                                          Race)))))))
+                              ifelse(Coach == "Chris Simpson", "Black",
+                                     ifelse(Coach == "John Chavis", "White",
+                                            ifelse(Coach == "John Papuchis", "White",
+                                                   ifelse(Coach == "Justin Ena", "White",
+                                                          ifelse(Coach == "Justin Hamilton", "White",
+                                                                 Race)))))))
 
 # Coordinators who became head coaches:
 offensive_to_head <- offensive_coordinators %>% 
@@ -152,16 +152,16 @@ head_coaches1 <- head_coaches1 %>%
   dplyr::mutate(Race = ifelse(Coach == "Ron Prince", "Black", Race))
 offensive_coordinators1 <- offensive_coordinators1 %>%
   dplyr::mutate(Race = ifelse(Coach == "Billy Gonzales", "Other",
-                       ifelse(Coach == "Ron Prince", "Black",
-                              Race)))
+                              ifelse(Coach == "Ron Prince", "Black",
+                                     Race)))
 defensive_coordinators1 <- defensive_coordinators1 %>%
   dplyr::mutate(Race = ifelse(Coach == "Phil Elmassian", "White",
-                       ifelse(Coach == "Chris Simpson", "Black",
-                              ifelse(Coach == "John Chavis", "White",
-                                     ifelse(Coach == "John Papuchis", "White",
-                                            ifelse(Coach == "Justin Ena", "White",
-                                                   ifelse(Coach == "Justin Hamilton", "White",
-                                                          Race)))))))
+                              ifelse(Coach == "Chris Simpson", "Black",
+                                     ifelse(Coach == "John Chavis", "White",
+                                            ifelse(Coach == "John Papuchis", "White",
+                                                   ifelse(Coach == "Justin Ena", "White",
+                                                          ifelse(Coach == "Justin Hamilton", "White",
+                                                                 Race)))))))
 head_coaches %>% group_by(Race) %>% dplyr::summarise(num_race = n())
 head_coaches1 %>% group_by(Race) %>% dplyr::summarise(num_race = n())
 
@@ -226,7 +226,7 @@ tenure$Role <- as.character(tenure$Role)
 tenure$Race <- as.character(tenure$Race)
 tenure %>%
   dplyr::mutate(Role = ifelse(Role=="Offensive Coordinator","Coordinator",
-                       ifelse(Role=="Defensive Coordinator","Coordinator",Role))) %>%
+                              ifelse(Role=="Defensive Coordinator","Coordinator",Role))) %>%
   group_by(Race, Role) %>% 
   dplyr::summarise(duration = mean(duration))
 # Race  Role        duration
@@ -243,116 +243,115 @@ tenure %>%
 # HEAD COACHES
 # Analysis of impact on on-field performance of Head Coaches by Race
 
-# create an empty df that we will use to add rows to throughout
-head_coach_impact <- data.frame()
 
 
-# for loop that will create a huge before/after stat dataframe
 
-# Charlotte did not exist before 2015, so it errored out. starting the loop again from row 66, Will Healy taking over Charlotte
-# Same error for Coastal Carolina, need to re-run loop starting at row 73 with Chadwell
-# Same error for UT San Antonio, need to re-run loop starting at row 342 with Wilson
-# removing the three coach tenures at Charlotte, Coastal, and UTSA where there is no before for comparison
-head_coaches_recent <- head_coaches_recent[!(head_coaches_recent$Coach=="Brad Lambert" | head_coaches_recent$Coach=="Joe Moglia" |head_coaches_recent$Coach=="Larry Coker" ),]
-# This for loop can take several hours to run; the resulting dataframe can be loaded from github
-# using the code right below the for loop
+# FOR loop that will create a huge before/after stat dataframe
 
-for(i in 1:nrow(head_coaches_recent)){
-  # create a vector of years from start to end - done
-  
-  start_year <- as.integer(head_coaches_recent[i, "year_start"])
-  if (start_year<2005){start_year<-2005}
-  end_year <- as.integer(head_coaches_recent[i,6])
-  years <-start_year:end_year
-  
-  # pull the team name - done
-  team <- toString(head_coaches_recent[i, "College"])
-  
-  # pull the coach's name - done
-  coach <- toString(head_coaches_recent[i, "Coach"])
-  # pull the coach's race - done
-  race <- toString(head_coaches_recent[i, "Race"])
-  
-  # get the advanced stats history - done
-  
-  team_advanced <- data.frame()
-  num_years <- length(years)
-  
-  for(year in years){
-    progressr::with_progress({
-      future::plan("multisession")
-      team_advanced <- team_advanced %>% dplyr::bind_rows(
-        cfbd_stats_season_advanced(year = year, team = team))
-      
-    })
-  }
-  
-  # get the FPI ratings - done
-  
-  team_FPI <- data.frame()
-  for(year in years){
-    fpi_row <- cfbfastR:::espn_ratings_fpi(year=year)%>% filter(name == team) %>% select(fpi) %>%as.double() %>% set_names(c("fpi")) 
-    team_FPI <- team_FPI %>% bind_rows(fpi_row)
-  }
-  
-  # join the advanced stats and FPI to the head_coach_impact df, binding new rows - done
-  
-  for(j in 1:nrow(team_advanced)){
-    row_to_add <- bind_cols(c(coach), team_advanced[j,], team_FPI[j,], c(race), c("after"))
-    colnames(row_to_add)[1] <- toString("Coach")
-    colnames(row_to_add)[83] <- toString("FPI_Rating")
-    colnames(row_to_add)[84] <- toString("Race")
-    colnames(row_to_add)[85] <- toString("BeforeAfter")
-    
-    head_coach_impact <- head_coach_impact %>% bind_rows(row_to_add)
-  }
-  
-  
-  # create a vector of previous years for comparison, will mark data for these years as "before" - done
-  
-  previous_years <- (years[1] - 3):(years[1]-1)
-  
-  # checking to make sure that we have data for the years and adjusting the years vector - done
-  if(previous_years[1] < 2005){
-    previous_years <-2005:tail(previous_years, 1)
-  }
-  
-  # repeat to get advanced stats and FPI and then join to head_coach_impact- done
-  
-  # get the before advanced stats history - done
-  
-  num_years <- length(previous_years)
-  team_advanced <- data.frame()
-  
-  for(year in previous_years){
-    team_advanced <- team_advanced %>% dplyr::bind_rows(
-      cfbd_stats_season_advanced(year = year, team = team))
-  }
-  # get the FPI ratings - done
-  
-  team_FPI <- data.frame()
-  for(year in previous_years){
-    fpi_row <- cfbfastR:::espn_ratings_fpi(year=year)%>% filter(name == team) %>% select(fpi) %>%as.double() %>% set_names(c("fpi")) 
-    team_FPI <- team_FPI %>% bind_rows(fpi_row)
-  }
-  
-  # join the advanced stats and FPI to the head_coach_impact df, binding new rows - done
-  
-  for(j in 1:nrow(team_advanced)){
-    row_to_add <- bind_cols(c(coach), team_advanced[j,], team_FPI[j,], c(race), c("before"))
-    colnames(row_to_add)[1] <- toString("Coach")
-    colnames(row_to_add)[83] <- toString("FPI_Rating")
-    colnames(row_to_add)[84] <- toString("Race")
-    colnames(row_to_add)[85] <- toString("BeforeAfter")
-    head_coach_impact <- head_coach_impact %>% bind_rows(row_to_add)
-  }
-  
-}
-
-# save(head_coach_impact, file="head_coach_impact.Rda")
-# load("head_coach_impact.Rda")
+### ***** ###
+### THIS for LOOP CAN TAKE OVER AN HOUR TO RUN. THE RESULTING DATAFRAME CAN BE LOADED FROM GITHUB USING THE FOLLOWING 2 LINES OF CODE:  
+### ***** ###
 temp <- "https://github.com/rebinion/College-Coaching-Project/blob/main/head_coach_impact.Rda?raw=true"
 load(url(temp))
+
+# create an empty df that we will use to add rows to throughout
+# head_coach_impact <- data.frame()
+# head_coaches_recent <- head_coaches_recent[!(head_coaches_recent$Coach=="Brad Lambert" | head_coaches_recent$Coach=="Joe Moglia" |head_coaches_recent$Coach=="Larry Coker"),]
+# 
+# for(i in 1:nrow(head_coaches_recent)){
+#   # create a vector of years from start to end - done
+#   
+#   start_year <- as.integer(head_coaches_recent[i, "year_start"])
+#   if (start_year<2005){start_year<-2005}
+#   end_year <- as.integer(head_coaches_recent[i,6])
+#   years <-start_year:end_year
+#   
+#   # pull the team name - done
+#   team <- toString(head_coaches_recent[i, "College"])
+#   
+#   # pull the coach's name - done
+#   coach <- toString(head_coaches_recent[i, "Coach"])
+#   # pull the coach's race - done
+#   race <- toString(head_coaches_recent[i, "Race"])
+#   
+#   # get the advanced stats history - done
+#   
+#   team_advanced <- data.frame()
+#   num_years <- length(years)
+#   
+#   for(year in years){
+#     progressr::with_progress({
+#       future::plan("multisession")
+#       team_advanced <- team_advanced %>% dplyr::bind_rows(
+#         cfbd_stats_season_advanced(year = year, team = team))
+#       
+#     })
+#   }
+#   
+#   # get the FPI ratings - done
+#   
+#   team_FPI <- data.frame()
+#   for(year in years){
+#     fpi_row <- cfbfastR:::espn_ratings_fpi(year=year)%>% filter(name == team) %>% select(fpi) %>%as.double() %>% set_names(c("fpi")) 
+#     team_FPI <- team_FPI %>% bind_rows(fpi_row)
+#   }
+#   
+#   # join the advanced stats and FPI to the head_coach_impact df, binding new rows - done
+#   
+#   for(j in 1:nrow(team_advanced)){
+#     row_to_add <- bind_cols(c(coach), team_advanced[j,], team_FPI[j,], c(race), c("after"))
+#     colnames(row_to_add)[1] <- toString("Coach")
+#     colnames(row_to_add)[83] <- toString("FPI_Rating")
+#     colnames(row_to_add)[84] <- toString("Race")
+#     colnames(row_to_add)[85] <- toString("BeforeAfter")
+#     
+#     head_coach_impact <- head_coach_impact %>% bind_rows(row_to_add)
+#   }
+#   
+#   
+#   # create a vector of previous years for comparison, will mark data for these years as "before" - done
+#   
+#   previous_years <- (years[1] - 3):(years[1]-1)
+#   
+#   # checking to make sure that we have data for the years and adjusting the years vector - done
+#   if(previous_years[1] < 2005){
+#     previous_years <-2005:tail(previous_years, 1)
+#   }
+#   
+#   # repeat to get advanced stats and FPI and then join to head_coach_impact- done
+#   
+#   # get the before advanced stats history - done
+#   
+#   num_years <- length(previous_years)
+#   team_advanced <- data.frame()
+#   
+#   for(year in previous_years){
+#     team_advanced <- team_advanced %>% dplyr::bind_rows(
+#       cfbd_stats_season_advanced(year = year, team = team))
+#   }
+#   # get the FPI ratings - done
+#   
+#   team_FPI <- data.frame()
+#   for(year in previous_years){
+#     fpi_row <- cfbfastR:::espn_ratings_fpi(year=year)%>% filter(name == team) %>% select(fpi) %>%as.double() %>% set_names(c("fpi")) 
+#     team_FPI <- team_FPI %>% bind_rows(fpi_row)
+#   }
+#   
+#   # join the advanced stats and FPI to the head_coach_impact df, binding new rows - done
+#   
+#   for(j in 1:nrow(team_advanced)){
+#     row_to_add <- bind_cols(c(coach), team_advanced[j,], team_FPI[j,], c(race), c("before"))
+#     colnames(row_to_add)[1] <- toString("Coach")
+#     colnames(row_to_add)[83] <- toString("FPI_Rating")
+#     colnames(row_to_add)[84] <- toString("Race")
+#     colnames(row_to_add)[85] <- toString("BeforeAfter")
+#     head_coach_impact <- head_coach_impact %>% bind_rows(row_to_add)
+#   }
+#   
+# }
+# save(head_coach_impact, file="head_coach_impact.Rda")
+# load("head_coach_impact.Rda")
+
 
 head_coach_impact_weighted <- head_coach_impact %>% filter(BeforeAfter == "after") %>% group_by(Coach, team) %>%
   dplyr::summarise(tenure_length = n())
@@ -374,28 +373,33 @@ head_coach_impact_summary <- head_coach_impact_summary %>% group_by(Coach, team,
 
 # Calculating the net (offense-defense after-before) impact on PPA, SR, Stuff, Pass SR, FPI
 
-head_coach_impact_results <- data.frame()
-i <- 1
-# this while loop takes about a minute to run
-while (i < nrow(head_coach_impact_summary)){
-  head_coach_results <- data.frame()
-  row_to_add <- data.frame()
-  head_coach_results <- head_coach_impact_summary[i,] %>% group_by(Coach, team, Race) %>% 
-    dplyr::summarise(net_ppa = head_coach_impact_summary[i,"mean_ppa"]-head_coach_impact_summary[i+1, "mean_ppa"] - head_coach_impact_summary[i,"mean_defppa"]+head_coach_impact_summary[i+1, "mean_defppa"],
-              net_sr = head_coach_impact_summary[i,"mean_sr"]-head_coach_impact_summary[i+1, "mean_sr"] - head_coach_impact_summary[i,"mean_defsr"]+head_coach_impact_summary[i+1, "mean_defsr"],
-              net_stuff = head_coach_impact_summary[i,"mean_stuff"]-head_coach_impact_summary[i+1, "mean_stuff"] - head_coach_impact_summary[i,"mean_defstuff"]+head_coach_impact_summary[i+1, "mean_defstuff"],
-              net_pass_sr = head_coach_impact_summary[i,"mean_pass_sr"]-head_coach_impact_summary[i+1, "mean_pass_sr"] - head_coach_impact_summary[i,"mean_defpasssr"]+head_coach_impact_summary[i+1, "mean_defpasssr"],
-              net_fpi = head_coach_impact_summary[i,"mean_fpi"]-head_coach_impact_summary[i+1, "mean_fpi"])
-  head_coach_impact_results <- head_coach_impact_results %>% bind_rows(head_coach_results)
-  i=i+2
-}
-
-colnames(head_coach_impact_results) <- c(toString("Coach"), "Team", "Race", "Net_PPA", "Net_SR", "Net_Stuff_Rate", "Net_Pass_SR", "Net_FPI")
-
-# save(head_coach_impact_results, file="head_coach_impact_results.Rda")
-# load("head_coach_impact_results.Rda")
+### ***** ###
+### THIS while LOOP CAN TAKE SEVERAL MINUTES TO RUN. THE RESULTING DATAFRAME CAN BE LOADED FROM GITHUB USING THE FOLLOWING 2 LINES OF CODE:  
+### ***** ###
 temp <- "https://github.com/rebinion/College-Coaching-Project/blob/main/head_coach_impact_results.Rda?raw=true"
 load(url(temp))
+
+# head_coach_impact_results <- data.frame()
+# i <- 1
+# # this while loop takes about a minute to run
+# while (i < nrow(head_coach_impact_summary)){
+#   head_coach_results <- data.frame()
+#   row_to_add <- data.frame()
+#   head_coach_results <- head_coach_impact_summary[i,] %>% group_by(Coach, team, Race) %>% 
+#     dplyr::summarise(net_ppa = head_coach_impact_summary[i,"mean_ppa"]-head_coach_impact_summary[i+1, "mean_ppa"] - head_coach_impact_summary[i,"mean_defppa"]+head_coach_impact_summary[i+1, "mean_defppa"],
+#                      net_sr = head_coach_impact_summary[i,"mean_sr"]-head_coach_impact_summary[i+1, "mean_sr"] - head_coach_impact_summary[i,"mean_defsr"]+head_coach_impact_summary[i+1, "mean_defsr"],
+#                      net_stuff = head_coach_impact_summary[i,"mean_stuff"]-head_coach_impact_summary[i+1, "mean_stuff"] - head_coach_impact_summary[i,"mean_defstuff"]+head_coach_impact_summary[i+1, "mean_defstuff"],
+#                      net_pass_sr = head_coach_impact_summary[i,"mean_pass_sr"]-head_coach_impact_summary[i+1, "mean_pass_sr"] - head_coach_impact_summary[i,"mean_defpasssr"]+head_coach_impact_summary[i+1, "mean_defpasssr"],
+#                      net_fpi = head_coach_impact_summary[i,"mean_fpi"]-head_coach_impact_summary[i+1, "mean_fpi"])
+#   head_coach_impact_results <- head_coach_impact_results %>% bind_rows(head_coach_results)
+#   i=i+2
+# }
+# 
+# colnames(head_coach_impact_results) <- c(toString("Coach"), "Team", "Race", "Net_PPA", "Net_SR", "Net_Stuff_Rate", "Net_Pass_SR", "Net_FPI")
+# save(head_coach_impact_results, file="head_coach_impact_results.Rda")
+# load("head_coach_impact_results.Rda")
+
+
 # add tenure length to this Df so we can weight
 
 head_coach_tenures <- data.frame(head_coach_impact_weighted$tenure_length)
@@ -495,106 +499,105 @@ head_coach_impact_results %>% group_by(Race) %>% dplyr::summarise(mean_net_ppa_r
 # Repeat of Analysis of impact on on-field performance for Offensive Coordinators by Race
 # pull offensive advanced stats
 
-# creating an empty df that we will use to add rows to throughout
-oc_impact <- data.frame()
 
 # for loop that will create a huge before/after stat dataframe
 
-# Charlotte did not exist before 2015, so it errored out. starting the loop again from row 135, Shane Montgomery taking over Charlotte
-# Same error for UT San Antonio, need to re-run loop starting at row 771
-# editing the initial df to remove the problematic rows
-# removing the three coach tenures at Charlotte, Coastal, and UTSA where there is no before for comparison
-oc_recent <- oc_recent[!(oc_recent$Coach=="Jeff Mullen" | oc_recent$Coach=="Greg Adkins" |oc_recent$Coach=="Kevin Brown" ),]
-
-# This For loop can take several hours to run; the resulting dataframe can be loaded from github using the code
-#immediately below the loop
-for(i in 1:nrow(oc_recent)){
-  # create a vector of years from start to end - done
-  
-  start_year <- as.integer(oc_recent[i, "year_start"])
-  if (start_year<2005){start_year<-2005}
-  end_year <- as.integer(oc_recent[i,6])
-  years <-start_year:end_year
-  
-  # pull the team name - done
-  team <- toString(oc_recent[i, "College"])
-  
-  # pull the coach's name - done
-  coach <- toString(oc_recent[i, "Coach"])
-  # pull the coach's race - done
-  race <- toString(oc_recent[i, "Race"])
-  
-  # get the advanced stats history - done
-  
-  team_advanced <- data.frame()
-  num_years <- length(years)
-  
-  for(year in years){
-    progressr::with_progress({
-      future::plan("multisession")
-      team_advanced <- team_advanced %>% dplyr::bind_rows(
-        cfbd_stats_season_advanced(year = year, team = team))
-      
-    })
-  }
-  
-  # join the advanced stats and FPI to the oc_impact df, binding new rows - done
-  
-  for(j in 1:nrow(team_advanced)){
-    row_to_add <- bind_cols(c(coach), team_advanced[j,], c(race), c("after"))
-    colnames(row_to_add)[1] <- toString("Coach")
-    colnames(row_to_add)[83] <- toString("Race")
-    colnames(row_to_add)[84] <- toString("BeforeAfter")
-    
-    oc_impact <- oc_impact %>% bind_rows(row_to_add)
-  }
-  
-  
-  # create a vector of previous years for comparison, will mark data for these years as "before" - done
-  
-  previous_years <- (years[1] - 3):(years[1]-1)
-  
-  # checking to make sure that we have data for the years and adjusting the years vector - done
-  if(previous_years[1] < 2005){
-    previous_years <-2005:tail(previous_years, 1)
-  }
-  
-  # repeat to get advanced stats and then join to oc_impact- done
-  
-  # get the before advanced stats history - done
-  
-  num_years <- length(previous_years)
-  team_advanced <- data.frame()
-  
-  for(year in previous_years){
-    team_advanced <- team_advanced %>% dplyr::bind_rows(
-      cfbd_stats_season_advanced(year = year, team = team))
-  }
-  
-  # join the advanced stats to the oc_impact df, binding new rows - done
-  
-  for(j in 1:nrow(team_advanced)){
-    row_to_add <- bind_cols(c(coach), team_advanced[j,], c(race), c("before"))
-    colnames(row_to_add)[1] <- toString("Coach")
-    colnames(row_to_add)[83] <- toString("Race")
-    colnames(row_to_add)[84] <- toString("BeforeAfter")
-    oc_impact <- oc_impact %>% bind_rows(row_to_add)
-  }
-  
-}
-
-# save(oc_impact, file="oc_impact.Rda")
-# load("oc_impact.Rda")
+### ***** ###
+### THIS for LOOP CAN TAKE AROUND 2 HOURS TO RUN. THE RESULTING DATAFRAME CAN BE LOADED FROM GITHUB USING THE FOLLOWING 2 LINES OF CODE:  
+### ***** ###
 temp <- "https://github.com/rebinion/College-Coaching-Project/blob/main/oc_impact.Rda?raw=true"
 load(url(temp))
+
+
+# oc_recent <- oc_recent[!(oc_recent$Coach=="Jeff Mullen" | oc_recent$Coach=="Greg Adkins" |oc_recent$Coach=="Kevin Brown" ),]
+# creating an empty df that we will use to add rows to throughout
+# oc_impact <- data.frame()
+
+# for(i in 1:nrow(oc_recent)){
+#   # create a vector of years from start to end - done
+#   
+#   start_year <- as.integer(oc_recent[i, "year_start"])
+#   if (start_year<2005){start_year<-2005}
+#   end_year <- as.integer(oc_recent[i,6])
+#   years <-start_year:end_year
+#   
+#   # pull the team name - done
+#   team <- toString(oc_recent[i, "College"])
+#   
+#   # pull the coach's name - done
+#   coach <- toString(oc_recent[i, "Coach"])
+#   # pull the coach's race - done
+#   race <- toString(oc_recent[i, "Race"])
+#   
+#   # get the advanced stats history - done
+#   
+#   team_advanced <- data.frame()
+#   num_years <- length(years)
+#   
+#   for(year in years){
+#     progressr::with_progress({
+#       future::plan("multisession")
+#       team_advanced <- team_advanced %>% dplyr::bind_rows(
+#         cfbd_stats_season_advanced(year = year, team = team))
+#       
+#     })
+#   }
+#   
+#   # join the advanced stats and FPI to the oc_impact df, binding new rows - done
+#   
+#   for(j in 1:nrow(team_advanced)){
+#     row_to_add <- bind_cols(c(coach), team_advanced[j,], c(race), c("after"))
+#     colnames(row_to_add)[1] <- toString("Coach")
+#     colnames(row_to_add)[83] <- toString("Race")
+#     colnames(row_to_add)[84] <- toString("BeforeAfter")
+#     
+#     oc_impact <- oc_impact %>% bind_rows(row_to_add)
+#   }
+#   
+#   
+#   # create a vector of previous years for comparison, will mark data for these years as "before" - done
+#   
+#   previous_years <- (years[1] - 3):(years[1]-1)
+#   
+#   # checking to make sure that we have data for the years and adjusting the years vector - done
+#   if(previous_years[1] < 2005){
+#     previous_years <-2005:tail(previous_years, 1)
+#   }
+#   
+#   # repeat to get advanced stats and then join to oc_impact- done
+#   
+#   # get the before advanced stats history - done
+#   
+#   num_years <- length(previous_years)
+#   team_advanced <- data.frame()
+#   
+#   for(year in previous_years){
+#     team_advanced <- team_advanced %>% dplyr::bind_rows(
+#       cfbd_stats_season_advanced(year = year, team = team))
+#   }
+#   
+#   # join the advanced stats to the oc_impact df, binding new rows - done
+#   
+#   for(j in 1:nrow(team_advanced)){
+#     row_to_add <- bind_cols(c(coach), team_advanced[j,], c(race), c("before"))
+#     colnames(row_to_add)[1] <- toString("Coach")
+#     colnames(row_to_add)[83] <- toString("Race")
+#     colnames(row_to_add)[84] <- toString("BeforeAfter")
+#     oc_impact <- oc_impact %>% bind_rows(row_to_add)
+#   }
+#   
+# }
+# save(oc_impact, file="oc_impact.Rda")
+# load("oc_impact.Rda")
+
 oc_impact_summary <-oc_impact %>% select(c("Coach", "team", "off_ppa", "off_success_rate", "off_stuff_rate", "off_passing_plays_success_rate", "Race", "BeforeAfter"))
 
 oc_impact_summary <- oc_impact_summary %>% 
   group_by(Coach, team, Race, BeforeAfter) %>% 
   dplyr::summarise(mean_ppa = mean(off_ppa), 
-            mean_sr = mean(off_success_rate),
-            mean_stuff = mean(off_stuff_rate),
-            mean_pass_sr = mean(off_passing_plays_success_rate)
+                   mean_sr = mean(off_success_rate),
+                   mean_stuff = mean(off_stuff_rate),
+                   mean_pass_sr = mean(off_passing_plays_success_rate)
   )
 
 
@@ -607,9 +610,9 @@ while (i < nrow(oc_impact_summary)){
   row_to_add <- data.frame()
   oc_results <- oc_impact_summary[i,] %>% group_by(Coach, team, Race) %>% 
     dplyr::summarise(net_ppa = oc_impact_summary[i,"mean_ppa"]-oc_impact_summary[i+1, "mean_ppa"],
-              net_sr = oc_impact_summary[i,"mean_sr"]-oc_impact_summary[i+1, "mean_sr"],
-              net_stuff = oc_impact_summary[i,"mean_stuff"]-oc_impact_summary[i+1, "mean_stuff"],
-              net_pass_sr = oc_impact_summary[i,"mean_pass_sr"]-oc_impact_summary[i+1, "mean_pass_sr"])
+                     net_sr = oc_impact_summary[i,"mean_sr"]-oc_impact_summary[i+1, "mean_sr"],
+                     net_stuff = oc_impact_summary[i,"mean_stuff"]-oc_impact_summary[i+1, "mean_stuff"],
+                     net_pass_sr = oc_impact_summary[i,"mean_pass_sr"]-oc_impact_summary[i+1, "mean_pass_sr"])
   oc_impact_results <- oc_impact_results %>% bind_rows(oc_results)
   i=i+2
 }
@@ -660,97 +663,97 @@ oc_impact_results %>% group_by(Race) %>% dplyr::summarise(mean_net_passsr_race =
 # Repeat of Analysis of impact on on-field performance for Defensive Coordinators by Race
 # pull defensive advanced stats
 
-# creating an empty df that we will use to add rows to throughout
-dc_impact <- data.frame()
 
 # for loop that will create a huge before/after stat dataframe
 
-# Charlotte did not exist before 2015, so it errored out. Starting the loop again from row 115.
-# Same error for Coastal Carolina, need to re-run loop starting at row 134
-# Same error for UT San Antonio, need to re-run loop starting at row 764
-# removing the three coach tenures at Charlotte, Coastal, and UTSA where there is no before for comparison
-dc_recent <- dc_recent[!(dc_recent$Coach=="Matt Wallerstedt" | dc_recent$Coach=="Mickey Matthews" |dc_recent$Coach=="Neal Neathery" ),]
-# this for loop can take several hours to run; the resulting dataframe can be loaded using 
-# the code immediately below the for loop
-for(i in 1:nrow(dc_recent)){
-  # create a vector of years from start to end - done
-  
-  start_year <- as.integer(dc_recent[i, "year_start"])
-  if (start_year<2005){start_year<-2005}
-  end_year <- as.integer(dc_recent[i,6])
-  years <-start_year:end_year
-  
-  # pull the team name - done
-  team <- toString(dc_recent[i, "College"])
-  
-  # pull the coach's name - done
-  coach <- toString(dc_recent[i, "Coach"])
-  # pull the coach's race - done
-  race <- toString(dc_recent[i, "Race"])
-  
-  # get the advanced stats history - done
-  
-  team_advanced <- data.frame()
-  num_years <- length(years)
-  
-  for(year in years){
-    progressr::with_progress({
-      future::plan("multisession")
-      team_advanced <- team_advanced %>% dplyr::bind_rows(
-        cfbd_stats_season_advanced(year = year, team = team))
-      
-    })
-  }
-  
-  # join the advanced stats and FPI to the oc_impact df, binding new rows - done
-  
-  for(j in 1:nrow(team_advanced)){
-    row_to_add <- bind_cols(c(coach), team_advanced[j,], c(race), c("after"))
-    colnames(row_to_add)[1] <- toString("Coach")
-    colnames(row_to_add)[83] <- toString("Race")
-    colnames(row_to_add)[84] <- toString("BeforeAfter")
-    
-    dc_impact <- dc_impact %>% bind_rows(row_to_add)
-  }
-  
-  
-  # create a vector of previous years for comparison, will mark data for these years as "before" - done
-  
-  previous_years <- (years[1] - 3):(years[1]-1)
-  
-  # checking to make sure that we have data for the years and adjusting the years vector - done
-  if(previous_years[1] < 2005){
-    previous_years <-2005:tail(previous_years, 1)
-  }
-  
-  # repeat to get advanced stats and then join to oc_impact- done
-  
-  # get the before advanced stats history - done
-  
-  num_years <- length(previous_years)
-  team_advanced <- data.frame()
-  
-  for(year in previous_years){
-    team_advanced <- team_advanced %>% dplyr::bind_rows(
-      cfbd_stats_season_advanced(year = year, team = team))
-  }
-  
-  # join the advanced stats to the oc_impact df, binding new rows - done
-  
-  for(j in 1:nrow(team_advanced)){
-    row_to_add <- bind_cols(c(coach), team_advanced[j,], c(race), c("before"))
-    colnames(row_to_add)[1] <- toString("Coach")
-    colnames(row_to_add)[83] <- toString("Race")
-    colnames(row_to_add)[84] <- toString("BeforeAfter")
-    dc_impact <- dc_impact %>% bind_rows(row_to_add)
-  }
-  
-}
-
-# save(dc_impact, file="dc_impact.Rda")
-# load("dc_impact.Rda")
+### ***** ###
+### THIS for LOOP CAN TAKE OVER AN HOUR TO RUN. THE RESULTING DATAFRAME CAN BE LOADED FROM GITHUB USING THE FOLLOWING 2 LINES OF CODE:  
+### ***** ###
 temp <- "https://github.com/rebinion/College-Coaching-Project/blob/main/dc_impact.Rda?raw=true"
 load(url(temp))
+
+
+# dc_recent <- dc_recent[!(dc_recent$Coach=="Matt Wallerstedt" | dc_recent$Coach=="Mickey Matthews" |dc_recent$Coach=="Neal Neathery" ),]
+# creating an empty df that we will use to add rows to throughout
+# dc_impact <- data.frame()
+
+# for(i in 1:nrow(dc_recent)){
+#   # create a vector of years from start to end - done
+#   
+#   start_year <- as.integer(dc_recent[i, "year_start"])
+#   if (start_year<2005){start_year<-2005}
+#   end_year <- as.integer(dc_recent[i,6])
+#   years <-start_year:end_year
+#   
+#   # pull the team name - done
+#   team <- toString(dc_recent[i, "College"])
+#   
+#   # pull the coach's name - done
+#   coach <- toString(dc_recent[i, "Coach"])
+#   # pull the coach's race - done
+#   race <- toString(dc_recent[i, "Race"])
+#   
+#   # get the advanced stats history - done
+#   
+#   team_advanced <- data.frame()
+#   num_years <- length(years)
+#   
+#   for(year in years){
+#     progressr::with_progress({
+#       future::plan("multisession")
+#       team_advanced <- team_advanced %>% dplyr::bind_rows(
+#         cfbd_stats_season_advanced(year = year, team = team))
+#       
+#     })
+#   }
+#   
+#   # join the advanced stats and FPI to the oc_impact df, binding new rows - done
+#   
+#   for(j in 1:nrow(team_advanced)){
+#     row_to_add <- bind_cols(c(coach), team_advanced[j,], c(race), c("after"))
+#     colnames(row_to_add)[1] <- toString("Coach")
+#     colnames(row_to_add)[83] <- toString("Race")
+#     colnames(row_to_add)[84] <- toString("BeforeAfter")
+#     
+#     dc_impact <- dc_impact %>% bind_rows(row_to_add)
+#   }
+#   
+#   
+#   # create a vector of previous years for comparison, will mark data for these years as "before" - done
+#   
+#   previous_years <- (years[1] - 3):(years[1]-1)
+#   
+#   # checking to make sure that we have data for the years and adjusting the years vector - done
+#   if(previous_years[1] < 2005){
+#     previous_years <-2005:tail(previous_years, 1)
+#   }
+#   
+#   # repeat to get advanced stats and then join to oc_impact- done
+#   
+#   # get the before advanced stats history - done
+#   
+#   num_years <- length(previous_years)
+#   team_advanced <- data.frame()
+#   
+#   for(year in previous_years){
+#     team_advanced <- team_advanced %>% dplyr::bind_rows(
+#       cfbd_stats_season_advanced(year = year, team = team))
+#   }
+#   
+#   # join the advanced stats to the oc_impact df, binding new rows - done
+#   
+#   for(j in 1:nrow(team_advanced)){
+#     row_to_add <- bind_cols(c(coach), team_advanced[j,], c(race), c("before"))
+#     colnames(row_to_add)[1] <- toString("Coach")
+#     colnames(row_to_add)[83] <- toString("Race")
+#     colnames(row_to_add)[84] <- toString("BeforeAfter")
+#     dc_impact <- dc_impact %>% bind_rows(row_to_add)
+#   }
+#   
+# }
+# save(dc_impact, file="dc_impact.Rda")
+# load("dc_impact.Rda")
+
 
 dc_impact_summary <-dc_impact %>% select(c("Coach", "team", "def_ppa", "def_success_rate", "def_stuff_rate", "def_passing_plays_success_rate",
                                            "Race", "BeforeAfter"))
@@ -772,9 +775,9 @@ while (i < nrow(dc_impact_summary)){
   row_to_add <- data.frame()
   dc_results <- dc_impact_summary[i,] %>% group_by(Coach, team, Race) %>% 
     dplyr::summarise(net_ppa = -dc_impact_summary[i,"mean_ppa"]+dc_impact_summary[i+1, "mean_ppa"],
-              net_sr = -dc_impact_summary[i,"mean_sr"]+dc_impact_summary[i+1, "mean_sr"],
-              net_stuff = -dc_impact_summary[i,"mean_stuff"]+dc_impact_summary[i+1, "mean_stuff"],
-              net_pass_sr = -dc_impact_summary[i,"mean_pass_sr"]+dc_impact_summary[i+1, "mean_pass_sr"])
+                     net_sr = -dc_impact_summary[i,"mean_sr"]+dc_impact_summary[i+1, "mean_sr"],
+                     net_stuff = -dc_impact_summary[i,"mean_stuff"]+dc_impact_summary[i+1, "mean_stuff"],
+                     net_pass_sr = -dc_impact_summary[i,"mean_pass_sr"]+dc_impact_summary[i+1, "mean_pass_sr"])
   dc_impact_results <- dc_impact_results %>% bind_rows(dc_results)
   i=i+2
 }
@@ -811,12 +814,12 @@ out_inds <- which(dc_impact_results$net_ppa %in% c(out_vals))
 out_inds
 # (one of these outliers is Brian Norwood so we'll copy the current df which includes this row for later use)
 dc_impact_results1 <- dc_impact_results
-dc_impact_results <- dc_impact_results[-c(out_inds),]
-ggqqplot(dc_impact_results$net_ppa)
-dc_impact_results %>% group_by(Race) %>% dplyr::summarise(mean_net_ppa_race = mean(net_ppa))
+dc_impact_results1 <- dc_impact_results1[-c(out_inds),]
+ggqqplot(dc_impact_results1$net_ppa)
+dc_impact_results1 %>% group_by(Race) %>% dplyr::summarise(mean_net_ppa_race = mean(net_ppa))
 
 # analyze via simple linear regression
-lm1 <- lm(net_ppa ~ Race, dc_impact_results)
+lm1 <- lm(net_ppa ~ Race, dc_impact_results1)
 summary(lm1)
 
 ##########################################################################################
@@ -852,13 +855,13 @@ dc_to_head_impact_plot
 # ggsave("dc_to_head_impact_plot.png", height = 7, width = 10, dpi = 300)
 
 sd(dc_to_head_impact$Net_PPA)
-# SD is 0.077, so black DCs about 0.5 sd's better
+# SD is 0.086, so black DCs about 0.5 sd's better
 
 # checking the significance level here:
 dc_to_head_model <- lm(Net_PPA~Race, data = dc_to_head_impact)
 summary(dc_to_head_model)
 summary(aov(Net_PPA~Race, data = dc_to_head_impact))
-# p value of .109 for this as a whole. So no real significance here
+# p value of .2 for this as a whole. So no real significance here
 
 dc_to_head_impact %>% group_by(Race) %>% dplyr::summarise(mean_net_sr_race = mean(Net_SR))
 #Race  mean_net_sr_race
@@ -892,7 +895,7 @@ coord_to_head_impact$Race <- ifelse(coord_to_head_impact$Race == "?", "Non-white
 coord_to_head_impact %>% group_by(Race) %>% dplyr::summarise(mean_net_ppa_race = mean(Net_PPA))
 # Race      mean_net_ppa_race
 # 1 Non-white           0.00942
-# 2 White               0.0152 
+# 2 White               0.0162 
 
 # No signal here.
 
@@ -1007,8 +1010,8 @@ hires_by_coord <- coaching_tree %>%
 minority_hires <- hires_by_years %>%
   left_join(hires_by_coord) %>%
   dplyr::mutate(years_rank = rank(desc(percent_of_years_POC)),
-         coords_rank = rank(desc(percent_of_coords_POC)),
-         rank = rank(years_rank + coords_rank))
+                coords_rank = rank(desc(percent_of_coords_POC)),
+                rank = rank(years_rank + coords_rank))
 
 # 538-style table from Thomas Mock's tutorial using the gt package
 colnames(minority_hires) <- c("Coach", "Coach_Race", "Alternate_Race", "Non-White_Coordinator_Seasons", 
@@ -1115,7 +1118,7 @@ minority_hires$Coach_Race <- ifelse(minority_hires$Coach_Race == "?", "Non-white
 minority_hires %>%
   group_by(Coach_Race) %>%
   dplyr::summarise(percent_of_years_POC = mean(`Available_Seasons_with_Non-White_Coordinator_Percentage`),
-            percent_of_coords_POC = mean(`Non-White_Coordinators_Percentage`))
+                   percent_of_coords_POC = mean(`Non-White_Coordinators_Percentage`))
 
 # Coach_Race percent_of_years_POC percent_of_coords_POC
 # <chr>                     <dbl>                 <dbl>
@@ -1315,22 +1318,22 @@ centrality_df <- centrality_df %>%
 
 centrality_df <- centrality_df %>%
   dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
-                        ifelse(variable == "Joe Salave a", "Other",
-                               ifelse(variable == "O Neill Gilbert", "Black",
-                                      ifelse(variable == "Brian Jean Mary", "Black",
-                                             ifelse(variable == "Re quan Boyette", "Black",
-                                                    ifelse(variable == "J D Williams", "Black",
-                                                           ifelse(variable == "Maurice Crum Jr ", "Black",
-                                                                  ifelse(variable == "Time Harris Jr ", "Black",
-                                                                         Race)))))))))
+                               ifelse(variable == "Joe Salave a", "Other",
+                                      ifelse(variable == "O Neill Gilbert", "Black",
+                                             ifelse(variable == "Brian Jean Mary", "Black",
+                                                    ifelse(variable == "Re quan Boyette", "Black",
+                                                           ifelse(variable == "J D Williams", "Black",
+                                                                  ifelse(variable == "Maurice Crum Jr ", "Black",
+                                                                         ifelse(variable == "Time Harris Jr ", "Black",
+                                                                                Race)))))))))
 
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = mean(eigen),
-            betweenness = mean(betweenness),
-            closeness = mean(closeness),
-            degree = mean(degree))
+                   betweenness = mean(betweenness),
+                   closeness = mean(closeness),
+                   degree = mean(degree))
 view(centrality_mean)
 # Comparing connection between white and black coaches
 centrality_mean[4,5]/centrality_mean[2,5]
@@ -1344,9 +1347,9 @@ centrality_mean[4,3]/centrality_mean[2,3]
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = median(eigen),
-            betweenness = median(betweenness),
-            closeness = median(closeness),
-            degree = median(degree))
+                   betweenness = median(betweenness),
+                   closeness = median(closeness),
+                   degree = median(degree))
 # To add centralities as vertex properties in graphs:
 V(graph)$degree <- degree(graph)
 V(graph)$betweenness <- betweenness(graph)
@@ -1605,21 +1608,21 @@ hc <- head_coaches1 %>%
   group_by(Race) %>%
   dplyr::summarise(num_race = n()) %>%
   dplyr::mutate(Percent = num_race / sum(num_race),
-         Position = "Head")
+                Position = "Head")
 oc <- offensive_coordinators1 %>%
   filter(Season > 2010) %>%
   dplyr::mutate(Race = ifelse(Race=="?","Other",Race)) %>%
   group_by(Race) %>%
   dplyr::summarise(num_race = n()) %>%
   dplyr::mutate(Percent = num_race / sum(num_race),
-         Position = "OC")
+                Position = "OC")
 dc <- defensive_coordinators1 %>%
   filter(Season > 2010) %>%
   dplyr::mutate(Race = ifelse(Race=="?","Other",Race)) %>%
   group_by(Race) %>%
   dplyr::summarise(num_race = n()) %>%
   dplyr::mutate(Percent = num_race / sum(num_race),
-         Position = "DC")
+                Position = "DC")
 Race <- c("White", "Black", "Other")
 Percent <- c(0.514, 0.370, 0.116)
 expected <- data.frame(Position = "Expectation",
@@ -1671,7 +1674,7 @@ hc_2021 = head_coaches1 %>%
   dplyr::mutate(actual_2021 = num_race / sum(num_race)) %>%
   left_join(ideal_demog) %>%
   dplyr::mutate(num_ideal = round(sum(num_race)*ideal_percent, 0),
-         difference = num_ideal - num_race)
+                difference = num_ideal - num_race)
 oc_2021 = offensive_coordinators1 %>%
   filter(Season == 2021) %>% 
   dplyr::mutate(Race = ifelse(Race=="?","Other",Race)) %>%
@@ -1680,7 +1683,7 @@ oc_2021 = offensive_coordinators1 %>%
   dplyr::mutate(actual_2021 = num_race / sum(num_race)) %>%
   left_join(ideal_demog) %>%
   dplyr::mutate(num_ideal = round(sum(num_race)*ideal_percent, 0),
-         difference = num_ideal - num_race)
+                difference = num_ideal - num_race)
 dc_2021 = defensive_coordinators1 %>%
   filter(Season == 2021) %>% 
   dplyr::mutate(Race = ifelse(Race=="?","Other",Race)) %>%
@@ -1689,7 +1692,7 @@ dc_2021 = defensive_coordinators1 %>%
   dplyr::mutate(actual_2021 = num_race / sum(num_race)) %>%
   left_join(ideal_demog) %>%
   dplyr::mutate(num_ideal = round(sum(num_race)*ideal_percent, 0),
-         difference = num_ideal - num_race)
+                difference = num_ideal - num_race)
 ideal_change <- data.frame(role = c("Head Coach", 
                                     "Offensive Coordinator", 
                                     "Defensive Coordinator"),
@@ -1903,18 +1906,18 @@ coach_1 <- dc_impact_results1 %>%
   filter(str_detect(Coach, "Brian Norwood")) %>% 
   group_by(Coach) %>% 
   dplyr::summarise(net_ppa = 0.010282,
-            net_sr = -0.00156, 
-            net_stuff = mean(net_stuff), 
-            net_pass_sr = mean(net_pass_sr))
+                   net_sr = -0.00156, 
+                   net_stuff = mean(net_stuff), 
+                   net_pass_sr = mean(net_pass_sr))
 coach_2 <- oc_impact_results%>%
   filter(str_detect(Coach, "Alex Atkins"))
 coach_3 <- oc_impact_results %>% 
   filter(str_detect(Coach, "Josh Gattis")) %>% 
   group_by(Coach) %>% 
   dplyr::summarise(net_ppa = 0.080055,
-            net_sr = 0.020677, 
-            net_stuff = mean(net_stuff), 
-            net_pass_sr = mean(net_pass_sr))
+                   net_sr = 0.020677, 
+                   net_stuff = mean(net_stuff), 
+                   net_pass_sr = mean(net_pass_sr))
 coach_4 <- oc_impact_results %>%
   filter(str_detect(Coach, "Maurice Harris"))
 coach_5 <- oc_impact_results %>%
@@ -2043,29 +2046,29 @@ centrality_df <- centrality_df %>%
 
 centrality_df <- centrality_df %>%
   dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
-                        ifelse(variable == "Joe Salave a", "Other",
-                               ifelse(variable == "O Neill Gilbert", "Black",
-                                      ifelse(variable == "Brian Jean Mary", "Black",
-                                             ifelse(variable == "Re quan Boyette", "Black",
-                                                    ifelse(variable == "J D Williams", "Black",
-                                                           ifelse(variable == "Maurice Crum Jr ", "Black",
-                                                                  ifelse(variable == "Time Harris Jr ", "Black",
-                                                                         Race)))))))))
+                               ifelse(variable == "Joe Salave a", "Other",
+                                      ifelse(variable == "O Neill Gilbert", "Black",
+                                             ifelse(variable == "Brian Jean Mary", "Black",
+                                                    ifelse(variable == "Re quan Boyette", "Black",
+                                                           ifelse(variable == "J D Williams", "Black",
+                                                                  ifelse(variable == "Maurice Crum Jr ", "Black",
+                                                                         ifelse(variable == "Time Harris Jr ", "Black",
+                                                                                Race)))))))))
 
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = mean(eigen),
-            betweenness = mean(betweenness),
-            closeness = mean(closeness),
-            degree = mean(degree))
+                   betweenness = mean(betweenness),
+                   closeness = mean(closeness),
+                   degree = mean(degree))
 
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = median(eigen),
-            betweenness = median(betweenness),
-            closeness = median(closeness),
-            degree = median(degree))
+                   betweenness = median(betweenness),
+                   closeness = median(closeness),
+                   degree = median(degree))
 # To add centralities as vertex properties in graphs:
 V(graph)$degree <- degree(graph)
 V(graph)$betweenness <- betweenness(graph)
@@ -2080,23 +2083,23 @@ centrality_df_scaled <- centrality_df_modified %>% dplyr::mutate_at(c("Networkin
 # the coaches in this DF have no punctuation in their names...
 centrality_df_scaled <- centrality_df_scaled %>% 
   dplyr::mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
-                        ifelse(Coach == "A J  Ricker", "A.J. Ricker",
-                               ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
-                                      ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
-                                             ifelse(Coach == "D J  Durkin", "D.J. Durkin",
-                                                    ifelse(Coach == "A J  Milwee", "A.J. Milwee",
-                                                           ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
-                                                                  ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
-                                                                         ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
-                                                                                ifelse(Coach == "D J  Eliot", "D.J. Eliot",
-                                                                                       ifelse(Coach == "J C  Price", "J.C. Price",
-                                                                                              ifelse(Coach == "Joe Salave a", "Joe Salave'a",
-                                                                                                     ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
-                                                                                                            ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
-                                                                                                                   ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
-                                                                                                                          ifelse(Coach == "T J  Weist", "T.J. Weist",
-                                                                                                                                 ifelse(Coach == "T J  Woods", "T.J. Woods", 
-                                                                                                                                        Coach))))))))))))))))))
+                               ifelse(Coach == "A J  Ricker", "A.J. Ricker",
+                                      ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
+                                             ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
+                                                    ifelse(Coach == "D J  Durkin", "D.J. Durkin",
+                                                           ifelse(Coach == "A J  Milwee", "A.J. Milwee",
+                                                                  ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
+                                                                         ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
+                                                                                ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
+                                                                                       ifelse(Coach == "D J  Eliot", "D.J. Eliot",
+                                                                                              ifelse(Coach == "J C  Price", "J.C. Price",
+                                                                                                     ifelse(Coach == "Joe Salave a", "Joe Salave'a",
+                                                                                                            ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
+                                                                                                                   ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
+                                                                                                                          ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
+                                                                                                                                 ifelse(Coach == "T J  Weist", "T.J. Weist",
+                                                                                                                                        ifelse(Coach == "T J  Woods", "T.J. Woods", 
+                                                                                                                                               Coach))))))))))))))))))
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
 
@@ -2191,29 +2194,29 @@ centrality_df <- centrality_df %>%
 
 centrality_df <- centrality_df %>%
   dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
-                        ifelse(variable == "Joe Salave a", "Other",
-                               ifelse(variable == "O Neill Gilbert", "Black",
-                                      ifelse(variable == "Brian Jean Mary", "Black",
-                                             ifelse(variable == "Re quan Boyette", "Black",
-                                                    ifelse(variable == "J D Williams", "Black",
-                                                           ifelse(variable == "Maurice Crum Jr ", "Black",
-                                                                  ifelse(variable == "Time Harris Jr ", "Black",
-                                                                         Race)))))))))
+                               ifelse(variable == "Joe Salave a", "Other",
+                                      ifelse(variable == "O Neill Gilbert", "Black",
+                                             ifelse(variable == "Brian Jean Mary", "Black",
+                                                    ifelse(variable == "Re quan Boyette", "Black",
+                                                           ifelse(variable == "J D Williams", "Black",
+                                                                  ifelse(variable == "Maurice Crum Jr ", "Black",
+                                                                         ifelse(variable == "Time Harris Jr ", "Black",
+                                                                                Race)))))))))
 
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = mean(eigen),
-            betweenness = mean(betweenness),
-            closeness = mean(closeness),
-            degree = mean(degree))
+                   betweenness = mean(betweenness),
+                   closeness = mean(closeness),
+                   degree = mean(degree))
 
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = median(eigen),
-            betweenness = median(betweenness),
-            closeness = median(closeness),
-            degree = median(degree))
+                   betweenness = median(betweenness),
+                   closeness = median(closeness),
+                   degree = median(degree))
 # To add centralities as vertex properties in graphs:
 V(graph)$degree <- degree(graph)
 V(graph)$betweenness <- betweenness(graph)
@@ -2228,23 +2231,23 @@ centrality_df_scaled <- centrality_df_modified %>% dplyr::mutate_at(c("Networkin
 # the coaches in this DF have no punctuation in their names...
 centrality_df_scaled <- centrality_df_scaled %>% 
   dplyr::mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
-                        ifelse(Coach == "A J  Ricker", "A.J. Ricker",
-                               ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
-                                      ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
-                                             ifelse(Coach == "D J  Durkin", "D.J. Durkin",
-                                                    ifelse(Coach == "A J  Milwee", "A.J. Milwee",
-                                                           ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
-                                                                  ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
-                                                                         ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
-                                                                                ifelse(Coach == "D J  Eliot", "D.J. Eliot",
-                                                                                       ifelse(Coach == "J C  Price", "J.C. Price",
-                                                                                              ifelse(Coach == "Joe Salave a", "Joe Salave'a",
-                                                                                                     ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
-                                                                                                            ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
-                                                                                                                   ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
-                                                                                                                          ifelse(Coach == "T J  Weist", "T.J. Weist",
-                                                                                                                                 ifelse(Coach == "T J  Woods", "T.J. Woods", 
-                                                                                                                                        Coach))))))))))))))))))
+                               ifelse(Coach == "A J  Ricker", "A.J. Ricker",
+                                      ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
+                                             ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
+                                                    ifelse(Coach == "D J  Durkin", "D.J. Durkin",
+                                                           ifelse(Coach == "A J  Milwee", "A.J. Milwee",
+                                                                  ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
+                                                                         ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
+                                                                                ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
+                                                                                       ifelse(Coach == "D J  Eliot", "D.J. Eliot",
+                                                                                              ifelse(Coach == "J C  Price", "J.C. Price",
+                                                                                                     ifelse(Coach == "Joe Salave a", "Joe Salave'a",
+                                                                                                            ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
+                                                                                                                   ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
+                                                                                                                          ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
+                                                                                                                                 ifelse(Coach == "T J  Weist", "T.J. Weist",
+                                                                                                                                        ifelse(Coach == "T J  Woods", "T.J. Woods", 
+                                                                                                                                               Coach))))))))))))))))))
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
 
@@ -2336,29 +2339,29 @@ centrality_df <- centrality_df %>%
 
 centrality_df <- centrality_df %>%
   dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
-                        ifelse(variable == "Joe Salave a", "Other",
-                               ifelse(variable == "O Neill Gilbert", "Black",
-                                      ifelse(variable == "Brian Jean Mary", "Black",
-                                             ifelse(variable == "Re quan Boyette", "Black",
-                                                    ifelse(variable == "J D Williams", "Black",
-                                                           ifelse(variable == "Maurice Crum Jr ", "Black",
-                                                                  ifelse(variable == "Time Harris Jr ", "Black",
-                                                                         Race)))))))))
+                               ifelse(variable == "Joe Salave a", "Other",
+                                      ifelse(variable == "O Neill Gilbert", "Black",
+                                             ifelse(variable == "Brian Jean Mary", "Black",
+                                                    ifelse(variable == "Re quan Boyette", "Black",
+                                                           ifelse(variable == "J D Williams", "Black",
+                                                                  ifelse(variable == "Maurice Crum Jr ", "Black",
+                                                                         ifelse(variable == "Time Harris Jr ", "Black",
+                                                                                Race)))))))))
 
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = mean(eigen),
-            betweenness = mean(betweenness),
-            closeness = mean(closeness),
-            degree = mean(degree))
+                   betweenness = mean(betweenness),
+                   closeness = mean(closeness),
+                   degree = mean(degree))
 
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = median(eigen),
-            betweenness = median(betweenness),
-            closeness = median(closeness),
-            degree = median(degree))
+                   betweenness = median(betweenness),
+                   closeness = median(closeness),
+                   degree = median(degree))
 # To add centralities as vertex properties in graphs:
 V(graph)$degree <- degree(graph)
 V(graph)$betweenness <- betweenness(graph)
@@ -2373,23 +2376,23 @@ centrality_df_scaled <- centrality_df_modified %>% dplyr::mutate_at(c("Networkin
 # the coaches in this DF have no punctuation in their names...
 centrality_df_scaled <- centrality_df_scaled %>% 
   dplyr::mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
-                        ifelse(Coach == "A J  Ricker", "A.J. Ricker",
-                               ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
-                                      ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
-                                             ifelse(Coach == "D J  Durkin", "D.J. Durkin",
-                                                    ifelse(Coach == "A J  Milwee", "A.J. Milwee",
-                                                           ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
-                                                                  ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
-                                                                         ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
-                                                                                ifelse(Coach == "D J  Eliot", "D.J. Eliot",
-                                                                                       ifelse(Coach == "J C  Price", "J.C. Price",
-                                                                                              ifelse(Coach == "Joe Salave a", "Joe Salave'a",
-                                                                                                     ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
-                                                                                                            ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
-                                                                                                                   ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
-                                                                                                                          ifelse(Coach == "T J  Weist", "T.J. Weist",
-                                                                                                                                 ifelse(Coach == "T J  Woods", "T.J. Woods", 
-                                                                                                                                        Coach))))))))))))))))))
+                               ifelse(Coach == "A J  Ricker", "A.J. Ricker",
+                                      ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
+                                             ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
+                                                    ifelse(Coach == "D J  Durkin", "D.J. Durkin",
+                                                           ifelse(Coach == "A J  Milwee", "A.J. Milwee",
+                                                                  ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
+                                                                         ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
+                                                                                ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
+                                                                                       ifelse(Coach == "D J  Eliot", "D.J. Eliot",
+                                                                                              ifelse(Coach == "J C  Price", "J.C. Price",
+                                                                                                     ifelse(Coach == "Joe Salave a", "Joe Salave'a",
+                                                                                                            ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
+                                                                                                                   ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
+                                                                                                                          ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
+                                                                                                                                 ifelse(Coach == "T J  Weist", "T.J. Weist",
+                                                                                                                                        ifelse(Coach == "T J  Woods", "T.J. Woods", 
+                                                                                                                                               Coach))))))))))))))))))
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
 
@@ -2480,29 +2483,29 @@ centrality_df <- centrality_df %>%
 
 centrality_df <- centrality_df %>%
   dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
-                        ifelse(variable == "Joe Salave a", "Other",
-                               ifelse(variable == "O Neill Gilbert", "Black",
-                                      ifelse(variable == "Brian Jean Mary", "Black",
-                                             ifelse(variable == "Re quan Boyette", "Black",
-                                                    ifelse(variable == "J D Williams", "Black",
-                                                           ifelse(variable == "Maurice Crum Jr ", "Black",
-                                                                  ifelse(variable == "Time Harris Jr ", "Black",
-                                                                         Race)))))))))
+                               ifelse(variable == "Joe Salave a", "Other",
+                                      ifelse(variable == "O Neill Gilbert", "Black",
+                                             ifelse(variable == "Brian Jean Mary", "Black",
+                                                    ifelse(variable == "Re quan Boyette", "Black",
+                                                           ifelse(variable == "J D Williams", "Black",
+                                                                  ifelse(variable == "Maurice Crum Jr ", "Black",
+                                                                         ifelse(variable == "Time Harris Jr ", "Black",
+                                                                                Race)))))))))
 
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = mean(eigen),
-            betweenness = mean(betweenness),
-            closeness = mean(closeness),
-            degree = mean(degree))
+                   betweenness = mean(betweenness),
+                   closeness = mean(closeness),
+                   degree = mean(degree))
 
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = median(eigen),
-            betweenness = median(betweenness),
-            closeness = median(closeness),
-            degree = median(degree))
+                   betweenness = median(betweenness),
+                   closeness = median(closeness),
+                   degree = median(degree))
 # To add centralities as vertex properties in graphs:
 V(graph)$degree <- degree(graph)
 V(graph)$betweenness <- betweenness(graph)
@@ -2517,23 +2520,23 @@ centrality_df_scaled <- centrality_df_modified %>% dplyr::mutate_at(c("Networkin
 # the coaches in this DF have no punctuation in their names...
 centrality_df_scaled <- centrality_df_scaled %>% 
   dplyr::mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
-                        ifelse(Coach == "A J  Ricker", "A.J. Ricker",
-                               ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
-                                      ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
-                                             ifelse(Coach == "D J  Durkin", "D.J. Durkin",
-                                                    ifelse(Coach == "A J  Milwee", "A.J. Milwee",
-                                                           ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
-                                                                  ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
-                                                                         ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
-                                                                                ifelse(Coach == "D J  Eliot", "D.J. Eliot",
-                                                                                       ifelse(Coach == "J C  Price", "J.C. Price",
-                                                                                              ifelse(Coach == "Joe Salave a", "Joe Salave'a",
-                                                                                                     ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
-                                                                                                            ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
-                                                                                                                   ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
-                                                                                                                          ifelse(Coach == "T J  Weist", "T.J. Weist",
-                                                                                                                                 ifelse(Coach == "T J  Woods", "T.J. Woods", 
-                                                                                                                                        Coach))))))))))))))))))
+                               ifelse(Coach == "A J  Ricker", "A.J. Ricker",
+                                      ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
+                                             ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
+                                                    ifelse(Coach == "D J  Durkin", "D.J. Durkin",
+                                                           ifelse(Coach == "A J  Milwee", "A.J. Milwee",
+                                                                  ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
+                                                                         ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
+                                                                                ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
+                                                                                       ifelse(Coach == "D J  Eliot", "D.J. Eliot",
+                                                                                              ifelse(Coach == "J C  Price", "J.C. Price",
+                                                                                                     ifelse(Coach == "Joe Salave a", "Joe Salave'a",
+                                                                                                            ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
+                                                                                                                   ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
+                                                                                                                          ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
+                                                                                                                                 ifelse(Coach == "T J  Weist", "T.J. Weist",
+                                                                                                                                        ifelse(Coach == "T J  Woods", "T.J. Woods", 
+                                                                                                                                               Coach))))))))))))))))))
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
 
@@ -2625,29 +2628,29 @@ centrality_df <- centrality_df %>%
 
 centrality_df <- centrality_df %>%
   dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
-                        ifelse(variable == "Joe Salave a", "Other",
-                               ifelse(variable == "O Neill Gilbert", "Black",
-                                      ifelse(variable == "Brian Jean Mary", "Black",
-                                             ifelse(variable == "Re quan Boyette", "Black",
-                                                    ifelse(variable == "J D Williams", "Black",
-                                                           ifelse(variable == "Maurice Crum Jr ", "Black",
-                                                                  ifelse(variable == "Time Harris Jr ", "Black",
-                                                                         Race)))))))))
+                               ifelse(variable == "Joe Salave a", "Other",
+                                      ifelse(variable == "O Neill Gilbert", "Black",
+                                             ifelse(variable == "Brian Jean Mary", "Black",
+                                                    ifelse(variable == "Re quan Boyette", "Black",
+                                                           ifelse(variable == "J D Williams", "Black",
+                                                                  ifelse(variable == "Maurice Crum Jr ", "Black",
+                                                                         ifelse(variable == "Time Harris Jr ", "Black",
+                                                                                Race)))))))))
 
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = mean(eigen),
-            betweenness = mean(betweenness),
-            closeness = mean(closeness),
-            degree = mean(degree))
+                   betweenness = mean(betweenness),
+                   closeness = mean(closeness),
+                   degree = mean(degree))
 
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = median(eigen),
-            betweenness = median(betweenness),
-            closeness = median(closeness),
-            degree = median(degree))
+                   betweenness = median(betweenness),
+                   closeness = median(closeness),
+                   degree = median(degree))
 # To add centralities as vertex properties in graphs:
 V(graph)$degree <- degree(graph)
 V(graph)$betweenness <- betweenness(graph)
@@ -2662,23 +2665,23 @@ centrality_df_scaled <- centrality_df_modified %>% dplyr::mutate_at(c("Networkin
 # the coaches in this DF have no punctuation in their names...
 centrality_df_scaled <- centrality_df_scaled %>% 
   dplyr::mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
-                        ifelse(Coach == "A J  Ricker", "A.J. Ricker",
-                               ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
-                                      ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
-                                             ifelse(Coach == "D J  Durkin", "D.J. Durkin",
-                                                    ifelse(Coach == "A J  Milwee", "A.J. Milwee",
-                                                           ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
-                                                                  ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
-                                                                         ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
-                                                                                ifelse(Coach == "D J  Eliot", "D.J. Eliot",
-                                                                                       ifelse(Coach == "J C  Price", "J.C. Price",
-                                                                                              ifelse(Coach == "Joe Salave a", "Joe Salave'a",
-                                                                                                     ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
-                                                                                                            ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
-                                                                                                                   ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
-                                                                                                                          ifelse(Coach == "T J  Weist", "T.J. Weist",
-                                                                                                                                 ifelse(Coach == "T J  Woods", "T.J. Woods", 
-                                                                                                                                        Coach))))))))))))))))))
+                               ifelse(Coach == "A J  Ricker", "A.J. Ricker",
+                                      ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
+                                             ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
+                                                    ifelse(Coach == "D J  Durkin", "D.J. Durkin",
+                                                           ifelse(Coach == "A J  Milwee", "A.J. Milwee",
+                                                                  ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
+                                                                         ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
+                                                                                ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
+                                                                                       ifelse(Coach == "D J  Eliot", "D.J. Eliot",
+                                                                                              ifelse(Coach == "J C  Price", "J.C. Price",
+                                                                                                     ifelse(Coach == "Joe Salave a", "Joe Salave'a",
+                                                                                                            ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
+                                                                                                                   ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
+                                                                                                                          ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
+                                                                                                                                 ifelse(Coach == "T J  Weist", "T.J. Weist",
+                                                                                                                                        ifelse(Coach == "T J  Woods", "T.J. Woods", 
+                                                                                                                                               Coach))))))))))))))))))
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
 
@@ -2770,29 +2773,29 @@ centrality_df <- centrality_df %>%
 
 centrality_df <- centrality_df %>%
   dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
-                        ifelse(variable == "Joe Salave a", "Other",
-                               ifelse(variable == "O Neill Gilbert", "Black",
-                                      ifelse(variable == "Brian Jean Mary", "Black",
-                                             ifelse(variable == "Re quan Boyette", "Black",
-                                                    ifelse(variable == "J D Williams", "Black",
-                                                           ifelse(variable == "Maurice Crum Jr ", "Black",
-                                                                  ifelse(variable == "Time Harris Jr ", "Black",
-                                                                         Race)))))))))
+                               ifelse(variable == "Joe Salave a", "Other",
+                                      ifelse(variable == "O Neill Gilbert", "Black",
+                                             ifelse(variable == "Brian Jean Mary", "Black",
+                                                    ifelse(variable == "Re quan Boyette", "Black",
+                                                           ifelse(variable == "J D Williams", "Black",
+                                                                  ifelse(variable == "Maurice Crum Jr ", "Black",
+                                                                         ifelse(variable == "Time Harris Jr ", "Black",
+                                                                                Race)))))))))
 
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = mean(eigen),
-            betweenness = mean(betweenness),
-            closeness = mean(closeness),
-            degree = mean(degree))
+                   betweenness = mean(betweenness),
+                   closeness = mean(closeness),
+                   degree = mean(degree))
 
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = median(eigen),
-            betweenness = median(betweenness),
-            closeness = median(closeness),
-            degree = median(degree))
+                   betweenness = median(betweenness),
+                   closeness = median(closeness),
+                   degree = median(degree))
 # To add centralities as vertex properties in graphs:
 V(graph)$degree <- degree(graph)
 V(graph)$betweenness <- betweenness(graph)
@@ -2807,23 +2810,23 @@ centrality_df_scaled <- centrality_df_modified %>% dplyr::mutate_at(c("Networkin
 # the coaches in this DF have no punctuation in their names...
 centrality_df_scaled <- centrality_df_scaled %>% 
   dplyr::mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
-                        ifelse(Coach == "A J  Ricker", "A.J. Ricker",
-                               ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
-                                      ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
-                                             ifelse(Coach == "D J  Durkin", "D.J. Durkin",
-                                                    ifelse(Coach == "A J  Milwee", "A.J. Milwee",
-                                                           ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
-                                                                  ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
-                                                                         ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
-                                                                                ifelse(Coach == "D J  Eliot", "D.J. Eliot",
-                                                                                       ifelse(Coach == "J C  Price", "J.C. Price",
-                                                                                              ifelse(Coach == "Joe Salave a", "Joe Salave'a",
-                                                                                                     ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
-                                                                                                            ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
-                                                                                                                   ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
-                                                                                                                          ifelse(Coach == "T J  Weist", "T.J. Weist",
-                                                                                                                                 ifelse(Coach == "T J  Woods", "T.J. Woods", 
-                                                                                                                                        Coach))))))))))))))))))
+                               ifelse(Coach == "A J  Ricker", "A.J. Ricker",
+                                      ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
+                                             ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
+                                                    ifelse(Coach == "D J  Durkin", "D.J. Durkin",
+                                                           ifelse(Coach == "A J  Milwee", "A.J. Milwee",
+                                                                  ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
+                                                                         ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
+                                                                                ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
+                                                                                       ifelse(Coach == "D J  Eliot", "D.J. Eliot",
+                                                                                              ifelse(Coach == "J C  Price", "J.C. Price",
+                                                                                                     ifelse(Coach == "Joe Salave a", "Joe Salave'a",
+                                                                                                            ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
+                                                                                                                   ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
+                                                                                                                          ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
+                                                                                                                                 ifelse(Coach == "T J  Weist", "T.J. Weist",
+                                                                                                                                        ifelse(Coach == "T J  Woods", "T.J. Woods", 
+                                                                                                                                               Coach))))))))))))))))))
 
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
@@ -2916,29 +2919,29 @@ centrality_df <- centrality_df %>%
 
 centrality_df <- centrality_df %>%
   dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
-                        ifelse(variable == "Joe Salave a", "Other",
-                               ifelse(variable == "O Neill Gilbert", "Black",
-                                      ifelse(variable == "Brian Jean Mary", "Black",
-                                             ifelse(variable == "Re quan Boyette", "Black",
-                                                    ifelse(variable == "J D Williams", "Black",
-                                                           ifelse(variable == "Maurice Crum Jr ", "Black",
-                                                                  ifelse(variable == "Time Harris Jr ", "Black",
-                                                                         Race)))))))))
+                               ifelse(variable == "Joe Salave a", "Other",
+                                      ifelse(variable == "O Neill Gilbert", "Black",
+                                             ifelse(variable == "Brian Jean Mary", "Black",
+                                                    ifelse(variable == "Re quan Boyette", "Black",
+                                                           ifelse(variable == "J D Williams", "Black",
+                                                                  ifelse(variable == "Maurice Crum Jr ", "Black",
+                                                                         ifelse(variable == "Time Harris Jr ", "Black",
+                                                                                Race)))))))))
 
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = mean(eigen),
-            betweenness = mean(betweenness),
-            closeness = mean(closeness),
-            degree = mean(degree))
+                   betweenness = mean(betweenness),
+                   closeness = mean(closeness),
+                   degree = mean(degree))
 
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = median(eigen),
-            betweenness = median(betweenness),
-            closeness = median(closeness),
-            degree = median(degree))
+                   betweenness = median(betweenness),
+                   closeness = median(closeness),
+                   degree = median(degree))
 # To add centralities as vertex properties in graphs:
 V(graph)$degree <- degree(graph)
 V(graph)$betweenness <- betweenness(graph)
@@ -2953,23 +2956,23 @@ centrality_df_scaled <- centrality_df_modified %>% dplyr::mutate_at(c("Networkin
 # the coaches in this DF have no punctuation in their names...
 centrality_df_scaled <- centrality_df_scaled %>% 
   dplyr::mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
-                        ifelse(Coach == "A J  Ricker", "A.J. Ricker",
-                               ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
-                                      ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
-                                             ifelse(Coach == "D J  Durkin", "D.J. Durkin",
-                                                    ifelse(Coach == "A J  Milwee", "A.J. Milwee",
-                                                           ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
-                                                                  ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
-                                                                         ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
-                                                                                ifelse(Coach == "D J  Eliot", "D.J. Eliot",
-                                                                                       ifelse(Coach == "J C  Price", "J.C. Price",
-                                                                                              ifelse(Coach == "Joe Salave a", "Joe Salave'a",
-                                                                                                     ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
-                                                                                                            ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
-                                                                                                                   ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
-                                                                                                                          ifelse(Coach == "T J  Weist", "T.J. Weist",
-                                                                                                                                 ifelse(Coach == "T J  Woods", "T.J. Woods", 
-                                                                                                                                        Coach))))))))))))))))))
+                               ifelse(Coach == "A J  Ricker", "A.J. Ricker",
+                                      ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
+                                             ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
+                                                    ifelse(Coach == "D J  Durkin", "D.J. Durkin",
+                                                           ifelse(Coach == "A J  Milwee", "A.J. Milwee",
+                                                                  ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
+                                                                         ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
+                                                                                ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
+                                                                                       ifelse(Coach == "D J  Eliot", "D.J. Eliot",
+                                                                                              ifelse(Coach == "J C  Price", "J.C. Price",
+                                                                                                     ifelse(Coach == "Joe Salave a", "Joe Salave'a",
+                                                                                                            ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
+                                                                                                                   ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
+                                                                                                                          ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
+                                                                                                                                 ifelse(Coach == "T J  Weist", "T.J. Weist",
+                                                                                                                                        ifelse(Coach == "T J  Woods", "T.J. Woods", 
+                                                                                                                                               Coach))))))))))))))))))
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
 
@@ -3475,29 +3478,29 @@ centrality_df <- centrality_df %>%
 
 centrality_df <- centrality_df %>%
   dplyr::mutate(Race == ifelse(variable == "Aazaar Abdul Rahim", "Black",
-                        ifelse(variable == "Joe Salave a", "Other",
-                               ifelse(variable == "O Neill Gilbert", "Black",
-                                      ifelse(variable == "Brian Jean Mary", "Black",
-                                             ifelse(variable == "Re quan Boyette", "Black",
-                                                    ifelse(variable == "J D Williams", "Black",
-                                                           ifelse(variable == "Maurice Crum Jr ", "Black",
-                                                                  ifelse(variable == "Time Harris Jr ", "Black",
-                                                                         Race)))))))))
+                               ifelse(variable == "Joe Salave a", "Other",
+                                      ifelse(variable == "O Neill Gilbert", "Black",
+                                             ifelse(variable == "Brian Jean Mary", "Black",
+                                                    ifelse(variable == "Re quan Boyette", "Black",
+                                                           ifelse(variable == "J D Williams", "Black",
+                                                                  ifelse(variable == "Maurice Crum Jr ", "Black",
+                                                                         ifelse(variable == "Time Harris Jr ", "Black",
+                                                                                Race)))))))))
 
 centrality_df$Race <- ifelse(is.na(centrality_df$Race), "White", centrality_df$Race)
 centrality_mean <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = mean(eigen),
-            betweenness = mean(betweenness),
-            closeness = mean(closeness),
-            degree = mean(degree))
+                   betweenness = mean(betweenness),
+                   closeness = mean(closeness),
+                   degree = mean(degree))
 # So white coaches are 1.43 times more connected than Black coaches (degree) on average.
 centrality_median <- centrality_df %>% 
   group_by(Race) %>%
   dplyr::summarise(eigen = median(eigen),
-            betweenness = median(betweenness),
-            closeness = median(closeness),
-            degree = median(degree))
+                   betweenness = median(betweenness),
+                   closeness = median(closeness),
+                   degree = median(degree))
 # To add centralities as vertex properties in graphs:
 V(graph)$degree <- degree(graph)
 V(graph)$betweenness <- betweenness(graph)
@@ -3512,28 +3515,28 @@ centrality_df_scaled <- centrality_df_modified %>% dplyr::mutate_at(c("Networkin
 # the coaches in this DF have no punctuation in their names...
 centrality_df_scaled <- centrality_df_scaled %>% 
   dplyr::mutate(Coach = ifelse(Coach == "Maurice Crum Jr ", "Maurice Crum Jr.",
-                        ifelse(Coach == "A J  Ricker", "A.J. Ricker",
-                               ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
-                                      ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
-                                             ifelse(Coach == "D J  Durkin", "D.J. Durkin",
-                                                    ifelse(Coach == "A J  Milwee", "A.J. Milwee",
-                                                           ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
-                                                                  ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
-                                                                         ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
-                                                                                ifelse(Coach == "D J  Eliot", "D.J. Eliot",
-                                                                                       ifelse(Coach == "J C  Price", "J.C. Price",
-                                                                                              ifelse(Coach == "Joe Salave a", "Joe Salave'a",
-                                                                                                     ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
-                                                                                                            ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
-                                                                                                                   ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
-                                                                                                                          ifelse(Coach == "T J  Weist", "T.J. Weist",
-                                                                                                                                 ifelse(Coach == "T J  Woods", "T.J. Woods",
-                                                                                                                                        ifelse(Coach == 'Jim O Neil', "Jim O'Neil",
-                                                                                                                                               ifelse(Coach == 'Bill O Brien', "Bill O'Brien",
-                                                                                                                                                      ifelse(Coach == 'Re quan Boyette', "Re'quan Boyette",
-                                                                                                                                                             ifelse(Coach == 'Tim Harris Jr ', "Tim Harris Jr.",
-                                                                                                                                                                    
-                                                                                                                                                                    Coach))))))))))))))))))))))
+                               ifelse(Coach == "A J  Ricker", "A.J. Ricker",
+                                      ifelse(Coach == "Frank Cignetti Jr ", "Frank Cignetti Jr.",
+                                             ifelse(Coach == "G J  Kinne", "G.J. Kinne", 
+                                                    ifelse(Coach == "D J  Durkin", "D.J. Durkin",
+                                                           ifelse(Coach == "A J  Milwee", "A.J. Milwee",
+                                                                  ifelse(Coach == "Aazaar Abdul Rahim", "Aazaar Abdul-Rahim",
+                                                                         ifelse(Coach == "Brian Jean Mary", "Brian Jean-Mary",
+                                                                                ifelse(Coach == "Charlie Weis Jr ", "Charlie Weis Jr.",
+                                                                                       ifelse(Coach == "D J  Eliot", "D.J. Eliot",
+                                                                                              ifelse(Coach == "J C  Price", "J.C. Price",
+                                                                                                     ifelse(Coach == "Joe Salave a", "Joe Salave'a",
+                                                                                                            ifelse(Coach == "Mark D Onofrio", "Mark D'Onofrio",
+                                                                                                                   ifelse(Coach == "Mike Sanford Jr ", "Mike Sanford Jr.",
+                                                                                                                          ifelse(Coach == "Steve Spurrier Jr ", "Steve Spurrier Jr.",
+                                                                                                                                 ifelse(Coach == "T J  Weist", "T.J. Weist",
+                                                                                                                                        ifelse(Coach == "T J  Woods", "T.J. Woods",
+                                                                                                                                               ifelse(Coach == 'Jim O Neil', "Jim O'Neil",
+                                                                                                                                                      ifelse(Coach == 'Bill O Brien', "Bill O'Brien",
+                                                                                                                                                             ifelse(Coach == 'Re quan Boyette', "Re'quan Boyette",
+                                                                                                                                                                    ifelse(Coach == 'Tim Harris Jr ', "Tim Harris Jr.",
+                                                                                                                                                                           
+                                                                                                                                                                           Coach))))))))))))))))))))))
 
 # Assign scores for each Louvain metric to each coach in the filtered data set for training year
 
