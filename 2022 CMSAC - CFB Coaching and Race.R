@@ -18,9 +18,8 @@ invisible(lapply(packages, library, character.only = TRUE))
 
 # Read and clean the coaches csv
 
-x <- getURL("https://raw.githubusercontent.com/rebinion/College-Coaching-Project/main/coaches_by_race.csv")
-
-coach_df1 <- read.csv(text=x)
+file_url <- "https://github.com/markwood14/CFB-Coaching-Project/blob/main/coach_df1.Rda?raw=true"
+load(url(file_url))
 
 coach_df1 <- coach_df1 %>% 
   dplyr::mutate(College = ifelse(College == "FAU", "Florida Atlantic",
