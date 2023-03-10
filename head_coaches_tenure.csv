@@ -1,0 +1,570 @@
+"","College","Coach","Role","Race","year_start","year_end"
+"1","Air Force","Fisher DeBerry","Head Coach","White",2000,2006
+"2","Air Force","Troy Calhoun","Head Coach","White",2007,2021
+"3","Akron","Lee Owens","Head Coach","White",2000,2003
+"4","Akron","J.D. Brookhart","Head Coach","White",2004,2009
+"5","Akron","Rob Ianello","Head Coach","White",2010,2011
+"6","Akron","Terry Bowden","Head Coach/Offensive Coordinator","White",2012,2017
+"7","Akron","Tom Arth","Head Coach","White",2018,2021
+"8","Alabama","Mike DuBose","Head Coach","White",2000,2000
+"9","Alabama","Dennis Franchione","Head Coach","White",2001,2002
+"10","Alabama","Mike Shula","Head Coach","White",2003,2006
+"11","Alabama","Nick Saban","Head Coach","White",2007,2021
+"12","Appalachian State","Scott Satterfield","Head Coach","White",2014,2018
+"13","Appalachian State","Eliah Drinkwitz","Head Coach/Offensive Coordinator","White",2019,2019
+"14","Appalachian State","Shawn Clark","Head Coach","White",2020,2021
+"15","Arizona","Dick Tomey","Head Coach","White",2000,2000
+"16","Arizona","John Mackovic","Head Coach","White",2001,2003
+"17","Arizona","Mike Stoops","Head Coach","White",2004,2011
+"18","Arizona","Rich Rodriguez","Head Coach","White",2012,2017
+"19","Arizona","Kevin Sumlin","Head Coach","Black",2018,2020
+"20","Arizona","Jedd Fisch","Head Coach","White",2021,2021
+"21","Arizona State","Bruce Snyder","Head Coach","White",2000,2000
+"22","Arizona State","Dirk Koetter","Head Coach/Offensive Coordinator","White",2001,2006
+"23","Arizona State","Dennis Erickson","Head Coach","White",2007,2011
+"24","Arizona State","Todd Graham","Head Coach","White",2012,2017
+"25","Arizona State","Herm Edwards","Head Coach","Black",2018,2021
+"26","Arkansas","Houston Nutt","Head Coach/Offensive Coordinator","White",2000,2007
+"27","Arkansas","Bobby Petrino","Head Coach","White",2008,2011
+"28","Arkansas","John L. Smith","Head Coach","White",2012,2012
+"29","Arkansas","Bret Bielema","Head Coach","White",2013,2017
+"30","Arkansas","Chad Morris","Head Coach","White",2018,2019
+"31","Arkansas","Sam Pittman","Head Coach","White",2020,2021
+"32","Arkansas State","Joe Hollis","Head Coach","White",2000,2001
+"33","Arkansas State","Steve Roberts","Head Coach","White",2002,2010
+"34","Arkansas State","Hugh Freeze","Head Coach/Offensive Coordinator","White",2011,2011
+"35","Arkansas State","Gus Malzahn","Head Coach","White",2012,2012
+"36","Arkansas State","Bryan Harsin","Head Coach","White",2013,2013
+"37","Arkansas State","Blake Anderson","Head Coach","White",2014,2020
+"38","Arkansas State","Butch Jones","Head Coach","White",2021,2021
+"39","Army","Todd Berry","Head Coach","White",2000,2003
+"40","Army","Bobby Ross","Head Coach","White",2004,2006
+"41","Army","Stan Brock","Head Coach","White",2007,2008
+"42","Army","Rich Ellerson","Head Coach","White",2009,2013
+"43","Army","Jeff Monken","Head Coach","White",2014,2021
+"44","Auburn","Tommy Tuberville","Head Coach","White",2000,2008
+"45","Auburn","Gene Chizik","Head Coach","White",2009,2012
+"46","Auburn","Gus Malzahn","Head Coach","White",2013,2020
+"47","Auburn","Bryan Harsin","Head Coach","White",2021,2021
+"48","Ball State","Bill Lynch","Head Coach","White",2000,2002
+"49","Ball State","Brady Hoke","Head Coach","White",2003,2008
+"50","Ball State","Stan Parrish","Head Coach","White",2009,2010
+"51","Ball State","Pete Lembo","Head Coach","White",2011,2015
+"52","Ball State","Mike Neu","Head Coach","White",2016,2021
+"53","Baylor","Kevin Steele","Head Coach","White",2000,2002
+"54","Baylor","Guy Morriss","Head Coach","White",2003,2007
+"55","Baylor","Art Briles","Head Coach","White",2008,2015
+"56","Baylor","Jim Grobe","Head Coach","White",2016,2016
+"57","Baylor","Matt Rhule","Head Coach","White",2017,2019
+"58","Baylor","Dave Aranda","Head Coach","Other",2020,2021
+"59","Boise State","Dirk Koetter","Head Coach/Offensive Coordinator","White",2000,2000
+"60","Boise State","Dan Hawkins","Head Coach","White",2001,2005
+"61","Boise State","Chris Petersen","Head Coach","White",2006,2013
+"62","Boise State","Bryan Harsin","Head Coach","White",2014,2020
+"63","Boise State","Andy Avalos","Head Coach","White",2021,2021
+"64","Boston College","Tom O'Brien","Head Coach","White",2000,2006
+"65","Boston College","Jeff Jagodzinski","Head Coach","White",2007,2008
+"66","Boston College","Frank Spaziani","Head Coach","White",2009,2012
+"67","Boston College","Steve Addazio","Head Coach","White",2013,2019
+"68","Boston College","Jeff Hafley","Head Coach","White",2020,2021
+"69","Bowling Green","Gary Blackney","Head Coach","White",2000,2000
+"70","Bowling Green","Urban Meyer","Head Coach","White",2001,2002
+"71","Bowling Green","Gregg Brandon","Head Coach","White",2003,2008
+"72","Bowling Green","Dave Clawson","Head Coach","White",2009,2013
+"73","Bowling Green","Dino Babers","Head Coach","Black",2014,2015
+"74","Bowling Green","Mike Jinks","Head Coach","Black",2016,2018
+"75","Bowling Green","Scot Loeffler","Head Coach","White",2019,2021
+"76","Buffalo","Craig Cirbus","Head Coach","White",2000,2000
+"77","Buffalo","Jim Hofher","Head Coach","White",2001,2005
+"78","Buffalo","Turner Gill","Head Coach","Black",2006,2009
+"79","Buffalo","Jeff Quinn","Head Coach","White",2010,2014
+"80","Buffalo","Lance Leipold","Head Coach","White",2015,2020
+"81","Buffalo","Maurice Linguist","Head Coach","Black",2021,2021
+"82","BYU","LaVell Edwards","Head Coach","White",2000,2000
+"83","BYU","Gary Crowton","Head Coach","White",2001,2004
+"84","BYU","Bronco Mendenhall","Head Coach/Defensive Coordinator","White",2005,2015
+"85","BYU","Kalani Sitake","Head Coach","Other",2016,2021
+"86","California","Tom Holmoe","Head Coach","White",2000,2001
+"87","California","Jeff Tedford","Head Coach","White",2002,2012
+"88","California","Sonny Dykes","Head Coach","White",2013,2016
+"89","California","Justin Wilcox","Head Coach","White",2017,2021
+"90","Central Michigan","Mike DeBord","Head Coach","White",2000,2003
+"91","Central Michigan","Brian Kelly","Head Coach","White",2004,2006
+"92","Central Michigan","Butch Jones","Head Coach","White",2007,2009
+"93","Central Michigan","Dan Enos","Head Coach","White",2010,2014
+"94","Central Michigan","John Bonamego","Head Coach","White",2015,2018
+"95","Central Michigan","Jim McElwain","Head Coach","White",2019,2021
+"96","Charlotte","Brad Lambert","Head Coach","White",2015,2018
+"97","Charlotte","Will Healy","Head Coach","White",2019,2021
+"98","Cincinnati","Rick Minter","Head Coach","White",2000,2003
+"99","Cincinnati","Mark Dantonio","Head Coach","White",2004,2006
+"100","Cincinnati","Brian Kelly","Head Coach","White",2007,2009
+"101","Cincinnati","Butch Jones","Head Coach","White",2010,2012
+"102","Cincinnati","Tommy Tuberville","Head Coach","White",2013,2016
+"103","Cincinnati","Luke Fickell","Head Coach","White",2017,2021
+"104","Clemson","Tommy Bowden","Head Coach","White",2000,2008
+"105","Clemson","Dabo Swinney","Head Coach","White",2009,2021
+"106","Coastal Carolina","Joe Moglia","Head Coach","White",2017,2018
+"107","Coastal Carolina","Jamey Chadwell","Head Coach","White",2019,2021
+"108","Colorado","Gary Barnett","Head Coach","White",2000,2005
+"109","Colorado","Dan Hawkins","Head Coach","White",2006,2010
+"110","Colorado","Jon Embree","Head Coach","Black",2011,2012
+"111","Colorado","Mike MacIntyre","Head Coach","White",2013,2018
+"112","Colorado","Mel Tucker","Head Coach","Black",2019,2019
+"113","Colorado","Karl Dorrell","Head Coach","Black",2020,2021
+"114","Colorado State","Sonny Lubick","Head Coach","White",2000,2007
+"115","Colorado State","Steve Fairchild","Head Coach","White",2008,2011
+"116","Colorado State","Jim McElwain","Head Coach","White",2012,2014
+"117","Colorado State","Mike Bobo","Head Coach","White",2015,2019
+"118","Colorado State","Steve Addazio","Head Coach","White",2020,2021
+"119","Duke","Carl Franks","Head Coach/Offensive Coordinator","White",2000,2003
+"120","Duke","Ted Roof","Head Coach","White",2004,2007
+"121","Duke","David Cutcliffe","Head Coach","White",2008,2021
+"122","East Carolina","Steve Logan","Head Coach","White",2000,2002
+"123","East Carolina","John Thompson","Head Coach","White",2003,2004
+"124","East Carolina","Skip Holtz","Head Coach","White",2005,2009
+"125","East Carolina","Ruffin McNeill","Head Coach","Black",2010,2015
+"126","East Carolina","Scottie Montgomery","Head Coach","Black",2016,2018
+"127","East Carolina","Mike Houston","Head Coach","White",2019,2021
+"128","Eastern Michigan","Jeff Woodruff","Head Coach","White",2000,2003
+"129","Eastern Michigan","Jeff Genyk","Head Coach","White",2004,2008
+"130","Eastern Michigan","Ron English","Head Coach","Black",2009,2013
+"131","Eastern Michigan","Chris Creighton","Head Coach","White",2014,2021
+"132","Florida Atlantic","Howard Schnellenberger","Head Coach","White",2005,2011
+"133","Florida Atlantic","Carl Pelini","Head Coach","White",2012,2013
+"134","Florida Atlantic","Charlie Partridge","Head Coach","White",2014,2016
+"135","Florida Atlantic","Lane Kiffin","Head Coach","White",2017,2019
+"136","Florida Atlantic","Willie Taggart","Head Coach","Black",2020,2021
+"137","Florida International","Don Strock","Head Coach","White",2005,2006
+"138","Florida International","Mario Cristobal","Head Coach","Other",2007,2012
+"139","Florida International","Ron Turner","Head Coach/Offensive Coordinator","White",2013,2016
+"140","Florida International","Butch Davis","Head Coach","White",2017,2021
+"141","Florida","Steve Spurrier","Head Coach/Offensive Coordinator/Quarterbacks Coach","White",2000,2001
+"142","Florida","Ron Zook","Head Coach","White",2002,2004
+"143","Florida","Urban Meyer","Head Coach","White",2005,2010
+"144","Florida","Will Muschamp","Head Coach","White",2011,2014
+"145","Florida","Jim McElwain","Head Coach","White",2015,2017
+"146","Florida","Dan Mullen","Head Coach","White",2018,2021
+"147","Florida State","Bobby Bowden","Head Coach","White",2000,2009
+"148","Florida State","Jimbo Fisher","Head Coach","White",2010,2017
+"149","Florida State","Willie Taggart","Head Coach","Black",2018,2019
+"150","Florida State","Mike Norvell","Head Coach","White",2020,2021
+"151","Fresno State","Pat Hill","Head Coach","White",2000,2011
+"152","Fresno State","Tim DeRuyter","Head Coach","White",2012,2016
+"153","Fresno State","Jeff Tedford","Head Coach","White",2017,2019
+"154","Fresno State","Kalen DeBoer","Head Coach","White",2020,2021
+"155","Georgia","Jim Donnan","Head Coach/Offensive Coordinator","White",2000,2000
+"156","Georgia","Mark Richt","Head Coach","White",2001,2015
+"157","Georgia","Kirby Smart","Head Coach","White",2016,2021
+"158","Georgia Southern","Willie Fritz","Head Coach","White",2014,2015
+"159","Georgia Southern","Tyson Summers","Head Coach","White",2016,2017
+"160","Georgia Southern","Chad Lunsford","Head Coach","White",2018,2021
+"161","Georgia State","Trent Miles","Head Coach","Black",2013,2016
+"162","Georgia State","Shawn Elliott","Head Coach","White",2017,2021
+"163","Georgia Tech","George O'Leary","Head Coach","White",2000,2001
+"164","Georgia Tech","Chan Gailey","Head Coach","White",2002,2007
+"165","Georgia Tech","Paul Johnson","Head Coach/Offensive Coordinator","White",2008,2018
+"166","Georgia Tech","Geoff Collins","Head Coach","White",2019,2021
+"167","Hawai'i","June Jones","Head Coach/Offensive Coordinator","White",2000,2007
+"168","Hawai'i","Greg McMackin","Head Coach","White",2008,2011
+"169","Hawai'i","Norm Chow","Head Coach","Other",2012,2015
+"170","Hawai'i","Nick Rolovich","Head Coach","White",2016,2019
+"171","Hawai'i","Todd Graham","Head Coach","White",2020,2021
+"172","Houston","Dana Dimel","Head Coach","White",2000,2002
+"173","Houston","Art Briles","Head Coach/Offensive Coordinator","White",2003,2007
+"174","Houston","Kevin Sumlin","Head Coach","Black",2008,2011
+"175","Houston","Tony Levine","Head Coach","White",2012,2014
+"176","Houston","Tom Herman","Head Coach","White",2015,2016
+"177","Houston","Major Applewhite","Head Coach","White",2017,2018
+"178","Houston","Dana Holgorsen","Head Coach","White",2019,2021
+"179","Illinois","Ron Turner","Head Coach/Offensive Coordinator","White",2000,2004
+"180","Illinois","Ron Zook","Head Coach","White",2005,2011
+"181","Illinois","Tim Beckman","Head Coach","White",2012,2014
+"182","Illinois","Bill Cubit","Head Coach/Offensive Coordinator","White",2015,2015
+"183","Illinois","Lovie Smith","Head Coach","Black",2016,2020
+"184","Illinois","Bret Bielema","Head Coach","White",2021,2021
+"185","Indiana","Cam Cameron","Head Coach","White",2000,2001
+"186","Indiana","Gerry DiNardo","Head Coach","White",2002,2004
+"187","Indiana","Terry Hoeppner","Head Coach","White",2005,2006
+"188","Indiana","Bill Lynch","Head Coach","White",2007,2010
+"189","Indiana","Kevin Wilson","Head Coach","White",2011,2016
+"190","Indiana","Tom Allen","Head Coach","White",2017,2021
+"191","Iowa","Kirk Ferentz","Head Coach","White",2000,2021
+"192","Iowa State","Dan McCarney","Head Coach","White",2000,2006
+"193","Iowa State","Gene Chizik","Head Coach","White",2007,2008
+"194","Iowa State","Paul Rhoads","Head Coach","White",2009,2015
+"195","Iowa State","Matt Campbell","Head Coach","White",2016,2021
+"196","Kansas","Terry Allen","Head Coach","White",2000,2001
+"197","Kansas","Mark Mangino","Head Coach","White",2002,2009
+"198","Kansas","Turner Gill","Head Coach","Black",2010,2011
+"199","Kansas","Charlie Weis","Head Coach/Offensive Coordinator","White",2012,2014
+"200","Kansas","David Beaty","Head Coach","White",2015,2018
+"201","Kansas","Les Miles","Head Coach","White",2019,2020
+"202","Kansas","Lance Leipold","Head Coach","White",2021,2021
+"203","Kansas State","Bill Snyder","Head Coach","White",2000,2018
+"204","Kansas State","Ron Prince","Head Coach","?",2006,2008
+"205","Kansas State","Chris Klieman","Head Coach","White",2019,2021
+"206","Kent State","Dean Pees","Head Coach","White",2000,2003
+"207","Kent State","Doug Martin","Head Coach","White",2004,2010
+"208","Kent State","Darrell Hazell","Head Coach","Black",2011,2012
+"209","Kent State","Paul Haynes","Head Coach","Black",2013,2017
+"210","Kent State","Sean Lewis","Head Coach","White",2018,2021
+"211","Kentucky","Hal Mumme","Head Coach","White",2000,2000
+"212","Kentucky","Guy Morriss","Head Coach/Offensive Line Coach","White",2001,2002
+"213","Kentucky","Rich Brooks","Head Coach","White",2003,2009
+"214","Kentucky","Joker Phillips","Head Coach","Black",2010,2012
+"215","Kentucky","Mark Stoops","Head Coach","White",2013,2021
+"216","Liberty","Turner Gill","Head Coach","Black",2018,2018
+"217","Liberty","Hugh Freeze","Head Coach","White",2019,2021
+"218","Louisiana","Jerry Baldwin","Head Coach","Black",2000,2001
+"219","Louisiana","Rickey Bustle","Head Coach","White",2002,2010
+"220","Louisiana","Mark Hudspeth","Head Coach","White",2011,2017
+"221","Louisiana","Billy Napier","Head Coach","White",2018,2021
+"222","Louisiana Monroe","Bobby Keasler","Head Coach","White",2000,2002
+"223","Louisiana Monroe","Charlie Weatherbie","Head Coach","White",2003,2009
+"224","Louisiana Monroe","Todd Berry","Head Coach","White",2010,2015
+"225","Louisiana Monroe","Matt Viator","Head Coach","White",2016,2020
+"226","Louisiana Tech","Jack Bicknell Jr.","Head Coach","White",2000,2006
+"227","Louisiana Tech","Derek Dooley","Head Coach","White",2007,2009
+"228","Louisiana Tech","Sonny Dykes","Head Coach","White",2010,2012
+"229","Louisiana Tech","Skip Holtz","Head Coach","White",2013,2021
+"230","Louisville","John L. Smith","Head Coach","White",2000,2002
+"231","Louisville","Bobby Petrino","Head Coach","White",2003,2018
+"232","Louisville","Steve Kragthorpe","Head Coach","White",2007,2009
+"233","Louisville","Charlie Strong","Head Coach","Black",2010,2013
+"234","Louisville","Scott Satterfield","Head Coach","White",2019,2021
+"235","LSU","Nick Saban","Head Coach","White",2000,2004
+"236","LSU","Les Miles","Head Coach","White",2005,2016
+"237","LSU","Ed Orgeron","Head Coach","White",2017,2021
+"238","Marshall","Bob Pruett","Head Coach","White",2000,2004
+"239","Marshall","Mark Snyder","Head Coach","White",2005,2009
+"240","Marshall","Doc Holliday","Head Coach","White",2010,2020
+"241","Marshall","Charles Huff","Head Coach","Black",2021,2021
+"242","Maryland","Ron Vanderlinden","Head Coach","White",2000,2000
+"243","Maryland","Ralph Friedgen","Head Coach","White",2001,2010
+"244","Maryland","Randy Edsall","Head Coach","White",2011,2015
+"245","Maryland","D.J. Durkin","Head Coach","White",2016,2017
+"246","Maryland","Matt Canada","Head Coach/Offensive Coordinator/Quarterbacks Coach","White",2018,2018
+"247","Maryland","Mike Locksley","Head Coach","Black",2019,2021
+"248","UMass","Charley Molnar","Head Coach","?",2012,2013
+"249","UMass","Mark Whipple","Head Coach/Offensive Coordinator","White",2014,2018
+"250","UMass","Walt Bell","Head Coach/Offensive Coordinator","White",2019,2021
+"251","Memphis","Rip Scherer","Head Coach/Offensive Coordinator","White",2000,2000
+"252","Memphis","Tommy West","Head Coach","White",2001,2009
+"253","Memphis","Larry Porter","Head Coach","Black",2010,2011
+"254","Memphis","Justin Fuente","Head Coach","White",2012,2015
+"255","Memphis","Mike Norvell","Head Coach","White",2016,2019
+"256","Memphis","Ryan Silverfield","Head Coach","White",2020,2021
+"257","Miami","Butch Davis","Head Coach","White",2000,2000
+"258","Miami","Larry Coker","Head Coach","White",2001,2006
+"259","Miami","Randy Shannon","Head Coach","Black",2007,2010
+"260","Miami","Al Golden","Head Coach","White",2011,2015
+"261","Miami","Mark Richt","Head Coach","White",2016,2018
+"262","Miami","Manny Diaz","Head Coach","Other",2019,2021
+"263","Miami (OH)","Terry Hoeppner","Head Coach","White",2000,2004
+"264","Miami (OH)","Shane Montgomery","Head Coach/Offensive Coordinator/Quarterbacks Coach","White",2005,2008
+"265","Miami (OH)","Michael Haywood","Head Coach","Black",2009,2010
+"266","Miami (OH)","Don Treadwell","Head Coach","White",2011,2013
+"267","Miami (OH)","Chuck Martin","Head Coach","White",2014,2021
+"268","Michigan","Lloyd Carr","Head Coach","White",2000,2007
+"269","Michigan","Rich Rodriguez","Head Coach","White",2008,2010
+"270","Michigan","Brady Hoke","Head Coach","White",2011,2014
+"271","Michigan","Jim Harbaugh","Head Coach","White",2015,2021
+"272","Michigan State","Bobby Williams","Head Coach","Black",2000,2002
+"273","Michigan State","John L. Smith","Head Coach","White",2003,2006
+"274","Michigan State","Mark Dantonio","Head Coach","White",2007,2019
+"275","Michigan State","Mel Tucker","Head Coach","Black",2020,2021
+"276","Middle Tennessee","Andy McCollum","Head Coach","White",2000,2005
+"277","Middle Tennessee","Rick Stockstill","Head Coach","White",2006,2021
+"278","Minnesota","Glen Mason","Head Coach","White",2000,2006
+"279","Minnesota","Tim Brewster","Head Coach","White",2007,2010
+"280","Minnesota","Jerry Kill","Head Coach","White",2011,2015
+"281","Minnesota","Tracy Claeys","Head Coach","White",2016,2016
+"282","Minnesota","P.J. Fleck","Head Coach","White",2017,2021
+"283","Mississippi State","Jackie Sherrill","Head Coach","White",2000,2003
+"284","Mississippi State","Sylvester Croom","Head Coach","Black",2004,2008
+"285","Mississippi State","Dan Mullen","Head Coach","White",2009,2017
+"286","Mississippi State","Joe Moorhead","Head Coach","White",2018,2019
+"287","Mississippi State","Mike Leach","Head Coach/Offensive Coordinator/Quarterbacks Coach","White",2020,2021
+"288","Missouri","Larry Smith","Head Coach","White",2000,2000
+"289","Missouri","Gary Pinkel","Head Coach","White",2001,2015
+"290","Missouri","Barry Odom","Head Coach","White",2016,2019
+"291","Missouri","Eliah Drinkwitz","Head Coach/Offensive Coordinator","White",2020,2021
+"292","Navy","Charlie Weatherbie","Head Coach","White",2000,2001
+"293","Navy","Paul Johnson","Head Coach/Offensive Coordinator","White",2002,2007
+"294","Navy","Ken Niumatalolo","Head Coach","Other",2008,2021
+"295","NC State","Chuck Amato","Head Coach","White",2000,2006
+"296","NC State","Tom O'Brien","Head Coach","White",2007,2012
+"297","NC State","Dave Doeren","Head Coach","White",2013,2021
+"298","Nebraska","Frank Solich","Head Coach/Offensive Coordinator","White",2000,2003
+"299","Nebraska","Bill Callahan","Head Coach","White",2004,2007
+"300","Nebraska","Bo Pelini","Head Coach","White",2008,2014
+"301","Nebraska","Mike Riley","Head Coach","White",2015,2017
+"302","Nebraska","Scott Frost","Head Coach","White",2018,2021
+"303","Nevada","Chris Tormey","Head Coach","White",2000,2003
+"304","Nevada","Chris Ault","Head Coach","White",2004,2012
+"305","Nevada","Brian Polian","Head Coach","White",2013,2016
+"306","Nevada","Jay Norvell","Head Coach","Black",2017,2021
+"307","New Mexico","Rocky Long","Head Coach","White",2000,2008
+"308","New Mexico","Mike Locksley","Head Coach","Black",2009,2011
+"309","New Mexico","Bob Davie","Head Coach","White",2012,2019
+"310","New Mexico","Danny Gonzales","Head Coach","White",2020,2021
+"311","New Mexico State","Tony Samuel","Head Coach","Black",2000,2004
+"312","New Mexico State","Hal Mumme","Head Coach/Offensive Coordinator","White",2005,2008
+"313","New Mexico State","DeWayne Walker","Head Coach","Black",2009,2012
+"314","New Mexico State","Doug Martin","Head Coach/Special Teams Coordinator","White",2013,2021
+"315","North Carolina","Carl Torbush","Head Coach","White",2000,2000
+"316","North Carolina","John Bunting","Head Coach","White",2001,2006
+"317","North Carolina","Butch Davis","Head Coach","White",2007,2010
+"318","North Carolina","Everett Withers","Head Coach","Black",2011,2011
+"319","North Carolina","Larry Fedora","Head Coach","White",2012,2018
+"320","North Carolina","Mack Brown","Head Coach","White",2019,2021
+"321","North Texas","Darrell Dickey","Head Coach/Offensive Coordinator","White",2000,2006
+"322","North Texas","Todd Dodge","Head Coach","White",2007,2010
+"323","North Texas","Dan McCarney","Head Coach","White",2011,2015
+"324","North Texas","Seth Littrell","Head Coach","White",2016,2021
+"325","Northern Illinois","Joe Novak","Head Coach","White",2000,2007
+"326","Northern Illinois","Jerry Kill","Head Coach","White",2008,2010
+"327","Northern Illinois","Dave Doeren","Head Coach","White",2011,2012
+"328","Northern Illinois","Rod Carey","Head Coach","White",2013,2018
+"329","Northern Illinois","Thomas Hammock","Head Coach","Black",2019,2021
+"330","Northwestern","Randy Walker","Head Coach","White",2000,2005
+"331","Northwestern","Pat Fitzgerald","Head Coach","White",2006,2021
+"332","Notre Dame","Bob Davie","Head Coach","White",2000,2001
+"333","Notre Dame","Tyrone Willingham","Head Coach","Black",2002,2004
+"334","Notre Dame","Charlie Weis","Head Coach","White",2005,2009
+"335","Notre Dame","Brian Kelly","Head Coach","White",2010,2021
+"336","Ohio","Jim Grobe","Head Coach","White",2000,2000
+"337","Ohio","Brian Knorr","Head Coach","White",2001,2004
+"338","Ohio","Frank Solich","Head Coach","White",2005,2020
+"339","Ohio","Tim Albin","Head Coach","White",2021,2021
+"340","Ohio State","John Cooper","Head Coach","White",2000,2000
+"341","Ohio State","Jim Tressel","Head Coach","White",2001,2010
+"342","Ohio State","Luke Fickell","Head Coach","White",2011,2011
+"343","Ohio State","Urban Meyer","Head Coach","White",2012,2018
+"344","Ohio State","Ryan Day","Head Coach","White",2019,2021
+"345","Oklahoma","Bob Stoops","Head Coach","White",2000,2016
+"346","Oklahoma","Lincoln Riley","Head Coach/Quarterbacks Coach","White",2017,2021
+"347","Oklahoma State","Bob Simmons","Head Coach","Black",2000,2000
+"348","Oklahoma State","Les Miles","Head Coach","White",2001,2004
+"349","Oklahoma State","Mike Gundy","Head Coach","White",2005,2021
+"350","Old Dominion","Bobby Wilder","Head Coach","White",2014,2019
+"351","Old Dominion","Ricky Rahne","Head Coach","White",2020,2021
+"352","Ole Miss","David Cutcliffe","Head Coach","White",2000,2004
+"353","Ole Miss","Ed Orgeron","Head Coach/Defensive Coordinator","White",2005,2007
+"354","Ole Miss","Houston Nutt","Head Coach","White",2008,2011
+"355","Ole Miss","Hugh Freeze","Head Coach","White",2012,2016
+"356","Ole Miss","Matt Luke","Head Coach","White",2017,2019
+"357","Ole Miss","Lane Kiffin","Head Coach","White",2020,2021
+"358","Oregon","Mike Bellotti","Head Coach","White",2000,2008
+"359","Oregon","Chip Kelly","Head Coach","White",2009,2012
+"360","Oregon","Mark Helfrich","Head Coach","White",2013,2016
+"361","Oregon","Willie Taggart","Head Coach","Black",2017,2017
+"362","Oregon","Mario Cristobal","Head Coach","Other",2018,2021
+"363","Oregon State","Dennis Erickson","Head Coach","White",2000,2002
+"364","Oregon State","Mike Riley","Head Coach","White",2003,2014
+"365","Oregon State","Gary Andersen","Head Coach","White",2015,2017
+"366","Oregon State","Jonathan Smith","Head Coach","White",2018,2021
+"367","Penn State","Joe Paterno","Head Coach","White",2000,2011
+"368","Penn State","Bill O'Brien","Head Coach/Offensive Coordinator","White",2012,2013
+"369","Penn State","James Franklin","Head Coach","Black",2014,2021
+"370","Pittsburgh","Walt Harris","Head Coach","White",2000,2004
+"371","Pittsburgh","Dave Wannstedt","Head Coach","White",2005,2010
+"372","Pittsburgh","Todd Graham","Head Coach","White",2011,2011
+"373","Pittsburgh","Paul Chryst","Head Coach","White",2012,2014
+"374","Pittsburgh","Pat Narduzzi","Head Coach","White",2015,2021
+"375","Purdue","Joe Tiller","Head Coach","White",2000,2008
+"376","Purdue","Danny Hope","Head Coach","White",2009,2012
+"377","Purdue","Darrell Hazell","Head Coach","Black",2013,2016
+"378","Purdue","Jeff Brohm","Head Coach","White",2017,2021
+"379","Rice","Ken Hatfield","Head Coach","White",2000,2005
+"380","Rice","Todd Graham","Head Coach","White",2006,2006
+"381","Rice","David Bailiff","Head Coach","White",2007,2017
+"382","Rice","Mike Bloomgren","Head Coach","White",2018,2021
+"383","Rutgers","Terry Shea","Head Coach","White",2000,2000
+"384","Rutgers","Greg Schiano","Head Coach","White",2001,2021
+"385","Rutgers","Kyle Flood","Head Coach","White",2012,2015
+"386","Rutgers","Chris Ash","Head Coach","White",2016,2019
+"387","San Diego State","Ted Tollner","Head Coach","White",2000,2001
+"388","San Diego State","Tom Craft","Head Coach/Offensive Coordinator","White",2002,2005
+"389","San Diego State","Chuck Long","Head Coach","White",2006,2008
+"390","San Diego State","Brady Hoke","Head Coach","White",2009,2021
+"391","San Diego State","Rocky Long","Head Coach/Defensive Coordinator","White",2011,2019
+"392","San José State","Dave Baldwin","Head Coach","White",2000,2000
+"393","San José State","Fitz Hill","Head Coach","Black",2001,2004
+"394","San José State","Dick Tomey","Head Coach","White",2005,2009
+"395","San José State","Mike MacIntyre","Head Coach","White",2010,2012
+"396","San José State","Ron Caragher","Head Coach","White",2013,2016
+"397","San José State","Brent Brennan","Head Coach","White",2017,2021
+"398","SMU","Mike Cavan","Head Coach","White",2000,2001
+"399","SMU","Phil Bennett","Head Coach","White",2002,2007
+"400","SMU","June Jones","Head Coach/Offensive Coordinator","White",2008,2014
+"401","SMU","Chad Morris","Head Coach","White",2015,2017
+"402","SMU","Sonny Dykes","Head Coach","White",2018,2021
+"403","South Alabama","Joey Jones","Head Coach","White",2012,2017
+"404","South Alabama","Steve Campbell","Head Coach","White",2018,2020
+"405","South Alabama","Kane Wommack","Head Coach","White",2021,2021
+"406","South Carolina","Lou Holtz","Head Coach","White",2000,2004
+"407","South Carolina","Steve Spurrier","Head Coach","White",2005,2015
+"408","South Carolina","Will Muschamp","Head Coach","White",2016,2020
+"409","South Carolina","Shane Beamer","Head Coach","White",2021,2021
+"410","South Florida","Jeff Scott","Head Coach","White",2020,2021
+"411","Southern Mississippi","Jeff Bower","Head Coach","White",2000,2007
+"412","Southern Mississippi","Larry Fedora","Head Coach","White",2008,2011
+"413","Southern Mississippi","Ellis Johnson","Head Coach","White",2012,2012
+"414","Southern Mississippi","Todd Monken","Head Coach/Offensive Coordinator/Quarterbacks Coach","White",2013,2015
+"415","Southern Mississippi","Jay Hopson","Head Coach","White",2016,2020
+"416","Southern Mississippi","Will Hall","Head Coach","White",2021,2021
+"417","Stanford","Tyrone Willingham","Head Coach","Black",2000,2001
+"418","Stanford","Buddy Teevens","Head Coach","White",2002,2004
+"419","Stanford","Walt Harris","Head Coach/Offensive Coordinator/Quarterbacks Coach","White",2005,2006
+"420","Stanford","Jim Harbaugh","Head Coach/Quarterbacks Coach","White",2007,2010
+"421","Stanford","David Shaw","Head Coach","Black",2011,2021
+"422","Syracuse","Paul Pasqualoni","Head Coach","White",2000,2004
+"423","Syracuse","Greg Robinson","Head Coach/Defensive Coordinator","White",2005,2008
+"424","Syracuse","Doug Marrone","Head Coach","White",2009,2012
+"425","Syracuse","Scott Shafer","Head Coach","White",2013,2015
+"426","Syracuse","Dino Babers","Head Coach","Black",2016,2021
+"427","TCU","Dennis Franchione","Head Coach","White",2000,2000
+"428","TCU","Gary Patterson","Head Coach","White",2001,2021
+"429","Temple","Bobby Wallace","Head Coach","White",2000,2005
+"430","Temple","Al Golden","Head Coach","White",2006,2010
+"431","Temple","Steve Addazio","Head Coach","White",2011,2012
+"432","Temple","Matt Rhule","Head Coach","White",2013,2016
+"433","Temple","Geoff Collins","Head Coach","White",2017,2018
+"434","Temple","Rod Carey","Head Coach","White",2019,2021
+"435","Tennessee","Phillip Fulmer","Head Coach","White",2000,2008
+"436","Tennessee","Lane Kiffin","Head Coach","White",2009,2009
+"437","Tennessee","Derek Dooley","Head Coach","White",2010,2012
+"438","Tennessee","Butch Jones","Head Coach","White",2013,2017
+"439","Tennessee","Jeremy Pruitt","Head Coach","White",2018,2020
+"440","Tennessee","Josh Heupel","Head Coach","White",2021,2021
+"441","Texas","Mack Brown","Head Coach","White",2000,2013
+"442","Texas","Charlie Strong","Head Coach","Black",2014,2016
+"443","Texas","Tom Herman","Head Coach","White",2017,2020
+"444","Texas","Steve Sarkisian","Head Coach","White",2021,2021
+"445","Texas A&M","R.C. Slocum","Head Coach","White",2000,2002
+"446","Texas A&M","Dennis Franchione","Head Coach","White",2003,2007
+"447","Texas A&M","Mike Sherman","Head Coach","White",2008,2011
+"448","Texas A&M","Kevin Sumlin","Head Coach","Black",2012,2017
+"449","Texas A&M","Jimbo Fisher","Head Coach","White",2018,2021
+"450","Texas State","Dennis Franchione","Head Coach","White",2012,2015
+"451","Texas State","Everett Withers","Head Coach","Black",2016,2018
+"452","Texas State","Jake Spavital","Head Coach","White",2019,2021
+"453","Texas Tech","Mike Leach","Head Coach","White",2000,2009
+"454","Texas Tech","Tommy Tuberville","Head Coach","White",2010,2012
+"455","Texas Tech","Kliff Kingsbury","Head Coach/Quarterbacks Coach","White",2013,2018
+"456","Texas Tech","Matt Wells","Head Coach","White",2019,2021
+"457","Toledo","Gary Pinkel","Head Coach","White",2000,2000
+"458","Toledo","Tom Amstutz","Head Coach","White",2001,2008
+"459","Toledo","Tim Beckman","Head Coach","White",2009,2011
+"460","Toledo","Matt Campbell","Head Coach","White",2012,2015
+"461","Toledo","Jason Candle","Head Coach","White",2016,2021
+"462","Troy","Larry Blakeney","Head Coach","White",2001,2014
+"463","Troy","Neal Brown","Head Coach","White",2015,2018
+"464","Troy","Chip Lindsey","Head Coach","White",2019,2021
+"465","Tulane","Chris Scelfo","Head Coach","White",2000,2006
+"466","Tulane","Bob Toledo","Head Coach","White",2007,2011
+"467","Tulane","Curtis Johnson","Head Coach","Black",2012,2015
+"468","Tulane","Willie Fritz","Head Coach","White",2016,2021
+"469","Tulsa","Keith Burns","Head Coach","White",2000,2002
+"470","Tulsa","Steve Kragthorpe","Head Coach","White",2003,2006
+"471","Tulsa","Todd Graham","Head Coach","White",2007,2010
+"472","Tulsa","Bill Blankenship","Head Coach","White",2011,2014
+"473","Tulsa","Philip Montgomery","Head Coach","White",2015,2021
+"474","UAB","Watson Brown","Head Coach","White",2000,2006
+"475","UAB","Neil Callaway","Head Coach","White",2007,2011
+"476","UAB","Garrick McGee","Head Coach","Black",2012,2013
+"477","UAB","Bill Clark","Head Coach","White",2014,2021
+"478","UCF","Mike Kruczek","Head Coach/Offensive Coordinator","White",2000,2003
+"479","UCF","George O'Leary","Head Coach","White",2004,2015
+"480","UCF","Scott Frost","Head Coach","White",2016,2017
+"481","UCF","Josh Heupel","Head Coach","White",2018,2020
+"482","UCF","Gus Malzahn","Head Coach","White",2021,2021
+"483","UCLA","Bob Toledo","Head Coach","White",2000,2002
+"484","UCLA","Karl Dorrell","Head Coach","Black",2003,2007
+"485","UCLA","Rick Neuheisel","Head Coach","White",2008,2011
+"486","UCLA","Jim L. Mora","Head Coach","White",2012,2017
+"487","UCLA","Chip Kelly","Head Coach/Offensive Coordinator","White",2018,2021
+"488","Connecticut","Randy Edsall","Head Coach","White",2000,2021
+"489","Connecticut","Paul Pasqualoni","Head Coach","White",2011,2013
+"490","Connecticut","Bob Diaco","Head Coach","White",2014,2016
+"491","Louisiana Monroe","Terry Bowden","Head Coach","White",2021,2021
+"492","UNLV","John Robinson","Head Coach","White",2000,2004
+"493","UNLV","Mike Sanford Sr.","Head Coach","White",2005,2009
+"494","UNLV","Bobby Hauck","Head Coach","White",2010,2014
+"495","UNLV","Tony Sanchez","Head Coach","Other",2015,2019
+"496","UNLV","Marcus Arroyo","Head Coach","White",2020,2021
+"497","USC","Paul Hackett","Head Coach","White",2000,2000
+"498","USC","Pete Carroll","Head Coach","White",2001,2009
+"499","USC","Lane Kiffin","Head Coach","White",2010,2013
+"500","USC","Steve Sarkisian","Head Coach","White",2014,2015
+"501","USC","Clay Helton","Head Coach","White",2016,2021
+"502","South Florida","Jim Leavitt","Head Coach","White",2001,2009
+"503","South Florida","Skip Holtz","Head Coach","White",2010,2012
+"504","South Florida","Willie Taggart","Head Coach","Black",2013,2016
+"505","South Florida","Charlie Strong","Head Coach","Black",2017,2019
+"506","Utah","Ron McBride","Head Coach","White",2000,2002
+"507","Utah","Urban Meyer","Head Coach","White",2003,2004
+"508","Utah","Kyle Whittingham","Head Coach","White",2005,2021
+"509","Utah State","Mick Dennehy","Head Coach","White",2000,2004
+"510","Utah State","Brent Guy","Head Coach","White",2005,2008
+"511","Utah State","Gary Andersen","Head Coach","White",2009,2020
+"512","Utah State","Matt Wells","Head Coach","White",2013,2018
+"513","Utah State","Blake Anderson","Head Coach","White",2021,2021
+"514","UTEP","Gary Nord","Head Coach","White",2000,2003
+"515","UTEP","Mike Price","Head Coach","White",2004,2012
+"516","UTEP","Sean Kugler","Head Coach","White",2013,2017
+"517","UTEP","Dana Dimel","Head Coach","White",2018,2021
+"518","UT San Antonio","Larry Coker","Head Coach","White",2011,2015
+"519","UT San Antonio","Frank Wilson","Head Coach","Black",2016,2019
+"520","UT San Antonio","Jeff Traylor","Head Coach","White",2020,2021
+"521","Vanderbilt","Woody Widenhofer","Head Coach","White",2000,2001
+"522","Vanderbilt","Bobby Johnson","Head Coach","White",2002,2009
+"523","Vanderbilt","Robbie Caldwell","Head Coach","White",2010,2010
+"524","Vanderbilt","James Franklin","Head Coach","Black",2011,2013
+"525","Vanderbilt","Derek Mason","Head Coach","Black",2014,2020
+"526","Vanderbilt","Clark Lea","Head Coach","White",2021,2021
+"527","Virginia","George Welsh","Head Coach","White",2000,2000
+"528","Virginia","Al Groh","Head Coach","White",2001,2009
+"529","Virginia","Mike London","Head Coach","Black",2010,2015
+"530","Virginia","Bronco Mendenhall","Head Coach","White",2016,2021
+"531","Virginia Tech","Frank Beamer","Head Coach","White",2000,2015
+"532","Virginia Tech","Justin Fuente","Head Coach","White",2016,2021
+"533","Wake Forest","Jim Caldwell","Head Coach","Black",2000,2000
+"534","Wake Forest","Jim Grobe","Head Coach","White",2001,2013
+"535","Wake Forest","Dave Clawson","Head Coach","White",2014,2021
+"536","Washington","Rick Neuheisel","Head Coach","White",2000,2002
+"537","Washington","Keith Gilbertson","Head Coach","White",2003,2004
+"538","Washington","Tyrone Willingham","Head Coach","Black",2005,2008
+"539","Washington","Steve Sarkisian","Head Coach","White",2009,2013
+"540","Washington","Chris Petersen","Head Coach","White",2014,2019
+"541","Washington","Jimmy Lake","Head Coach","Black",2020,2021
+"542","Washington State","Mike Price","Head Coach","White",2000,2002
+"543","Washington State","Bill Doba","Head Coach","White",2003,2007
+"544","Washington State","Paul Wulff","Head Coach","White",2008,2011
+"545","Washington State","Mike Leach","Head Coach/Offensive Coordinator/Quarterbacks Coach","White",2012,2019
+"546","Washington State","Nick Rolovich","Head Coach","White",2020,2021
+"547","West Virginia","Don Nehlen","Head Coach","White",2000,2000
+"548","West Virginia","Rich Rodriguez","Head Coach/Offensive Coordinator","White",2001,2007
+"549","West Virginia","Bill Stewart","Head Coach","White",2008,2010
+"550","West Virginia","Dana Holgorsen","Head Coach/Offensive Coordinator","White",2011,2018
+"551","West Virginia","Neal Brown","Head Coach","White",2019,2021
+"552","Western Kentucky","David Elson","Head Coach/Defensive Coordinator","White",2008,2009
+"553","Western Kentucky","Willie Taggart","Head Coach/Offensive Coordinator","Black",2010,2012
+"554","Western Kentucky","Bobby Petrino","Head Coach","White",2013,2013
+"555","Western Kentucky","Jeff Brohm","Head Coach","White",2014,2016
+"556","Western Kentucky","Mike Sanford Jr.","Head Coach","White",2017,2018
+"557","Western Kentucky","Tyson Helton","Head Coach","White",2019,2021
+"558","Western Michigan","Gary Darnell","Head Coach","White",2000,2004
+"559","Western Michigan","Bill Cubit","Head Coach","White",2005,2012
+"560","Western Michigan","P.J. Fleck","Head Coach","White",2013,2016
+"561","Western Michigan","Tim Lester","Head Coach","White",2017,2021
+"562","Wisconsin","Barry Alvarez","Head Coach","White",2000,2005
+"563","Wisconsin","Bret Bielema","Head Coach","White",2006,2012
+"564","Wisconsin","Gary Andersen","Head Coach","White",2013,2014
+"565","Wisconsin","Paul Chryst","Head Coach","White",2015,2021
+"566","Wyoming","Vic Koenning","Head Coach","White",2000,2002
+"567","Wyoming","Joe Glenn","Head Coach","White",2003,2008
+"568","Wyoming","Dave Christensen","Head Coach","White",2009,2013
+"569","Wyoming","Craig Bohl","Head Coach","White",2014,2021
